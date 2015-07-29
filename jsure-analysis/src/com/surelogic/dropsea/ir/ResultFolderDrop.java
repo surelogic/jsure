@@ -61,10 +61,12 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
     f_operator = operator == null ? LogicOperator.AND : operator;
   }
 
+  @NonNull
+  @Override
   public final DropType getDropType() {
-	return DropType.RESULT_FOLDER;
+    return DropType.RESULT_FOLDER;
   }
-  
+
   @Override
   @NonNull
   public LogicOperator getLogicOperator() {
@@ -127,37 +129,37 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
       // {consistency, red-dot, immediate, warning-hint}
       boolean[][] judgmentReddotWarningLattice = {
 
-      { true, false, true, false },
+          { true, false, true, false },
 
-      { true, false, false, false },
+          { true, false, false, false },
 
-      { true, false, true, true },
+          { true, false, true, true },
 
-      { true, false, false, true },
+          { true, false, false, true },
 
-      { true, true, true, false },
+          { true, true, true, false },
 
-      { true, true, false, false },
+          { true, true, false, false },
 
-      { true, true, true, true },
+          { true, true, true, true },
 
-      { true, true, false, true },
+          { true, true, false, true },
 
-      { false, true, true, false },
+          { false, true, true, false },
 
-      { false, true, true, true },
+          { false, true, true, true },
 
-      { false, false, true, false },
+          { false, false, true, false },
 
-      { false, false, true, true },
+          { false, false, true, true },
 
-      { false, true, false, false },
+          { false, true, false, false },
 
-      { false, true, false, true },
+          { false, true, false, true },
 
-      { false, false, false, false },
+          { false, false, false, false },
 
-      { false, false, false, true },
+          { false, false, false, true },
 
       };
 

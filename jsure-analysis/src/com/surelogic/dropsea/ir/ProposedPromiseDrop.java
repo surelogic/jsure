@@ -31,7 +31,6 @@ import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.ir.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -345,39 +344,39 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     f_attributeNameToValue = attributeNameToValue != null ? attributeNameToValue : Collections.<String, String> emptyMap();
     f_replacedAnnotation = replacedAnnotation;
     f_replacedValue = replacedValue;
-    f_replacedAttributeNameToValue = replacedAttributeNameToValue != null ? replacedAttributeNameToValue : Collections
-        .<String, String> emptyMap();
+    f_replacedAttributeNameToValue = replacedAttributeNameToValue != null ? replacedAttributeNameToValue
+        : Collections.<String, String> emptyMap();
 
     String contents = computeActualContents(value, f_attributeNameToValue, false);
     if (contents == null) {
-    	setMessageHelper(18, annotation);
+      setMessageHelper(18, annotation);
     } else {
-    	setMessageHelper(10, annotation, contents);
+      setMessageHelper(10, annotation, contents);
     }
   }
 
   private static String computeActualContents(String value, Map<String, String> attrs, boolean escape) {
-	  if (attrs.isEmpty()) {
-		  if (escape) {
-			  if (value == null) {
-				  return null;
-			  }
-			  return '"'+SLUtility.escapeJavaStringForQuoting(value)+'"';
-		  }
-		  return value;
-	  }
-      StringBuilder sb = new StringBuilder();
-      if (value != null) {
-      	String v = escape ? SLUtility.escapeJavaStringForQuoting(value) : value;
-        sb.append("value=").append('"').append(v).append('"');
+    if (attrs.isEmpty()) {
+      if (escape) {
+        if (value == null) {
+          return null;
+        }
+        return '"' + SLUtility.escapeJavaStringForQuoting(value) + '"';
       }
-      for (Map.Entry<String, String> e : attrs.entrySet()) {
-    	String v = escape ? SLUtility.escapeJavaStringForQuoting(e.getValue()) : e.getValue();
-        sb.append(e.getKey()).append('=').append('"').append(v).append('"');
-      }
-      return sb.toString();
+      return value;
+    }
+    StringBuilder sb = new StringBuilder();
+    if (value != null) {
+      String v = escape ? SLUtility.escapeJavaStringForQuoting(value) : value;
+      sb.append("value=").append('"').append(v).append('"');
+    }
+    for (Map.Entry<String, String> e : attrs.entrySet()) {
+      String v = escape ? SLUtility.escapeJavaStringForQuoting(e.getValue()) : e.getValue();
+      sb.append(e.getKey()).append('=').append('"').append(v).append('"');
+    }
+    return sb.toString();
   }
-  
+
   /**
    * An indication of how this proposal was generated.
    */
@@ -390,10 +389,12 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     return f_origin;
   }
 
+  @NonNull
+  @Override
   public final DropType getDropType() {
-	return DropType.PROPOSAL;
+    return DropType.PROPOSAL;
   }
-  
+
   @Override
   public boolean isAbductivelyInferred() {
     /*
@@ -463,7 +464,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
 
   @NonNull
   public String getJavaAnnotationNoAtSign() {
-	String contents = computeActualContents(f_value, f_attributeNameToValue, true);
+    String contents = computeActualContents(f_value, f_attributeNameToValue, true);
     return f_annotation + (contents == null ? "" : "(" + contents + ")");
   }
 
@@ -585,12 +586,10 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     s.addAttribute(NO_ANNO_ATTRS, f_attributeNameToValue.isEmpty());
     s.addAttribute(NO_REPLACED_ATTRS, f_replacedAttributeNameToValue.isEmpty());
 
-    final @Nullable
-    IJavaRef declRef = JavaNode.getJavaRef(getAssumptionNode());
-    final @NonNull
-    IJavaRef assumeRef = getAssumptionRef();
-    final IJavaRef javaRef = declRef != null && declRef.getDeclaration() != null ? new JavaRef.Builder(assumeRef).setDeclaration(
-        declRef.getDeclaration()).build() : assumeRef;
+    final @Nullable IJavaRef declRef = JavaNode.getJavaRef(getAssumptionNode());
+    final @NonNull IJavaRef assumeRef = getAssumptionRef();
+    final IJavaRef javaRef = declRef != null && declRef.getDeclaration() != null
+        ? new JavaRef.Builder(assumeRef).setDeclaration(declRef.getDeclaration()).build() : assumeRef;
     final String encodedJavaRef = javaRef.encodeForPersistence();
     s.addAttribute(FROM_REF, encodedJavaRef);
   }

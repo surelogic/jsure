@@ -16,17 +16,36 @@ import com.surelogic.common.ref.IJavaRef;
  * snapshots using the IR-free drop-sea.
  */
 public interface IDrop {
+
   /**
-   * Get the general type of this drop (as an enum)
+   * Returns the general type of this drop.
+   * 
+   * @return the general type of this drop.
    */
+  @NonNull
   DropType getDropType();
 
+  /**
+   * Returns the simple name of the underlying IR drop class as given in the
+   * source code. For the IR dropsea this is simply implemented as
+   * {@code return getClass().getSimpleName();} For the IR-free dropsea it is
+   * implemented as a string lookup (passed from the XML snapshot).
+   * 
+   * @return the simple name of the underlying IR drop class as given in the
+   *         source code.
+   * 
+   * @see Class#getSimpleName()
+   */
   @NonNull
   String getSimpleClassName();
-  
+
+  /**
+   * 
+   * @return
+   */
   @NonNull
   String getFullClassName();
-  
+
   /**
    * Gets the IR drop-sea type, descended from {@link Drop}, even if this is an
    * IR-free drop, descended from {@link IRFreeDrop}.
@@ -38,8 +57,8 @@ public interface IDrop {
    * 
    * @return the IR drop-sea type, descended from {@link Drop}.
    */
-  //@NonNull
-  //Class<?> getIRDropSeaClass();
+  // @NonNull
+  // Class<?> getIRDropSeaClass();
 
   /**
    * Checks if this drop, in the IR drop-sea, is an instance of the passed
@@ -57,7 +76,7 @@ public interface IDrop {
    * @return {@code true} if this drop, in the IR drop-sea, is an instance of
    *         the passed type, {@code false} otherwise.
    */
-  //boolean instanceOfIRDropSea(Class<?> type);
+  // boolean instanceOfIRDropSea(Class<?> type);
 
   /**
    * Gets this drop's message. If no message has been set then the output will

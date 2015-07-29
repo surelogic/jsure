@@ -1,5 +1,6 @@
 package com.surelogic.dropsea.ir.drops;
 
+import com.surelogic.NonNull;
 import com.surelogic.aast.promise.ScopedPromiseNode;
 import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IScopedPromiseDrop;
@@ -11,8 +12,8 @@ import com.surelogic.dropsea.ir.PromiseDrop;
  * @subtypedBy edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop,
  *             edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop
  */
-public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> implements IScopedPromiseDrop,
-    IDerivedDropCreator<PromiseDrop<ScopedPromiseNode>> {
+public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode>
+    implements IScopedPromiseDrop, IDerivedDropCreator<PromiseDrop<ScopedPromiseNode>> {
 
   public ScopedPromiseDrop(ScopedPromiseNode a) {
     super(a);
@@ -33,8 +34,10 @@ public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> i
   public void validated(PromiseDrop<ScopedPromiseNode> pd) {
     throw new UnsupportedOperationException();
   }
-  
+
+  @NonNull
+  @Override
   public final DropType getDropType() {
-	return DropType.SCOPED_PROMISE;
+    return DropType.SCOPED_PROMISE;
   }
 }

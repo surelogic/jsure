@@ -26,18 +26,20 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
     f_operator = operator;
   }
 
+  @NonNull
+  @Override
   public final DropType getDropType() {
-	return DropType.RESULT_FOLDER;
+    return DropType.RESULT_FOLDER;
   }
-  
+
   @Override
   @NonNull
   public LogicOperator getLogicOperator() {
     return f_operator;
   }
-  
+
   @Override
   boolean aliasTheMessage() {
-	  return true;
+    return true;
   }
 }

@@ -43,10 +43,12 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   @NonNull
   private final Origin f_origin;
 
+  @NonNull
+  @Override
   public final DropType getDropType() {
-	return DropType.PROPOSAL;
+    return DropType.PROPOSAL;
   }
-  
+
   @Override
   boolean aliasTheMessage() {
     return true;

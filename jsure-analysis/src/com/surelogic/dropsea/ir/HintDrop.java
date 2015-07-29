@@ -47,10 +47,11 @@ public final class HintDrop extends Drop implements IHintDrop {
 
   private final HintType f_type;
 
+  @NonNull
   public final DropType getDropType() {
-	return DropType.HINT;
+    return DropType.HINT;
   }
-  
+
   @Override
   @NonNull
   public HintType getHintType() {

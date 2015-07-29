@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir;
 
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MODELING_PROBLEM_DROP;
 
+import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
@@ -34,6 +35,7 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
     this(node, -1);
   }
 
+  @NonNull
   public final DropType getDropType() {
     return DropType.MODELING_PROBLEM;
   }

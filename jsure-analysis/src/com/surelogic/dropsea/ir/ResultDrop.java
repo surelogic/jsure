@@ -23,7 +23,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  */
 public final class ResultDrop extends AnalysisResultDrop implements IResultDrop {
   private final IRNode f_proofContext;
-	
+
   /**
    * Constructs a new analysis result.
    */
@@ -33,23 +33,25 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   }
 
   public ResultDrop(IRNode node) {
-	this(node, null);
+    this(node, null);
   }
-  
+
   public IRNode getProofContext() {
-	return f_proofContext;
+    return f_proofContext;
   }
-  
+
   /**
    * Flags if this result indicates consistency with code.
    */
   @InRegion("DropState")
   private boolean f_consistent = false;
 
+  @NonNull
+  @Override
   public final DropType getDropType() {
-	return DropType.RESULT;
+    return DropType.RESULT;
   }
-  
+
   @Override
   public boolean isConsistent() {
     synchronized (f_seaLock) {
@@ -190,13 +192,8 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     s.addAttribute(TIMEOUT, isTimeout());
   }
   /*
-  @Override
-  protected String resolveMessage(final int number, final Object... args) {
-	  String rv = I18N.res(number, args);
-	  if (rv.contains("densityDpi")) {
-		  System.out.println("Found densityDpi");
-	  }
-	  return rv;
-  }
-  */
+   * @Override protected String resolveMessage(final int number, final Object...
+   * args) { String rv = I18N.res(number, args); if (rv.contains("densityDpi"))
+   * { System.out.println("Found densityDpi"); } return rv; }
+   */
 }

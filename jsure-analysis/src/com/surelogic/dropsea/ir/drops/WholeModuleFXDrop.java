@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effect;
@@ -38,10 +39,10 @@ public class WholeModuleFXDrop extends Drop {
 
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis.effects");
 
-  private static final Map<IRNode, WholeModuleFXDrop> modFxMap = new HashMap<IRNode, WholeModuleFXDrop>();
+  private static final Map<IRNode, WholeModuleFXDrop> modFxMap = new HashMap<>();
 
-  private static final Set<IRegion> currentInterestingRegions = new HashSet<IRegion>();
-  private static final Set<Effect> interestingRegionWriteFX = new HashSet<Effect>();
+  private static final Set<IRegion> currentInterestingRegions = new HashSet<>();
+  private static final Set<Effect> interestingRegionWriteFX = new HashSet<>();
 
   private static IBinder binder = null;
   private static ConflictChecker conflicter = null;
@@ -52,15 +53,17 @@ public class WholeModuleFXDrop extends Drop {
 
   private WholeModuleFXDrop() {
     super(null); // will blow up!
-    methodFX = new HashSet<Effect>(4);
-    filteredMethodFX = new HashSet<Effect>(0);
-    fixedPointFX = new ArrayList<Effect>();
+    methodFX = new HashSet<>(4);
+    filteredMethodFX = new HashSet<>(0);
+    fixedPointFX = new ArrayList<>();
   }
 
+  @NonNull
+  @Override
   public final DropType getDropType() {
-	return DropType.OTHER;  
+    return DropType.OTHER;
   }
-  
+
   public static WholeModuleFXDrop getMethodFX(final IRNode mDecl) {
     WholeModuleFXDrop res;
     synchronized (WholeModuleFXDrop.class) {
@@ -78,7 +81,7 @@ public class WholeModuleFXDrop extends Drop {
   }
 
   public static synchronized Set<WholeModuleFXDrop> getAllWholeModuleFXDrops() {
-    Set<WholeModuleFXDrop> res = new HashSet<WholeModuleFXDrop>();
+    Set<WholeModuleFXDrop> res = new HashSet<>();
     res.addAll(modFxMap.values());
     return res;
   }
@@ -133,7 +136,7 @@ public class WholeModuleFXDrop extends Drop {
   }
 
   public static Set<Effect> filterSomeFX(Set<Effect> fxToFilter) {
-    Set<Effect> res = new HashSet<Effect>(1);
+    Set<Effect> res = new HashSet<>(1);
 
     if (fxToFilter == null || fxToFilter.isEmpty()) {
       // nothing to do

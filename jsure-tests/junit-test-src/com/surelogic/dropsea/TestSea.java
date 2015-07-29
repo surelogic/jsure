@@ -6,6 +6,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
+import com.surelogic.NonNull;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
@@ -21,11 +22,11 @@ public class TestSea extends TestCase {
       super(new PlainIRNode());
     }
 
-	@Override
-	public DropType getDropType() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @NonNull
+    @Override
+    public DropType getDropType() {
+      return DropType.OTHER;
+    }
   }
 
   class MyDrop extends ADrop {
@@ -131,7 +132,7 @@ public class TestSea extends TestCase {
     List<Drop> dropSet = sea.getDropsOfType(Drop.class); // should get all
     // drops
     assertTrue("Drop count is " + dropSet.size() + " should be 6", dropSet.size() == 6);
-    Set<Drop> n = new HashSet<Drop>();
+    Set<Drop> n = new HashSet<>();
     n.add(d1);
     n.add(d2);
     n.add(md1);
@@ -141,7 +142,7 @@ public class TestSea extends TestCase {
     assertTrue("Drop instances are wrong", dropSet.containsAll(n));
     List<MyDrop> myDropSet = sea.getDropsOfType(MyDrop.class);
     assertTrue("MyDrop count is " + myDropSet.size() + " should be 4", myDropSet.size() == 4);
-    n = new HashSet<Drop>();
+    n = new HashSet<>();
     n.add(md1);
     n.add(md2);
     n.add(msd1);
@@ -149,7 +150,7 @@ public class TestSea extends TestCase {
     assertTrue("MyDrop instances are wrong", myDropSet.containsAll(n));
     List<MySubDrop> mySubDropSet = sea.getDropsOfType(MySubDrop.class);
     assertTrue("MySubDrop count is " + mySubDropSet.size() + " should be 2", mySubDropSet.size() == 2);
-    n = new HashSet<Drop>();
+    n = new HashSet<>();
     n.add(msd1);
     n.add(msd2);
     assertTrue("MySubDrop instances are wrong", mySubDropSet.containsAll(n));
@@ -160,19 +161,19 @@ public class TestSea extends TestCase {
     // test getting drops of a exact type
     List<ADrop> dropSet = sea.getDropsOfExactType(ADrop.class);
     assertTrue("Drop count is " + dropSet.size() + " should be 2", dropSet.size() == 2);
-    Set<Drop> n = new HashSet<Drop>();
+    Set<Drop> n = new HashSet<>();
     n.add(d1);
     n.add(d2);
     assertTrue("Drop instances are wrong", dropSet.containsAll(n));
     List<MyDrop> myDropSet = sea.getDropsOfExactType(MyDrop.class);
     assertTrue("MyDrop count is " + myDropSet.size() + " should be 2", myDropSet.size() == 2);
-    n = new HashSet<Drop>();
+    n = new HashSet<>();
     n.add(md1);
     n.add(md2);
     assertTrue("MyDrop instances are wrong", myDropSet.containsAll(n));
     List<MySubDrop> mySubDropSet = sea.getDropsOfType(MySubDrop.class);
     assertTrue("MySubDrop count is " + mySubDropSet.size() + " should be 2", mySubDropSet.size() == 2);
-    n = new HashSet<Drop>();
+    n = new HashSet<>();
     n.add(msd1);
     n.add(msd2);
     assertTrue("MySubDrop instances are wrong", mySubDropSet.containsAll(n));
