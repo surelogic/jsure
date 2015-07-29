@@ -1334,7 +1334,12 @@ class BoundedTypeFormal extends JavaTypeFormal {
 		IJavaType newBound = oldBound.subst(subst);
 		if (oldBound.equals(newBound)) {
 			// Ignore subst, and try s
-			return source.subst(s);
+			IJavaType rv = source.subst(s);
+			if (rv == null) {
+				// Raw, so return bound
+				return oldBound;
+			}
+			return rv;
 		}
 		IJavaType newType = source.subst(s);
 		if (!newType.equals(source)) {

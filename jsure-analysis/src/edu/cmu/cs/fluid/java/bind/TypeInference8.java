@@ -842,11 +842,15 @@ public class TypeInference8 {
           }
         };
       }
+      /* then α is resolved in B 2 , and where the capture of the resulting
+       * instantiation of α is U , the constraint formula < U -> T > is reduced
+       * and incorporated with B 2 .
+       */
       if (cond != null && bounds.examine(cond)) {
-        IJavaType u = null;// TODO
+    	BoundSet temp = resolve(b_2, Collections.singleton(alpha));
+        IJavaType u = temp.getInstantiations().get(alpha);
         reduceConstraintFormula(b_3, new ConstraintFormula(u, FormulaConstraint.IS_COMPATIBLE, t));
-        // return b_3;
-        throw new NotImplemented();
+        return b_3;
       }
     }
     /*
@@ -1774,6 +1778,9 @@ public class TypeInference8 {
     private int lowlink;
 
     ConstraintFormula(IJavaType s, FormulaConstraint c, IJavaType t) {
+      if (s == null || t == null) {
+    	  throw new NullPointerException();
+      }
       expr = null;
       stype = s;
       constraint = c;
@@ -1781,6 +1788,9 @@ public class TypeInference8 {
     }
 
     ConstraintFormula(IRNode e, FormulaConstraint c, IJavaType t) {
+      if (e == null || t == null) {
+    	  throw new NullPointerException();
+      }
       expr = e;
       stype = null;
       constraint = c;

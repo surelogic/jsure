@@ -45,14 +45,10 @@ public class MethodBinder8 implements IMethodBinder {
 	
     public BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call) {
         final Iterable<IBinding> methods = findMethods(scope, context, needMethod, from);
-        /*
-    	if ("getName".equals(JJNode.getInfoOrNull(call.call))) {
-    		System.out.println("Trying to find method for second()");
+
+        if (call.toString().equals("<implicit>.assertTrue(\"DOMResult does not contain a Document\", #.getNodeinstanceof Document)")) {
+    		System.out.println("Looking at call");
     	}
-    	*/
-		if (call.toString().startsWith("Collections.synchronizedList(new # <#>)")) {
-			System.out.println("Trying to find best method for syncList()");
-		}
         final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
         for(IBinding mb : methods) {
         	if (isPotentiallyApplicable(call, from, mb)) {
@@ -639,6 +635,9 @@ public class MethodBinder8 implements IMethodBinder {
     		if (isInAssignmentOrInvocationContext(e) &&
     			numChildren(MethodCall.getTypeArgs(e)) == 0) {
     			final IBinding mb = binder.getIBinding(e);
+    			if (AnnotationElement.prototype.includes(mb.getNode())) {
+    				return false;
+    			}
     			IRNode typeParams = MethodDeclaration.getTypes(mb.getNode());
     			if (numChildren(typeParams) > 0) {
     				return refersToTypeParams(binder, MethodDeclaration.getReturnType(mb.getNode()), typeParams);
