@@ -217,7 +217,10 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	@Override
 	public synchronized int getMajorJavaVersion() {
 		if (project != null) {
-			return project.getConfig().getIntOption(Config.SOURCE_LEVEL);
+			int level = project.getConfig().getIntOption(Config.SOURCE_LEVEL);
+			if (level != 0) {
+				return level;
+			}
 		}
 		return super.getMajorJavaVersion();
 	}

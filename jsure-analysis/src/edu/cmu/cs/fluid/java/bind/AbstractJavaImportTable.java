@@ -102,6 +102,12 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
    */
   protected final void addImport(IRNode importNode) {
     IRNode itemNode = ImportDeclaration.getItem(importNode);
+    /*
+    final String unparse = DebugUnparser.toString(itemNode);
+    if (unparse.contains("assertTrue")) {
+    	System.out.println("Found assertTrue");
+    }
+    */
     Pair<IJavaScope,String> pr = resolveImport(itemNode,importNode);
     IJavaScope scope = pr.first();
     String name = pr.second();
@@ -394,6 +400,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
           rv = scope.lookupAll(context, selector);
           if (rv != null && rv.hasNext()) {
               entry.addUse(useSite);
+              return rv;
           } 
         }
       }
