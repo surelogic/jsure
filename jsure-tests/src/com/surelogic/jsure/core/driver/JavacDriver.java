@@ -549,7 +549,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T>
 
   // Helper method for get the file content
   private static List<String> fileToLines(File f) {
-    List<String> lines = new LinkedList<String>();
+    List<String> lines = new LinkedList<>();
     String line = "";
     try {
       BufferedReader in = null;
@@ -584,7 +584,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T>
   private void scriptChanges(List<Pair<IResource, Integer>> resources) {
     // Lines queued to properly compute the number that need to be
     // atomically built
-    final List<String> queue = new ArrayList<String>();
+    final List<String> queue = new ArrayList<>();
     for (Pair<IResource, Integer> p : resources) {
       final IResource r = p.first();
       final String rName = r.getName();
@@ -829,7 +829,6 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T>
   }
 
   @Override
-  @SuppressWarnings({ "rawtypes" })
   public JavaProjectSet<T> doExplicitBuild(Map args, boolean ignoreNature) {
     JavacEclipse.initialize();
     if (script != null) {
@@ -1106,7 +1105,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T>
   }
 
   static class ChangeCollector implements IResourceDeltaVisitor {
-    private final List<Pair<IResource, Integer>> changes = new ArrayList<Pair<IResource, Integer>>();
+    private final List<Pair<IResource, Integer>> changes = new ArrayList<>();
 
     public List<Pair<IResource, Integer>> getChanges() {
       return changes;
@@ -1117,7 +1116,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T>
       if (delta.getResource().getType() != IResource.FILE) {
         return true;
       }
-      changes.add(new Pair<IResource, Integer>(delta.getResource(), delta.getKind()));
+      changes.add(new Pair<>(delta.getResource(), delta.getKind()));
       return false;
     }
   }

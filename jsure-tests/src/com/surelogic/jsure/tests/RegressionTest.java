@@ -408,7 +408,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
   private ITestOutput output = null;
   // private ITest currentTest = null;
-  private final Stack<ITest> currentTest = new Stack<ITest>();
+  private final Stack<ITest> currentTest = new Stack<>();
 
   /*
    * private File findFile(final IProject project, final String file, boolean
@@ -458,7 +458,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
 		System.out.println("JSure data = "
 				+ JSurePreferencesUtility.getJSureDataDirectory());
-		List<IJavaProject> jprojects = new ArrayList<IJavaProject>(
+		List<IJavaProject> jprojects = new ArrayList<>(
 				projects.length);
 		for (IProject p : projects) {
 			IJavaProject jp = JDTUtility.getJavaProject(p.getName());
