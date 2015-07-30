@@ -722,6 +722,9 @@ public class TypeInference8 {
     final BoundSet b_4 = computeB_4(b_3, c);
     final IJavaFunctionType origType = mb.computeMethodType(m);
     final BoundSet result = resolve(b_4, null);
+    if (result == null) {
+    	resolve(b_4, null);
+    }
     final IJavaTypeSubstitution theta_prime = result/* b_4 */.getFinalTypeSubst(eliminateTypeVars, false);
     if (b_4.usedUncheckedConversion()) {
       return mb.substParams_eraseReturn(origType, theta_prime);
