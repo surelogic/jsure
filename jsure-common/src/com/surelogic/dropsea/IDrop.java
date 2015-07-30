@@ -27,9 +27,11 @@ public interface IDrop {
 
   /**
    * Returns the simple name of the underlying IR drop class as given in the
-   * source code. For the IR dropsea this is simply implemented as
-   * {@code return getClass().getSimpleName();} For the IR-free dropsea it is
-   * implemented as a string lookup (passed from the XML snapshot).
+   * source code. For the IR dropsea this is implemented as
+   * {@code return getClass().getSimpleName();}
+   * <p>
+   * For the IR-free dropsea it is implemented as a string lookup (passed from
+   * the XML snapshot).
    * 
    * @return the simple name of the underlying IR drop class as given in the
    *         source code.
@@ -40,43 +42,20 @@ public interface IDrop {
   String getSimpleClassName();
 
   /**
+   * Returns the name of the underlying IR drop class as given in the source
+   * code. For the IR dropsea this is implemented as
+   * {@code return getClass().getName();}
+   * <p>
+   * For the IR-free dropsea it is implemented as a string lookup (passed from
+   * the XML snapshot).
    * 
-   * @return
+   * @return the name of the underlying IR drop class as given in the source
+   *         code.
+   * 
+   * @see Class#getName()
    */
   @NonNull
   String getFullClassName();
-
-  /**
-   * Gets the IR drop-sea type, descended from {@link Drop}, even if this is an
-   * IR-free drop, descended from {@link IRFreeDrop}.
-   * <p>
-   * In the IR drop-sea this method simply returns <tt>getClass()</tt>. In the
-   * IR-free drop-sea this method returns the {@link Class} saved, by name, in
-   * the sea snapshot file that corresponds to the IR drop-sea drop type of this
-   * drop before it was persisted.
-   * 
-   * @return the IR drop-sea type, descended from {@link Drop}.
-   */
-  // @NonNull
-  // Class<?> getIRDropSeaClass();
-
-  /**
-   * Checks if this drop, in the IR drop-sea, is an instance of the passed
-   * class. Typically this replaces code like: <i>receiver</i>
-   * <tt>instanceof</tt> <i>type</i>. This allows type checks in the IR-free
-   * drop-sea used for saving and restoring.
-   * <p>
-   * If you are comparing an instance of the IR drop-sea using this method the
-   * code is a shortcut for <tt>type.isInstance(this)</tt>. If you are comparing
-   * an instance of the IR-free drop-sea this method is a shortcut for
-   * <tt>type.isAssignableFrom({@link #getIRDropSeaClass()})</tt>
-   * 
-   * @param type
-   *          in the IR drop-sea, descended from {@link Drop}.
-   * @return {@code true} if this drop, in the IR drop-sea, is an instance of
-   *         the passed type, {@code false} otherwise.
-   */
-  // boolean instanceOfIRDropSea(Class<?> type);
 
   /**
    * Gets this drop's message. If no message has been set then the output will
