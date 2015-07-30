@@ -40,7 +40,7 @@ public abstract class AbstractBinder implements IBinder {
   final boolean processJava8;
   
   public AbstractBinder(boolean processJ8) {
-	  processJava8 = processJ8;
+	  processJava8 = true;
 	  typeVisitor = JavaTypeVisitor.getTypeVisitor(this);
   }
   
