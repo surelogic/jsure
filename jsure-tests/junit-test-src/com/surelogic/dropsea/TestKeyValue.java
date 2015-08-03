@@ -167,7 +167,7 @@ public final class TestKeyValue extends TestCase {
     IJavaRef ref = b.build();
     IKeyValue t7 = KeyValueUtility.getJavaRefInstance("KEY-JAVAREF", ref);
 
-    List<IKeyValue> l1 = new ArrayList<IKeyValue>();
+    List<IKeyValue> l1 = new ArrayList<>();
     l1.add(t1);
     l1.add(t2);
     l1.add(t3);
@@ -188,7 +188,7 @@ public final class TestKeyValue extends TestCase {
   }
 
   public void testIKeyValueEmptyListPersistence() {
-    List<IKeyValue> l1 = new ArrayList<IKeyValue>();
+    List<IKeyValue> l1 = new ArrayList<>();
 
     String el1 = KeyValueUtility.encodeListForPersistence(l1);
 

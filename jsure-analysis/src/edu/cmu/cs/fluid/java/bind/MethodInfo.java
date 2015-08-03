@@ -46,7 +46,11 @@ class MethodInfo {
 	}
 	
 	IJavaType getJavaType(IBinder b, IRNode f, boolean withSubst) {
-		return b.getJavaType(f);
+		IJavaType rv = b.getJavaType(f);
+		if (b.getTypeEnvironment().getMajorJavaVersion() >= 5) {
+			return rv;
+		}
+		return b.getTypeEnvironment().computeErasure(rv);
 	}
 	
 	/**

@@ -538,6 +538,21 @@ public class TypeInference8 {
         formals.add((ReboundedTypeFormal) t);
       }
     }
+    
+    public IJavaTypeSubstitution getSubst(ITypeEnvironment tEnv) {
+		Map<IJavaTypeFormal, IJavaType> map = new HashMap<>();
+		for(IJavaTypeFormal f : formals) {
+			if (f instanceof ReboundedTypeFormal) {
+				ReboundedTypeFormal r = (ReboundedTypeFormal) f;
+				map.put(r, r.getExtendsBound(tEnv));
+			}
+		}
+		if (map.isEmpty()) {				
+			return IJavaTypeSubstitution.NULL;
+		} else {
+			return new TypeInference8.TypeSubstitution(tEnv.getBinder(), map);
+		}
+    }
   }
 
   static class ReboundedTypeFormal extends JavaTypeFormal {
@@ -669,14 +684,23 @@ public class TypeInference8 {
        */
       final boolean computeTargetType = (targetType == null);
       if (computeTargetType) {
+    	/*
+    	// WORKING
+    	if (call.toString().equals("<implicit>.expect(ejb.targetMethod)")) {
+    		System.out.println("looking at <implicit>.expect(ejb.targetMethod)");
+    	}
+    	*/
         targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
         if (targetType == null) {
           targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
+        } else {
+          TypeFormalCollector c = new TypeFormalCollector();
+          targetType.visit(c);
+          if (!c.formals.isEmpty()) {
+        	  IJavaType temp = targetType.subst(c.getSubst(tEnv));
+        	  targetType = temp;
+          }
         }
-      }
-      // WORKING
-      if (call.toString().equals("new FastVector (0)")) {
-    	  System.out.println("looking at <implicit>.when(methodCall)");
       }
       final IJavaType r = m.getReturnType(tEnv, m.isConstructor);
 
@@ -698,6 +722,9 @@ public class TypeInference8 {
     final BoundSet b_4 = computeB_4(b_3, c);
     final IJavaFunctionType origType = mb.computeMethodType(m);
     final BoundSet result = resolve(b_4, null);
+    if (result == null) {
+    	resolve(b_4, null);
+    }
     final IJavaTypeSubstitution theta_prime = result/* b_4 */.getFinalTypeSubst(eliminateTypeVars, false);
     if (b_4.usedUncheckedConversion()) {
       return mb.substParams_eraseReturn(origType, theta_prime);
@@ -1952,6 +1979,9 @@ public class TypeInference8 {
       s = t;
       t = temp;
     }
+    if (t instanceof IJavaPrimitiveType) {
+    	t = JavaTypeFactory.getCorrespondingDeclType(tEnv, (IJavaPrimitiveType) t);
+    }
     return new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t);
   }
 
@@ -2676,9 +2706,13 @@ public class TypeInference8 {
       if (eliminateTypeVariables) {
         // System.out.println("Eliminating type variables");
         for (Entry<InferenceVariable, IJavaType> e : instantiations.entrySet()) {
-          IJavaType elim = eliminateTypeVariables(e.getValue());
-          if (elim != e.getValue()) {
-            e.setValue(elim);
+          try {
+        	  IJavaType elim = eliminateTypeVariables(e.getValue());
+        	  if (elim != e.getValue()) {
+        		  e.setValue(elim);
+        	  }
+          } catch(StackOverflowError ex) {
+        	  System.err.println("Leaving this type variable, due to stack overflow: "+e.getKey()+" -> "+e.getValue());        	  
           }
         }
       }

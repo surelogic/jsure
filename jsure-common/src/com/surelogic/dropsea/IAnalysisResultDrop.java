@@ -5,7 +5,7 @@ import java.util.Collection;
 import com.surelogic.NonNull;
 
 /**
- * The interface for all analysis results, or verification judgement, drops
+ * The interface for all analysis results, or verification judgment, drops
  * within the sea, intended to allow multiple implementations.
  * <p>
  * The verifying analyses use the IR drop-sea and the Eclipse client loads

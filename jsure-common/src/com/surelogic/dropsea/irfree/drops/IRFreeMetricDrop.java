@@ -42,10 +42,12 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     }
   }
 
+  @NonNull
+  @Override
   public final DropType getDropType() {
-	return DropType.METRIC;
+    return DropType.METRIC;
   }
-  
+
   @Override
   @NonNull
   public Metric getMetric() {

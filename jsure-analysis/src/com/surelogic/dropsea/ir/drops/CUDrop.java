@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
+import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.xml.XmlCreator;
@@ -41,10 +42,11 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
     return f_javaOSFileName;
   }
 
+  @NonNull
   public final DropType getDropType() {
-	return DropType.OTHER;  
+    return DropType.OTHER;
   }
-  
+
   /**
    * Gets the {@link IRNode} with operator {@link CompilationUnit} for the
    * compilation unit represented by this drop.
@@ -55,15 +57,15 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
   public final IRNode getCompilationUnitIRNode() {
     return getNode();
   }
-  
+
   @Override
   public final IRNode getCompUnit() {
-	return getNode();
+    return getNode();
   }
-  
+
   @Override
   public final String getLabel() {
-	return f_javaOSFileName;
+    return f_javaOSFileName;
   }
 
   private final Object f_hostEnvResource;
@@ -103,8 +105,8 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
     // TODO will this suck up space for the source?
     this.f_codeInfo = info;
     f_javaOSFileName = info.getFileName();
-    setMessageHelper(this.getClass().getSimpleName()+": "+f_javaOSFileName, null);
-    
+    setMessageHelper(this.getClass().getSimpleName() + ": " + f_javaOSFileName, null);
+
     f_hostEnvResource = info.getHostEnvResource();
 
     Integer loc = (Integer) info.getProperty(CodeInfo.LOC);

@@ -1,6 +1,14 @@
 package com.surelogic.dropsea.ir.drops.modules;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.surelogic.aast.promise.ModuleWrapperNode;
@@ -10,11 +18,16 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.ModelDrop;
-import com.surelogic.dropsea.ir.drops.threadroles.IThreadRoleDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.JavaGlobals;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaOperator;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.util.QuickProperties;
 
 /**
@@ -23,7 +36,7 @@ import edu.cmu.cs.fluid.util.QuickProperties;
  * 
  * @see edu.cmu.cs.fluid.analysis.util.ConvertToIR
  */
-public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
+public final class ModuleModel extends ModelDrop  {
 
   private static final Logger LOG;
 

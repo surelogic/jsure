@@ -484,7 +484,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     	 MethodBinder8 mb = new MethodBinder8((IPrivateBinder) binder, false);
     	 IJavaFunctionType ft = mb.computeInvocationType(call, (MethodBinding8) b, false);
     	 if (ft == null) {
-    		 mb.computeInvocationType(call, (MethodBinding8) b, false);
+    		 ft = mb.computeInvocationType(call, (MethodBinding8) b, false);
     	 }
     	 return ft.getReturnType();
       }

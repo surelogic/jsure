@@ -15,7 +15,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.LambdaCache;
-import edu.cmu.cs.fluid.java.bind.TypeInference8.ReboundedTypeFormal;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeFormalCollector;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeVariable;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -1309,18 +1308,7 @@ declared return type, Object .
 				for(IJavaType pType : m.getParamTypes(binder, call.numArgs(), usesVarargs())) {
 					pType.visit(v);
 				}		
-				Map<IJavaTypeFormal, IJavaType> map = new HashMap<>();
-				for(IJavaTypeFormal f : v.formals) {
-					if (f instanceof ReboundedTypeFormal) {
-						ReboundedTypeFormal r = (ReboundedTypeFormal) f;
-						map.put(r, r.getExtendsBound(tEnv));
-					}
-				}
-				if (map.isEmpty()) {				
-					subst = IJavaTypeSubstitution.NULL;
-				} else {
-					subst = new TypeInference8.TypeSubstitution(tEnv.getBinder(), map);
-				}
+				subst = v.getSubst(tEnv);
 			} else {
 				subst = IJavaTypeSubstitution.NULL;
 			}
@@ -1582,7 +1570,12 @@ declared return type, Object .
     	
     	MethodBinding8(ITypeEnvironment tEnv, ICallState call, IBinding b, InvocationKind invocationKind) {
     		super(b);
-    		
+    		/*
+    		String unparse = call.toString();
+    		if (unparse.startsWith("<implicit>.expect(#.targetMethod).andReturn(")) {
+    			System.out.println("Found <implicit>.expect(#.targetMethod).andReturn(...)");
+    		}
+    		*/
     		if (call.getReceiverType() != null && call.getReceiverType() != b.getReceiverType()) {
     			if (call.getReceiverType().isSubtype(tEnv, b.getReceiverType())) {
     				// TODO Update the binding? (too late!)

@@ -7,6 +7,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
+import com.surelogic.NonNull;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.Sea;
 
@@ -23,11 +24,11 @@ public class TestDrop extends TestCase {
     }
     // Nothing to add
 
-	@Override
-	public DropType getDropType() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @NonNull
+    @Override
+    public DropType getDropType() {
+      return DropType.OTHER;
+    }
   }
 
   private MyDrop d1, d2, d3, d4, d5, d6, d7;
@@ -38,7 +39,7 @@ public class TestDrop extends TestCase {
     // add d3 and d4 via an array of drops
     d1.addDependents(new Drop[] { d3, d4 });
     // add d5 and d6 via a Collection of drops
-    List<Drop> dropList = new ArrayList<Drop>();
+    List<Drop> dropList = new ArrayList<>();
     dropList.add(d5);
     dropList.add(d6);
     d1.addDependents(dropList);
@@ -51,7 +52,7 @@ public class TestDrop extends TestCase {
     // check that d1 has 5 dependents and that they are d2-d6
     Set<Drop> d1Dependents = d1.getDependents();
     assertTrue("d1 hase " + d1Dependents.size() + " instead of 5", d1Dependents.size() == 5);
-    Set<Drop> dependentSet = new HashSet<Drop>();
+    Set<Drop> dependentSet = new HashSet<>();
     dependentSet.add(d2);
     dependentSet.add(d3);
     dependentSet.add(d4);

@@ -88,16 +88,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     if (altDecl != null) {
       final Operator op = JJNode.tree.getOperator(getPromisedFor());
       if (ReceiverDeclaration.prototype.includes(op)) {
-      	setMessage(23, a.unparseForPromise(), JavaNames.genRelativeFunctionName(altDecl));
-      }    
-      else if (ReturnValueDeclaration.prototype.includes(op)) {
-    	setMessage(24, a.unparseForPromise(), JavaNames.genRelativeFunctionName(altDecl));
-      }
-      else if (ParameterDeclaration.prototype.includes(op)) {
+        setMessage(23, a.unparseForPromise(), JavaNames.genRelativeFunctionName(altDecl));
+      } else if (ReturnValueDeclaration.prototype.includes(op)) {
+        setMessage(24, a.unparseForPromise(), JavaNames.genRelativeFunctionName(altDecl));
+      } else if (ParameterDeclaration.prototype.includes(op)) {
         setMessage(22, a.unparseForPromise(), ParameterDeclaration.getId(decl), JavaNames.genRelativeFunctionName(altDecl));
-      } 
-      else if (Expression.prototype.includes(op)) {
-    	setMessage(26, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
+      } else if (Expression.prototype.includes(op)) {
+        setMessage(26, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
       } else {
         setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
       }
@@ -117,10 +114,12 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     return null;
   }
 
+  @NonNull
+  @Override
   public DropType getDropType() {
-	return DropType.PROMISE;
+    return DropType.PROMISE;
   }
-  
+
   @Override
   public final IRNode getPromisedFor() {
     return getNode();
@@ -159,7 +158,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * Adds a reference to a promise annotation which partially defines this
    * promise drop. The references collected are primarily intended for use by
    * the user interface. Dependency information is <i>not</i> managed by these
-   * references, hence, these should all be within a single compilation unit. <br>
+   * references, hence, these should all be within a single compilation unit.
+   * <br>
    * A PromiseDrop may represent the composite of many physical promises within
    * the program source code (e.g., method effects aggregation), hence, this
    * method may be invoked many times. Often, however, only a single source
@@ -445,27 +445,21 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     final Pair<IJavaRef, IRNode> superRefAndNode = super.getJavaRefAndCorrespondingNode();
     return computeRefWithContext(superRefAndNode, f_aast.getAnnoContext());
     /*
-    if (superRefAndNode == null)
-      throw new IllegalStateException(I18N.err(292, getMessage()));
-
-    final IJavaRef contextRef = JavaNode.getJavaRef(f_aast.getAnnoContext());
-    final IJavaRef bestRef;
-    final IRNode bestNode;
-    if (contextRef != null) {
-      bestNode = f_aast.getAnnoContext();
-      bestRef = contextRef;
-    } else {
-      bestNode = superRefAndNode.second();
-      bestRef = superRefAndNode.first();
-    }
-    final JavaRef.Builder builder = new JavaRef.Builder(bestRef);
-    builder.setDeclaration(superRefAndNode.first().getDeclaration());
-    Position position = superRefAndNode.first().getPositionRelativeToDeclaration();
-    if (position == Position.IS_DECL)
-      position = Position.ON_DECL;
-    builder.setPositionRelativeToDeclaration(position);
-    return new Pair<IJavaRef, IRNode>(builder.build(), bestNode);
-    */
+     * if (superRefAndNode == null) throw new
+     * IllegalStateException(I18N.err(292, getMessage()));
+     * 
+     * final IJavaRef contextRef = JavaNode.getJavaRef(f_aast.getAnnoContext());
+     * final IJavaRef bestRef; final IRNode bestNode; if (contextRef != null) {
+     * bestNode = f_aast.getAnnoContext(); bestRef = contextRef; } else {
+     * bestNode = superRefAndNode.second(); bestRef = superRefAndNode.first(); }
+     * final JavaRef.Builder builder = new JavaRef.Builder(bestRef);
+     * builder.setDeclaration(superRefAndNode.first().getDeclaration());
+     * Position position =
+     * superRefAndNode.first().getPositionRelativeToDeclaration(); if (position
+     * == Position.IS_DECL) position = Position.ON_DECL;
+     * builder.setPositionRelativeToDeclaration(position); return new
+     * Pair<IJavaRef, IRNode>(builder.build(), bestNode);
+     */
   }
 
   /**
@@ -488,8 +482,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
           SLLogger.getLogger().log(Level.WARNING, "Re-setting source drop to its current value: " + drop, new Exception("trace"));
           return;
         }
-        throw new IllegalArgumentException("This PromiseDrop already has a source drop: set-to=" + f_source + " changing-to="
-            + drop);
+        throw new IllegalArgumentException(
+            "This PromiseDrop already has a source drop: set-to=" + f_source + " changing-to=" + drop);
       }
       f_source = drop;
       drop.addDependent(this);
@@ -626,12 +620,12 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       s.refDrop(db, DEPONENT_PROMISES, c);
     }
   }
-  
+
   public final boolean showAtTopLevel() {
-	  return this instanceof UiShowAtTopLevel;
+    return this instanceof UiShowAtTopLevel;
   }
-  
+
   public final boolean placeInASubFolder() {
-	  return this instanceof UiPlaceInASubFolder;
+    return this instanceof UiPlaceInASubFolder;
   }
 }
