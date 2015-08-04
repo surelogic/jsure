@@ -644,21 +644,49 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     } else if (op instanceof ParameterizedType) {
       IRNode baseNode = ParameterizedType.getBase(nodeType);
       IJavaType bt = convertNodeTypeToIJavaType(baseNode, binder);
+      
+      if (!(bt instanceof JavaDeclaredType)) {
+          LOG.severe("parameterizing what? " + bt);
+          return bt;
+      }
+      JavaDeclaredType base = (JavaDeclaredType)bt;
       List<IJavaType> typeActuals = new ArrayList<IJavaType>();
       IRNode args = ParameterizedType.getArgs(nodeType);
+      IRNode tformals;
+      if (ClassDeclaration.prototype.includes(base.getDeclaration())) {
+    	  tformals = ClassDeclaration.getTypes(base.getDeclaration());
+      } else {
+    	  tformals = InterfaceDeclaration.getTypes(base.getDeclaration());
+      }
+      Iterator<IRNode> it = JJNode.tree.children(tformals);
       for (Iterator<IRNode> ch = JJNode.tree.children(args); ch.hasNext();) {
         IRNode arg = ch.next();
-        typeActuals.add(convertNodeTypeToIJavaType(arg,binder));
+        IRNode tf = it.next();
+        IJavaType ta = convertNodeTypeToIJavaType(arg,binder);
+        if (ta instanceof IJavaWildcardType) {
+        	IJavaTypeFormal f = JavaTypeFactory.getTypeFormal(tf);
+        	if (f.toString().contains("Enum")) {
+        		System.out.println("Got Enum formal");
+        	}
+        	IJavaReferenceType bound = f.getExtendsBound(binder.getTypeEnvironment());
+        	if (!bound.equals(binder.getTypeEnvironment().getObjectType())) {
+            	IJavaWildcardType wt = (IJavaWildcardType) ta;
+            	IJavaReferenceType upper;
+            	if (wt.getUpperBound() == null) {
+            		upper = bound;
+            	} else {
+            		TypeUtils helper = new TypeUtils(binder.getTypeEnvironment());
+            		upper = helper.getLowestUpperBound(wt.getUpperBound(), bound);
+            	}
+            	ta = JavaTypeFactory.getWildcardType(upper, wt.getLowerBound());
+        	}
+        }
+        typeActuals.add(ta);
       }
       if (AbstractJavaBinder.isBinary(nodeType) && bt == null) {    	
     	System.err.println("Null base type for "+DebugUnparser.toString(nodeType));
     	return null;  
       }      
-      if (!(bt instanceof JavaDeclaredType)) {
-        LOG.severe("parameterizing what? " + bt);
-        return bt;
-      }
-      JavaDeclaredType base = (JavaDeclaredType)bt;
       /* Check unneeded due to changes for NamedType
       if (base.getTypeParameters().size() > 0) {
         LOG.severe("Already has parameters! " + bt);
@@ -1833,8 +1861,9 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
 			  return false;
 		  }
 		  return true;
-	  }
-	  return false;
+	  }	  
+	  //return false;
+	  return t2.isSubtype(env, upperBound); // TODO is this right?
   }
 
   public IJavaReferenceType getUpperBound(ITypeEnvironment te) {
