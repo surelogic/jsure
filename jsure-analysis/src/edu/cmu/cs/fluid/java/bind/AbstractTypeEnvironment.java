@@ -991,6 +991,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
    */
   @Override
   public Iteratable<IJavaType> getSuperTypes(IJavaType ty) {
+	// WILDCARD
 	ty = JavaTypeVisitor.captureWildcards(getBinder(), ty);
 	
     //IBinder binder               = getBinder();
