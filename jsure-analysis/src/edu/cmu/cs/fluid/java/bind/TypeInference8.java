@@ -1156,7 +1156,11 @@ public class TypeInference8 {
    * supertype of S , but the raw type | G< ... > | is a supertype of S .
    */
   boolean onlyHasRawG_asSuperType(IRNode g_decl, IJavaType t) {
-    return onlyHasRawG_asSuperType(g_decl, false, t);
+	Boolean rv = onlyHasRawG_asSuperType(g_decl, false, t);
+	if (rv == null) {
+		return false;
+	}
+	return rv.booleanValue();
   }
 
   private Boolean onlyHasRawG_asSuperType(IRNode g_decl, boolean foundRawG, IJavaType t) {
@@ -3010,6 +3014,9 @@ public class TypeInference8 {
           }
         }
         for (SubtypeBound b : copy(subtypeBounds)) {
+          if (sb == b) {
+        	  continue; 
+          }
           if (b.t == alpha) {
             // case 4a: S <: α and α <: T imply ‹S <: T›
             reduceSubtypingConstraints(bounds, b.s, sb.t);
@@ -3023,6 +3030,15 @@ public class TypeInference8 {
              * types (not wildcards), the constraint formula ‹Si = Ti› is
              * implied.
              */
+            String unparse = b.toString();      
+            /*
+            if (unparse.contains("? extends testJSure.ModuleAnnotationNode")) {
+            	System.out.println("Matched ...");
+            }
+            */
+        	if (unparse.endsWith("VisibilityDrop.T extends VisibilityDrop <? extends #> <: testJSure.VisibilityDrop<? extends testJSure.ModuleAnnotationNode>")) {
+        		System.out.println("Looking at wildcard");
+        	}
             final Map<IRNode, IJavaDeclaredType> sStypes = collectSuperTypes(tEnv, sb.t);
             final Map<IRNode, IJavaDeclaredType> tStypes = collectSuperTypes(tEnv, b.t);
             final Set<IRNode> common = new HashSet<IRNode>(sStypes.keySet());
@@ -4788,9 +4804,10 @@ public class TypeInference8 {
         // HACK ignore for now?
         return;
       }
-      if (s.isEqualTo(tEnv, t)) {
+      if (t.isEqualTo(tEnv, s)) {
         bounds.addTrue();
       } else {
+    	t.isEqualTo(tEnv, s);
         bounds.addFalse();
       }
     } else if (isInferenceVariable(s) || isInferenceVariable(t)) {
