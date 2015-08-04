@@ -6,7 +6,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 /**
  * Represents a Class object being used as a lock.
  */
-public final class ClassImplementation implements LockImplementation {
+public final class ClassImplementation implements UnnamedLockImplementation {
   /** The class being used as the lock. */
   private final IJavaSourceRefType clazz;
   

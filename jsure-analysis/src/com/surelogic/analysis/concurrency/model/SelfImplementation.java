@@ -6,7 +6,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * Represents an object instance being used as a lock to protect one of its 
  * own regions.
  */
-public final class SelfImplementation implements LockImplementation {
+public final class SelfImplementation implements UnnamedLockImplementation {
   // XXX: State?
   // Do I need a reference to the class?
   

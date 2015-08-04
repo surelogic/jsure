@@ -3,7 +3,7 @@ package com.surelogic.analysis.concurrency.model;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
- * A lock implementation assotiated with a name.  These always come
+ * A lock implementation associated with a name.  These always come
  * from PolicyLock and RegionLock.
  */
 public final class NamedLockImplementation implements LockImplementation {
@@ -11,11 +11,12 @@ public final class NamedLockImplementation implements LockImplementation {
   private final String name;
   
   /** Delegate to the actual lock implementation. */
-  private final LockImplementation lockImpl;
+  private final UnnamedLockImplementation lockImpl;
   
   
   
-  public NamedLockImplementation(final String name, final LockImplementation lockImpl) {
+  public NamedLockImplementation(
+      final String name, final UnnamedLockImplementation lockImpl) {
     this.name = name;
     this.lockImpl = lockImpl;
   }

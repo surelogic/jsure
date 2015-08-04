@@ -7,7 +7,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
-public abstract class ClassMemberImplementation implements LockImplementation {
+public abstract class ClassMemberImplementation implements UnnamedLockImplementation {
   /** The name of the interface {@code java.util.concurrent.locks.Lock}. */
   private static final String JAVA_UTIL_CONCURRENT_LOCKS_LOCK =
       "java.util.concurrent.locks.Lock";
