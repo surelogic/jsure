@@ -993,6 +993,7 @@ public class MethodBinder8 implements IMethodBinder {
 	private boolean isCallCompatible_call(IJavaType pType, MethodBinding8 b, CallState call) {
 		IJavaFunctionType ftype = computeInvocationType(call, b, false, pType);
 		if (ftype == null) {
+			computeInvocationType(call, b, false, pType);
 			return false;
 		}
 		return tEnv.isCallCompatible(pType, ftype.getReturnType());
