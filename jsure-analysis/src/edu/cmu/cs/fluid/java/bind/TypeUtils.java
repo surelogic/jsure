@@ -25,15 +25,22 @@ import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayInitializer;
+import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.AssignmentExpression;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
+import edu.cmu.cs.fluid.java.operator.ConstructorReference;
+import edu.cmu.cs.fluid.java.operator.ForEachStatement;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodReference;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
@@ -1714,7 +1721,7 @@ public class TypeUtils {
     return getPolyExpressionTargetType(pe, false);
   }
 
-  public IJavaType getPolyExpressionTargetType(IRNode pe, boolean eliminateTypeVars) {
+  public IJavaType getPolyExpressionTargetType(final IRNode pe, boolean eliminateTypeVars) {
     IRNode p = JJNode.tree.getParent(pe);
     IRLocation loc = JJNode.tree.getLocation(pe);
     Operator op = JJNode.tree.getOperator(p);
@@ -1795,13 +1802,97 @@ public class TypeUtils {
       return (IJavaDeclaredType) at.getElementType();
     } else if (ReturnStatement.prototype.includes(op)) {
       return tEnv.getBinder().getJavaType(p);
+    } else if (ForEachStatement.prototype.includes(op)) {
+      IRNode pdecl = ForEachStatement.getVar(p);
+      IJavaType ty = tEnv.getBinder().getJavaType(ParameterDeclaration.getType(pdecl));
+      if (isArrayType(pe)) {
+          return JavaTypeFactory.getArrayType(ty, 1);
+      }
+      IRNode it = tEnv.findNamedType("java.lang.Iterable");
+      return JavaTypeFactory.getDeclaredType(it, Collections.singletonList(ty), null);
     }
+    
     // We make wish to make this a "fine" warning if all method call invocations
     // are treated as something that could learn from the target type.
     // LOG.warning("poly expression has bad context: " + op);
     return null;
   }
 
+  /**
+   * An conservative approximation of JLS 15.2 for the purposes of determining how to handle the
+   * target type for for-each statements
+   */
+  private boolean isArrayType(IRNode e) {
+  	final Operator op = JJNode.tree.getOperator(e);
+  	if (MethodCall.prototype.includes(op)) {
+  		//  A method invocation expression is a poly expression if all of the following are true:
+
+  		// The invocation appears in an assignment context (5.2) or an invocation context (5.3).
+  	    // The invocation elides NonWildTypeArguments.
+  	    // Per the following sections, the method to be invoked is a generic method (8.4.4).
+  	    // The return type of the method to be invoked mentions at least one of the method's type parameters. 
+
+  		// Otherwise, the method invocation expression is a standalone expression.    		
+  		/*
+  		if (isInAssignmentOrInvocationContext(e) &&
+  			numChildren(MethodCall.getTypeArgs(e)) == 0) {
+  			
+  			final IBinding mb = binder.getIBinding(e);
+  			IRNode typeParams = MethodDeclaration.getTypes(mb.getNode());
+  			if (numChildren(typeParams) > 0) {
+  				return refersToTypeParams(MethodDeclaration.getReturnType(mb.getNode()), typeParams);
+  			}    			
+  		}    		
+  		*/
+		final IBinding mb = tEnv.getBinder().getIBinding(e);
+		IRNode rt = MethodDeclaration.getReturnType(mb.getNode());
+		return ArrayType.prototype.includes(rt);
+  	}
+  	else if (ParenExpression.prototype.includes(op)) {
+  		return isArrayType(ParenExpression.getOp(e));
+  	}
+  	else if (NewExpression.prototype.includes(op)) {
+  		// A class instance creation expression is a poly expression (15.2) 
+  		// if i) it uses a diamond '<>' in place of type arguments, and 
+  		// ii) it appears in an assignment context (5.2) or an invocation context (5.3). 
+  		// Otherwise, it is a standalone expression.  	
+  		/*
+  		IRNode typeArgs = NewExpression.getTypeArgs(e);    		
+  		return typeArgs != null && numChildren(typeArgs) == 0 && isInAssignmentOrInvocationContext(e);
+  		*/
+  		return false; // Not relevant to lambda purposes
+  	}
+  	else if (ArrayCreationExpression.prototype.includes(op)) {
+  		return true;
+  	}
+  	else if (ConditionalExpression.prototype.includes(op)) {
+  		// 15.25.1 Boolean Conditional Expressions [New]
+  		//
+  		//   Boolean conditional expressions are standalone expressions (15.2).
+  		//
+  		// 15.25.2 Numeric Conditional Expressions [New]
+  		//
+  		//   Numeric conditional expressions are standalone expressions (15.2).
+  		// 
+  		// 15.25.3 Reference Conditional Expressions [New]
+  		// 
+  		//   A reference conditional expression is a poly expression if it appears in an 
+  		//   assignment context (5.2) or an invocation context (5.3). Otherwise, it is a standalone expression.
+  		/*
+  		if (classifyCondExpr(e) == ExpressionKind.REF) {
+  			return isInAssignmentOrInvocationContext(e);
+  		}
+  		*/
+  		return isArrayType(ConditionalExpression.getIftrue(e)) || isArrayType(ConditionalExpression.getIffalse(e));
+  	}
+  	else if (LambdaExpression.prototype.includes(op) || 
+  			 MethodReference.prototype.includes(op) ||
+  			 ConstructorReference.prototype.includes(op)) {
+  		return false;
+  	}    	
+  	return false;    	
+  }
+  
   private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args, boolean eliminateTypeVars) {
     MethodBinding8 bi = (MethodBinding8) tEnv.getBinder().getIBinding(call);
     return computeInvocationTypeForCall(call, args, eliminateTypeVars, bi);
