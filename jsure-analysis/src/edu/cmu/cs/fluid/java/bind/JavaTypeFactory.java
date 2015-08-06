@@ -663,6 +663,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
         IRNode arg = ch.next();
         IRNode tf = it.next();
         IJavaType ta = convertNodeTypeToIJavaType(arg,binder);
+        /*
         if (ta instanceof IJavaWildcardType) {
         	IJavaTypeFormal f = JavaTypeFactory.getTypeFormal(tf);
         	if (f.toString().contains("Enum")) {
@@ -681,6 +682,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
             	ta = JavaTypeFactory.getWildcardType(upper, wt.getLowerBound());
         	}
         }
+        */
         typeActuals.add(ta);
       }
       if (AbstractJavaBinder.isBinary(nodeType) && bt == null) {    	
@@ -708,8 +710,10 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       IBinding baseB = binder.getIBinding(baseNode);
       if (baseB != null && !TypeUtil.isStatic(baseB.getNode())) {
     	  // Adjust for outer class parameters only if non-static
-    	  return baseB.convertType(binder, rv);
+    	  rv = baseB.convertType(binder, rv);
       }
+      // WILDCARD
+      //rv = JavaTypeVisitor.captureWildcards(binder, rv);
       return rv;
     } else if (op instanceof WildcardSuperType) {
       IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardSuperType.getLower(nodeType),binder);
