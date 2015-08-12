@@ -250,11 +250,11 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       if (IDERoot.useJavac) {
         System.out.println("Configuring analyses from project-specific settings in " + analysisSettingsFile.getAbsolutePath());
         JavacEclipse.getDefault().initPrefs();
-        JavacEclipse.getDefault().synchronizeAnalysisPrefs();
       }
     } else {
       System.out.println("No project-specific analysis settings.");
     }
+    JavacEclipse.getDefault().synchronizeAnalysisPrefs();
   }
   
   private IProjectDescription getProjectDescription(IWorkspace workspace, File dotProjectFile) {
