@@ -54,6 +54,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
+import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.ReboundedTypeFormal;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
@@ -156,6 +157,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     @Override
     public void visit(Visitor v) {
     	v.accept(this);
+    	v.finish(this);
     }
     
     /*******************************************************
@@ -1015,7 +1017,9 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
   }
 
   public void visit(Visitor v) {
-	  v.accept(this);
+	  if (v.accept(this)) {
+		  v.finish(this);
+	  }
   }
   
   /*******************************************************
@@ -1206,6 +1210,9 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
     if (rv != this) {
     	return rv;
     }
+    if (!couldNeedSubst(getExtendsBound(s.getTypeEnv()))) {
+    	return this;
+    }
     return new BoundedTypeFormal(this, s);
   }
   
@@ -1291,6 +1298,24 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   public IJavaReferenceType getLowerBound() {
 	  return null;
   }
+  
+  boolean couldNeedSubst(IJavaType t) {
+	  TypeFormalChecker c = new TypeFormalChecker();
+	  t.visit(c);
+	  return c.result;
+  }
+}
+
+class TypeFormalChecker extends BooleanVisitor {
+	@Override
+	public boolean accept(IJavaType t) {
+		if (t instanceof IJavaTypeFormal) {
+			result = true;
+			return false;
+		}
+		return true;
+	}
+	
 }
 
 class BoundedTypeFormal extends JavaTypeFormal {
@@ -1478,14 +1503,16 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
   }
   
   @Override
-  public void visit(Visitor v) {
-	super.visit(v);
-	  
-	if (primaryBound != null) {
-		primaryBound.visit(v);
-	}
-	if (secondaryBound != null) {
-		secondaryBound.visit(v);
+  public final void visit(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {
+		if (primaryBound != null) {
+			primaryBound.visit(v);
+		}
+		if (secondaryBound != null) {
+			secondaryBound.visit(v);
+		}
+		v.finish(this);
 	}
   }	    
   
@@ -1582,14 +1609,16 @@ class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
 	  }
 	  
 	  @Override
-	  public void visit(Visitor v) {
-		super.visit(v);
-		  
-		if (primaryBound != null) {
-			primaryBound.visit(v);
-		}
-		if (secondaryBound != null) {
-			secondaryBound.visit(v);
+	  public final void visit(Visitor v) {
+		boolean go = v.accept(this);
+		if (go) { 
+			if (primaryBound != null) {
+				primaryBound.visit(v);
+			}
+			if (secondaryBound != null) {
+				secondaryBound.visit(v);
+			}
+			v.finish(this);
 		}
 	  }	  
 	  
@@ -1737,14 +1766,16 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   }
   
   @Override
-  public void visit(Visitor v) {
-	super.visit(v);
-	  
-	if (upperBound != null) {
-		upperBound.visit(v);
-	}
-	if (lowerBound != null) {
-		lowerBound.visit(v);
+  public final void visit(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {
+		if (upperBound != null) {
+			upperBound.visit(v);
+		}
+		if (lowerBound != null) {
+			lowerBound.visit(v);
+		}
+		v.finish(this);
 	}
   }	 
 }
@@ -1875,14 +1906,16 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   }
   
   @Override
-  public void visit(Visitor v) {
-	super.visit(v);
-	  
-	if (upperBound != null) {
-		upperBound.visit(v);
-	}
-	if (lowerBound != null) {
-		lowerBound.visit(v);
+  public final void visit(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {  
+		if (upperBound != null) {
+			upperBound.visit(v);
+		}
+		if (lowerBound != null) {
+			lowerBound.visit(v);
+		}
+		v.finish(this);
 	}
   }	 
 }
@@ -1973,9 +2006,12 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   }
   
   @Override
-  public void visit(Visitor v) {
-	  super.visit(v);
-	  elementType.visit(v);
+  public final void visit(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {
+		elementType.visit(v);
+		v.finish(this);
+	}
   }
 }
 
@@ -2142,11 +2178,19 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   
   @Override
   public void visit(Visitor v) {
-	super.visit(v);
-	  
-	for(IJavaType p : parameters) {
-		p.visit(v);
+	  if (visit_private(v)) {
+		  v.finish(this);
+	  }
+  }
+  
+  final boolean visit_private(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {
+		for(IJavaType p : parameters) {
+			p.visit(v);
+		}
 	}
+	return go;
   }
   
   /*******************************************************
@@ -2235,9 +2279,12 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     }
 
     @Override
-    public void visit(Visitor v) {
-    	super.visit(v);
-    	getOuterType().visit(v);
+    public final void visit(Visitor v) {
+    	boolean go = super.visit_private(v);
+    	if (go) {
+    		getOuterType().visit(v);
+    		v.finish(this);
+    	}
     }
   }
   
