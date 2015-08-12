@@ -19,6 +19,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8;
@@ -40,6 +41,7 @@ import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodReference;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
+import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
@@ -1772,10 +1774,22 @@ public class TypeUtils {
         throw new IllegalStateException();
       }
       final int n = bi.isConstructor || TypeUtil.isStatic(bi.getNode()) ? i : i + 1;
-      IJavaType rt = ftype.getParameterTypes().get(n);
-      if (n == ftype.getParameterTypes().size()-1 && bi.kind == IMethodBinder.InvocationKind.VARARGS) {
-    	  IJavaArrayType at = (IJavaArrayType) rt;
-    	  return at.getElementType();
+      final int numFormals = ftype.getParameterTypes().size();
+      IJavaType rt;      
+      if (n < numFormals) {
+    	  rt = ftype.getParameterTypes().get(n);
+    	  
+          if (n == ftype.getParameterTypes().size()-1 && bi.kind == IMethodBinder.InvocationKind.VARARGS) {
+        	  IJavaArrayType at = (IJavaArrayType) rt;
+        	  return at.getElementType();
+          }
+      } else {
+    	  if (bi.kind != IMethodBinder.InvocationKind.VARARGS) {
+    		  throw new IllegalStateException("Expected varargs: "+bi+" for callsite "+DebugUnparser.toString(p));
+    	  }
+    	  // Another case like above
+    	  IJavaArrayType at = (IJavaArrayType) ftype.getParameterTypes().get(numFormals-1);
+    	  rt = at.getElementType();
       }
       return rt;
     } else if (MethodCall.prototype.includes(op)) { // As receiver
@@ -1810,6 +1824,10 @@ public class TypeUtils {
       }
       IRNode it = tEnv.findNamedType("java.lang.Iterable");
       return JavaTypeFactory.getDeclaredType(it, Collections.singletonList(ty), null);
+    } else if (OpAssignExpression.prototype.includes(op)) {
+    	if (loc.equals(AssignExpression.op2Location)) {
+    		return tEnv.getBinder().getJavaType(OpAssignExpression.getOp1(p));
+    	}
     }
     
     // We make wish to make this a "fine" warning if all method call invocations
