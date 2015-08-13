@@ -617,14 +617,19 @@ public class TypeInference8 {
     @Override
     public IJavaType subst(final IJavaTypeSubstitution s) {
     	IJavaType subbed = super.subst(s);
-    	if (!(subbed instanceof BoundedTypeFormal)) {
+    	if (subbed != this && !(subbed instanceof BoundedTypeFormal)) {
+    		// There's an exact substitution for this
     		return subbed;
     	}
+    	// Check for substitutions involving the bound
     	IJavaType sourceSub = source.subst(s);
     	if (bound.isSubtype(tEnv, sourceSub)) {
     		return bound;
     	}
-    	return sourceSub;
+    	if (sourceSub != this) {
+    		return sourceSub;
+    	}
+    	return this;
     }
   }
 
