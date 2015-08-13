@@ -121,8 +121,8 @@ public class TypeUtils {
   // For a type U, we write ST(U) for the set of supertypes of U,
   //
   // Note: this needs to include the type itself
-  private Iterable<IJavaDeclaredType> getST(IJavaReferenceType... types) {
-    Set<IJavaDeclaredType> st = new HashSet<IJavaDeclaredType>();
+  private Iterable<IJavaSourceRefType> getST(IJavaReferenceType... types) {
+    Set<IJavaSourceRefType> st = new HashSet<IJavaSourceRefType>();
     for (IJavaReferenceType t : types) {
       if (t == null) {
         continue;
@@ -136,14 +136,14 @@ public class TypeUtils {
     return st;
   }
 
-  private void getST(Set<IJavaDeclaredType> st, IJavaReferenceType t) {
+  private void getST(Set<IJavaSourceRefType> st, IJavaReferenceType t) {
     if (st.contains(t)) {
       return; // Already handled
     }
-    if (t instanceof IJavaDeclaredType) {
-      st.add((IJavaDeclaredType) t);
+    if (t instanceof IJavaSourceRefType) {
+      st.add((IJavaSourceRefType) t);
     } else {
-      // System.out.println("Excluded from ST: "+t);
+      System.out.println("Excluded from ST: "+t);
     }
 
     for (IJavaType s : t.getSupertypes(tEnv)) {
@@ -156,7 +156,7 @@ public class TypeUtils {
   // where|W| is the erasure (�4.6) of W.
   private Set<IRNode> getEST(IJavaReferenceType t) {
     Set<IRNode> est = new HashSet<IRNode>();
-    for (IJavaDeclaredType s : getST(t)) {
+    for (IJavaSourceRefType s : getST(t)) {
       est.add(s.getDeclaration());
     }
     return est;
@@ -185,7 +185,7 @@ public class TypeUtils {
       System.err.println("Empty candidate set ...");
       for (IJavaReferenceType t : types) {
         System.err.println("STs for " + t + ":");
-        for (IJavaDeclaredType s : getST(t)) {
+        for (IJavaSourceRefType s : getST(t)) {
           System.err.println("\t" + s);
         }
       }
@@ -222,12 +222,12 @@ public class TypeUtils {
   // Inv(G) = { V | 1<=i<=k, V in ST(Ui), V = G<...>}
   //
   // a.k.a Relevant(G)
-  private Iterable<IJavaDeclaredType> getInv(Iterable<IJavaDeclaredType> st, IJavaDeclaredType g) {
+  private Iterable<IJavaSourceRefType> getInv(Iterable<IJavaSourceRefType> st, IJavaSourceRefType g) {
     if (!isGeneric(g)) {
       throw new IllegalArgumentException("Not generic: " + g);
     }
-    Set<IJavaDeclaredType> inv = new HashSet<IJavaDeclaredType>();
-    for (IJavaDeclaredType v : st) {
+    Set<IJavaSourceRefType> inv = new HashSet<IJavaSourceRefType>();
+    for (IJavaSourceRefType v : st) {
       if (g.getDeclaration().equals(v.getDeclaration())) {
         inv.add(v);
       }
@@ -240,7 +240,7 @@ public class TypeUtils {
   // invocation is defined
   //
   // a.k.a. Candidate()
-  private IJavaReferenceType getCandidateInvocation(Iterable<IJavaDeclaredType> st, IJavaDeclaredType g) {
+  private IJavaReferenceType getCandidateInvocation(Iterable<IJavaSourceRefType> st, IJavaSourceRefType g) {
     return getLCI(getInv(st, g));
   }
 
@@ -248,10 +248,10 @@ public class TypeUtils {
   // lci(e1, ..., en) = lci(lci(e1, e2), e3, ..., en)
   //
   // a.k.a. lcp()
-  private IJavaDeclaredType getLCI(Iterable<IJavaDeclaredType> invocations) {
-    IJavaDeclaredType result = null;
+  private IJavaSourceRefType getLCI(Iterable<IJavaSourceRefType> invocations) {
+	  IJavaSourceRefType result = null;
     int num = 0;
-    for (IJavaDeclaredType t : invocations) {
+    for (IJavaSourceRefType t : invocations) {
       if (result != null) {
         result = getLCI(result, t);
       } else {
@@ -265,6 +265,13 @@ public class TypeUtils {
     return result;
   }
 
+  private IJavaSourceRefType getLCI(IJavaSourceRefType t1, IJavaSourceRefType t2) {
+	if (!(t1 instanceof IJavaDeclaredType) || !(t2 instanceof IJavaDeclaredType)) {
+		throw new IllegalStateException("What to do in this case?");
+	}
+	return getLCI((IJavaDeclaredType) t1, (IJavaDeclaredType) t2);
+  }
+  
   // lci(G<X1, ..., Xn>, G<Y1, ..., Yn>) = G<lcta(X1, Y1),..., lcta(Xn, Yn)>
   private IJavaDeclaredType getLCI(IJavaDeclaredType t1, IJavaDeclaredType t2) {
     List<IJavaType> params = new ArrayList<IJavaType>();
@@ -417,9 +424,9 @@ public class TypeUtils {
   // otherwise.
   //
   // a.k.a. Best()
-  private IJavaReferenceType getCandidate(Iterable<IJavaDeclaredType> allSupers, IJavaReferenceType t) {
-    if (t instanceof IJavaDeclaredType) {
-      IJavaDeclaredType d = (IJavaDeclaredType) t;
+  private IJavaReferenceType getCandidate(Iterable<IJavaSourceRefType> allSupers, IJavaReferenceType t) {
+    if (t instanceof IJavaSourceRefType) {
+    	IJavaSourceRefType d = (IJavaSourceRefType) t;
       if (isGeneric(d)) {
         return getCandidateInvocation(allSupers, d);
       }
@@ -427,7 +434,7 @@ public class TypeUtils {
     return t;
   }
 
-  private boolean isGeneric(IJavaDeclaredType t) {
+  private boolean isGeneric(IJavaSourceRefType t) {
     final IRNode n = t.getDeclaration();
     IRNode typeParams = getParametersForType(n);
     if (typeParams == null) {
@@ -461,7 +468,7 @@ public class TypeUtils {
       p.start("lub(" + types[0] + ", " + types[1] + ")");
     }
 
-    Iterable<IJavaDeclaredType> allSupers = getST(types);
+    Iterable<IJavaSourceRefType> allSupers = getST(types);
     IJavaReferenceType result = null;
     for (IJavaReferenceType t : getMEC(types)) {
       /*
