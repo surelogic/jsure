@@ -2996,7 +2996,7 @@ public class TypeInference8 {
             for (IJavaType t : copy(e.values())) {
               IJavaType t_subst = t.subst(subst);
               if (t_subst != t) {
-            	//System.out.println("EB: "+beta+" == "+t_subst);
+            	System.out.println("EB: "+beta+" == "+t_subst);
                 reduceTypeEqualityConstraints(bounds, beta, t_subst);
               }
             }
@@ -4627,6 +4627,7 @@ public class TypeInference8 {
       else if (hasRawSuperTypeOf(s, t)) {
     	  bounds.useUncheckedConversion();
       } else {
+    	  System.out.println("Fcheck");
     	  tEnv.isSubType(s, t);
     	  bounds.addFalse();
       }

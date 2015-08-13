@@ -1292,11 +1292,12 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		
 		if (t instanceof IJavaTypeVariable) {
 			// JLS 4.10.2 -- A type variable is a direct supertype of its lower bound
-			IJavaTypeVariable ct = (IJavaTypeVariable) t;
-			if (ct.getLowerBound() == JavaTypeFactory.nullType) {
+			final IJavaTypeVariable ct = (IJavaTypeVariable) t;
+			final IJavaReferenceType lower = ct.getLowerBound();
+			if (lower == JavaTypeFactory.nullType) {
 				result = isSubType(s, ct.getUpperBound(this));
 			} else {
-				result = /*isSubType(s, ct.getUpperBound()) &&*/ isSubType(s, ct.getLowerBound());
+				result = /*isSubType(s, ct.getUpperBound()) &&*/ isSubType(s, lower);
 			}
 			if (result) {
 				return result;
