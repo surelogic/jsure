@@ -52,4 +52,9 @@ public class SimpleTypeSubstitution extends AbstractTypeSubstitution {
 		}
 		return new SimpleTypeSubstitution(b, keys, actuals);
 	}
+
+	@Override
+	protected Iterable<? extends IJavaTypeFormal> getFormals() {
+		return formals;
+	}
 }

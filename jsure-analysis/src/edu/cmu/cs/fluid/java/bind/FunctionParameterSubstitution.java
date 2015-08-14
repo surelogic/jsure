@@ -37,6 +37,32 @@ public class FunctionParameterSubstitution extends AbstractTypeSubstitution {
     return null;
   }
   
+  @Override
+  public String toString() {
+	  StringBuilder sb = new StringBuilder("[");
+	  int i=0;
+	  for(IJavaTypeFormal f : getFormals()) {
+		  sb.append(f).append(" = ").append(actuals.get(i));
+		  i++;
+	  }
+	  return sb.toString();
+  }
+  
+  @Override
+  protected Iterable<? extends IJavaTypeFormal> getFormals() {
+	  return getFormals(methodDecl);
+  }
+  
+  private static Iterable<? extends IJavaTypeFormal> getFormals(IRNode md) {
+	  List<IJavaTypeFormal> rv = new ArrayList<>();
+	  for(IRNode formal : TypeFormals.getTypeIterator(SomeFunctionDeclaration.getTypes(md))) {
+		  IJavaTypeFormal tf = JavaTypeFactory.getTypeFormal(formal); 
+		  rv.add(tf);
+	  }
+	  return rv;
+	  // TODO convert the code below to use this?
+  }
+  
   public static IJavaTypeSubstitution create(IBinder b, IRNode md, Map<IJavaType, IJavaType> map) {    
     if (map.isEmpty()) {
       return NULL;

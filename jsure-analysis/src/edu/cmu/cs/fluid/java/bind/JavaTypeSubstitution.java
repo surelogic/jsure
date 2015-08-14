@@ -117,6 +117,15 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  }
 			  return realSubst.getTypeEnv();
 		  }
+
+		@Override
+		public boolean involves(Set<? extends IJavaTypeFormal> formals) {
+			ensureSubst();
+			if (realSubst == null) {
+				return false;
+			}
+			return realSubst.involves(formals);
+		}
 	  };
   }
   
@@ -238,6 +247,31 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     }
     // TODO what if we need to substitute for the supertype?
     return null;
+  }
+    
+  private Iterable<? extends IJavaTypeFormal> getFormals(IRNode t) {
+	  final IRNode typeFormals;
+	  Operator typeOp = JJNode.tree.getOperator(t);
+	  if (InterfaceDeclaration.prototype.includes(typeOp)) {
+		  typeFormals = InterfaceDeclaration.getTypes(t);
+	  } 
+	  else if (ClassDeclaration.prototype.includes(typeOp)) {
+		  typeFormals = ClassDeclaration.getTypes(t);
+	  }   
+	  else { // Cannot be a generic type
+		  return Collections.emptyList();
+	  }
+	  return new FilterIterator<IRNode, IJavaTypeFormal>(JJNode.tree.children(typeFormals)) {
+		@Override
+		protected Object select(IRNode tf) {
+			return JavaTypeFactory.getTypeFormal(tf);
+		}		  
+	  };
+  }
+  
+  @Override
+  protected Iterable<? extends IJavaTypeFormal> getFormals() {
+	  return getFormals(declaredType.getDeclaration());
   }
   
   /*public static JavaTypeSubstitution combine(JavaTypeSubstitution around, JavaTypeSubstitution inner) {
