@@ -1303,7 +1303,7 @@ declared return type, Object .
 					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
 						IJavaType u_l = call.getTypeArg(i);
 						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(tEnv);
-						IJavaType b_subst = b_l.subst(methodTypeSubst);
+						IJavaType b_subst = m.convertType(binder, b_l).subst(methodTypeSubst);
 						if (!tEnv.isSubType(u_l, b_subst)) {
 							return null;
 						}
