@@ -1210,7 +1210,7 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
     if (rv != this) {
     	return rv;
     }
-    if (!couldNeedSubst(getExtendsBound(s.getTypeEnv()))) {
+    if (!couldNeedSubst(s,getExtendsBound(s.getTypeEnv()))) {
     	return this;
     }
     return new BoundedTypeFormal(this, s);
@@ -1299,19 +1299,21 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
 	  return null;
   }
   
-  boolean couldNeedSubst(IJavaType t) {
+  boolean couldNeedSubst(final IJavaTypeSubstitution s, IJavaType t) {
 	  TypeFormalChecker c = new TypeFormalChecker();
 	  t.visit(c);
-	  return c.result;
+	  return c.result && s.involves(c.formals);
   }
 }
 
 class TypeFormalChecker extends BooleanVisitor {
+	final Set<IJavaTypeFormal> formals = new HashSet<>();
+	
 	@Override
 	public boolean accept(IJavaType t) {
 		if (t instanceof IJavaTypeFormal) {
 			result = true;
-			return false;
+			formals.add((IJavaTypeFormal) t);
 		}
 		return true;
 	}
