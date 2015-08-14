@@ -2972,6 +2972,9 @@ public class TypeInference8 {
           : null;
       // Make sure that we try all combos? (TODO inefficient)
       for (InferenceVariable v : copy(alphaEq.vars())) {
+    	if (alpha == v) {
+    		continue;
+    	}
         incorporateEqualityBound(bounds, v, s, subst);
       }
     }
@@ -3056,7 +3059,7 @@ public class TypeInference8 {
         for (IEquality e : equalities) {
           // case 2: α = S and α <: T imply ‹S <: T›
           if (e.vars().contains(alpha)) {
-            for (IJavaType s : e.values()) {
+            for (IJavaType s : copy(e.values())) {
               reduceSubtypingConstraints(bounds, s, sb.t);
             }
           }
@@ -5504,5 +5507,10 @@ public class TypeInference8 {
     public String toString() {
       return subst.toString();
     }
+
+	@Override
+	protected Iterable<? extends IJavaTypeFormal> getFormals() {
+		return subst.keySet();
+	}
   }
 }
