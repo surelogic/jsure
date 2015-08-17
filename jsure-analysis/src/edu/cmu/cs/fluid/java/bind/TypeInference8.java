@@ -173,10 +173,11 @@ public class TypeInference8 {
 
   static boolean isProperType(IJavaType t) {
     BooleanVisitor v = new BooleanVisitor(true) {
-      public void accept(IJavaType t) {
+      public boolean accept(IJavaType t) {
         if (t instanceof InferenceVariable) {
           result = false;
         }
+        return true;
       }
     };
     t.visit(v);
@@ -184,11 +185,12 @@ public class TypeInference8 {
   }
 
   static void getReferencedInferenceVariables(final Collection<InferenceVariable> vars, IJavaType t) {
-    t.visit(new IJavaType.Visitor() {
-      public void accept(IJavaType t) {
+    t.visit(new IJavaType.BooleanVisitor() {
+      public boolean accept(IJavaType t) {
         if (t instanceof InferenceVariable) {
           vars.add((InferenceVariable) t);
         }
+        return true;
       }
     });
   }
@@ -261,19 +263,21 @@ public class TypeInference8 {
 
     @Override
     public void visit(Visitor v) {
-      if (previouslyVisited) {
+      if (previouslyVisited && !(v instanceof BoundSet.RecursiveTypeChecker)) { // HACK
         return;
       }
       previouslyVisited = true;
       try {
-        super.visit(v);
-
-        if (upperBound != null) {
-          upperBound.visit(v);
-        }
-        if (lowerBound != null) {
-          lowerBound.visit(v);
-        }
+    	  boolean go = v.accept(this);
+    	  if (go) {
+    		  if (upperBound != null) {
+    			  upperBound.visit(v);
+    		  }
+    		  if (lowerBound != null) {
+    			  lowerBound.visit(v);
+    		  }
+    		  v.finish(this);
+    	  }
       } finally {
         previouslyVisited = false;
       }
@@ -530,13 +534,14 @@ public class TypeInference8 {
     return null;
   }
 
-  static class TypeFormalCollector implements IJavaType.Visitor {
+  static class TypeFormalCollector extends IJavaType.BooleanVisitor {
     final Set<IJavaTypeFormal> formals = new HashSet<IJavaTypeFormal>();
 
-    public void accept(IJavaType t) {
+    public boolean accept(IJavaType t) {
       if (t instanceof ReboundedTypeFormal) {
         formals.add((ReboundedTypeFormal) t);
       }
+      return true;
     }
     
     public IJavaTypeSubstitution getSubst(ITypeEnvironment tEnv) {
@@ -612,14 +617,19 @@ public class TypeInference8 {
     @Override
     public IJavaType subst(final IJavaTypeSubstitution s) {
     	IJavaType subbed = super.subst(s);
-    	if (!(subbed instanceof BoundedTypeFormal)) {
+    	if (subbed != this && !(subbed instanceof BoundedTypeFormal)) {
+    		// There's an exact substitution for this
     		return subbed;
     	}
+    	// Check for substitutions involving the bound
     	IJavaType sourceSub = source.subst(s);
     	if (bound.isSubtype(tEnv, sourceSub)) {
     		return bound;
     	}
-    	return sourceSub;
+    	if (sourceSub != this) {
+    		return sourceSub;
+    	}
+    	return this;
     }
   }
 
@@ -770,9 +780,9 @@ public class TypeInference8 {
       }
       // TODO subst?
       final IJavaType g_beta = JavaTypeFactory.getDeclaredType(g.getDeclaration(), newVars, g.getOuterType());
+      b_3.addCaptureBound(g_beta, g);
       reduceConstraintFormula(b_3, new ConstraintFormula(g_beta, FormulaConstraint.IS_COMPATIBLE, t));
       // final BoundSet temp = new BoundSet(b_3);
-      b_3.addCaptureBound(g_beta, g);
       b_3.addInferenceVariables(newVars);
       return b_3;
     }
@@ -1156,7 +1166,11 @@ public class TypeInference8 {
    * supertype of S , but the raw type | G< ... > | is a supertype of S .
    */
   boolean onlyHasRawG_asSuperType(IRNode g_decl, IJavaType t) {
-    return onlyHasRawG_asSuperType(g_decl, false, t);
+	Boolean rv = onlyHasRawG_asSuperType(g_decl, false, t);
+	if (rv == null) {
+		return false;
+	}
+	return rv.booleanValue();
   }
 
   private Boolean onlyHasRawG_asSuperType(IRNode g_decl, boolean foundRawG, IJavaType t) {
@@ -1516,10 +1530,11 @@ public class TypeInference8 {
 
   private boolean refersTo(IJavaReferenceType t, final Collection<? extends IJavaTypeFormal> params) {
     BooleanVisitor v = new BooleanVisitor(false) {
-      public void accept(IJavaType t) {
+      public boolean accept(IJavaType t) {
         if (params.contains(t)) {
           result = true;
         }
+        return true;
       }
     };
     t.visit(v);
@@ -2707,12 +2722,16 @@ public class TypeInference8 {
         // System.out.println("Eliminating type variables");
         for (Entry<InferenceVariable, IJavaType> e : instantiations.entrySet()) {
           try {
+        	  if (couldBeRecursiveType(e.getValue())) {
+        		  continue;
+        	  }
         	  IJavaType elim = eliminateTypeVariables(e.getValue());
         	  if (elim != e.getValue()) {
         		  e.setValue(elim);
         	  }
           } catch(StackOverflowError ex) {
-        	  System.err.println("Leaving this type variable, due to stack overflow: "+e.getKey()+" -> "+e.getValue());        	  
+        	  System.err.println("Leaving this type variable, due to stack overflow: "+e.getKey()+" -> "+e.getValue());        	
+        	  couldBeRecursiveType(e.getValue());
           }
         }
       }
@@ -2744,6 +2763,38 @@ public class TypeInference8 {
       }
       return subst;
     }
+    
+    public boolean couldBeRecursiveType(IJavaType t) {
+    	RecursiveTypeChecker v = new RecursiveTypeChecker();
+    	t.visit(v);
+    	return v.result;
+    }
+
+    public class RecursiveTypeChecker extends IJavaType.BooleanVisitor {
+    	private final Stack<IJavaType> stack = new Stack<>();
+    	
+		@Override
+		public boolean accept(IJavaType t) {
+			if (result) {
+				return false;
+			}
+			if (stack.contains(t)) {
+				result = true;
+				return false;
+			}
+			stack.push(t);
+			return true;
+		}    	
+		
+		@Override
+		public void finish(IJavaType t) {
+			IJavaType temp = stack.pop();
+			if (temp != t) {
+				throw new IllegalStateException();
+			}
+		}
+    }
+    
 
     @SuppressWarnings("unchecked")
     private <T extends IJavaType> T eliminateTypeVariables(T t) {
@@ -2921,6 +2972,9 @@ public class TypeInference8 {
           : null;
       // Make sure that we try all combos? (TODO inefficient)
       for (InferenceVariable v : copy(alphaEq.vars())) {
+    	if (alpha == v) {
+    		continue;
+    	}
         incorporateEqualityBound(bounds, v, s, subst);
       }
     }
@@ -2945,6 +2999,7 @@ public class TypeInference8 {
             for (IJavaType t : copy(e.values())) {
               IJavaType t_subst = t.subst(subst);
               if (t_subst != t) {
+            	System.out.println("EB: "+beta+" == "+t_subst);
                 reduceTypeEqualityConstraints(bounds, beta, t_subst);
               }
             }
@@ -3004,12 +3059,15 @@ public class TypeInference8 {
         for (IEquality e : equalities) {
           // case 2: α = S and α <: T imply ‹S <: T›
           if (e.vars().contains(alpha)) {
-            for (IJavaType s : e.values()) {
+            for (IJavaType s : copy(e.values())) {
               reduceSubtypingConstraints(bounds, s, sb.t);
             }
           }
         }
         for (SubtypeBound b : copy(subtypeBounds)) {
+          if (sb == b) {
+        	  continue; 
+          }
           if (b.t == alpha) {
             // case 4a: S <: α and α <: T imply ‹S <: T›
             reduceSubtypingConstraints(bounds, b.s, sb.t);
@@ -3023,6 +3081,15 @@ public class TypeInference8 {
              * types (not wildcards), the constraint formula ‹Si = Ti› is
              * implied.
              */
+            String unparse = b.toString();      
+            /*
+            if (unparse.contains("? extends testJSure.ModuleAnnotationNode")) {
+            	System.out.println("Matched ...");
+            }
+            */
+        	if (unparse.endsWith("VisibilityDrop.T extends VisibilityDrop <? extends #> <: testJSure.VisibilityDrop<? extends testJSure.ModuleAnnotationNode>")) {
+        		System.out.println("Looking at wildcard");
+        	}
             final Map<IRNode, IJavaDeclaredType> sStypes = collectSuperTypes(tEnv, sb.t);
             final Map<IRNode, IJavaDeclaredType> tStypes = collectSuperTypes(tEnv, b.t);
             final Set<IRNode> common = new HashSet<IRNode>(sStypes.keySet());
@@ -3178,7 +3245,7 @@ public class TypeInference8 {
              * bound false
              */
 
-            for (SubtypeBound sb : subtypeBounds) {
+            for (SubtypeBound sb : copy(subtypeBounds)) {
               if (alpha_i == sb.s && !(sb.t instanceof InferenceVariable)) {
                 if (b_i == tEnv.getObjectType()) {
                   reduceSubtypingConstraints(bounds, wt.getUpperBound(), sb.t);
@@ -4563,6 +4630,7 @@ public class TypeInference8 {
       else if (hasRawSuperTypeOf(s, t)) {
     	  bounds.useUncheckedConversion();
       } else {
+    	  System.out.println("Fcheck");
     	  tEnv.isSubType(s, t);
     	  bounds.addFalse();
       }
@@ -4788,9 +4856,10 @@ public class TypeInference8 {
         // HACK ignore for now?
         return;
       }
-      if (s.isEqualTo(tEnv, t)) {
+      if (t.isEqualTo(tEnv, s)) {
         bounds.addTrue();
       } else {
+    	t.isEqualTo(tEnv, s);
         bounds.addFalse();
       }
     } else if (isInferenceVariable(s) || isInferenceVariable(t)) {
@@ -5438,5 +5507,10 @@ public class TypeInference8 {
     public String toString() {
       return subst.toString();
     }
+
+	@Override
+	protected Iterable<? extends IJavaTypeFormal> getFormals() {
+		return subst.keySet();
+	}
   }
 }

@@ -18,6 +18,20 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 	  return binder.getTypeEnvironment();
   }
   
+  protected Iterable<? extends IJavaTypeFormal> getFormals() {
+	  throw new UnsupportedOperationException();
+  }
+  
+  @Override
+  public boolean involves(Set<? extends IJavaTypeFormal> toCheck) {
+	  for(IJavaTypeFormal f : getFormals()) {
+		  if (toCheck.contains(f)) {
+			  return true;
+		  }
+	  }
+	  return false;
+  }
+  
   abstract class Process<V> {
 	  abstract V process(IJavaTypeFormal jtf, IRNode decl, IJavaType jt);
 	  abstract V rawSubst();
@@ -181,6 +195,11 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 		@Override
 		public String toString() {
 			return me.toString()+" + "+other.toString();
+		}
+
+		@Override
+		public boolean involves(Set<? extends IJavaTypeFormal> formals) {
+			return me.involves(formals) || other.involves(formals);
 		}
 	  };
   }

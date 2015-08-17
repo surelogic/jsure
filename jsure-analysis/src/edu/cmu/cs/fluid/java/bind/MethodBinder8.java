@@ -993,9 +993,21 @@ public class MethodBinder8 implements IMethodBinder {
 	private boolean isCallCompatible_call(IJavaType pType, MethodBinding8 b, CallState call) {
 		IJavaFunctionType ftype = computeInvocationType(call, b, false, pType);
 		if (ftype == null) {
+			computeInvocationType(call, b, false, pType);
 			return false;
 		}
-		return tEnv.isCallCompatible(pType, ftype.getReturnType());
+		boolean result = tEnv.isCallCompatible(pType, ftype.getReturnType());
+		if (result) {
+			return true;
+		}
+		final TypeFormalCollector v = new TypeFormalCollector();
+		ftype.getReturnType().visit(v);
+		if (!v.formals.isEmpty()) {
+			// Try type substitution
+			final IJavaType subst = ftype.getReturnType().subst(v.getSubst(tEnv));
+			return tEnv.isCallCompatible(pType, subst);
+		}
+		return false;
 	}
 
 	
@@ -1291,7 +1303,7 @@ declared return type, Object .
 					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
 						IJavaType u_l = call.getTypeArg(i);
 						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(tEnv);
-						IJavaType b_subst = b_l.subst(methodTypeSubst);
+						IJavaType b_subst = m.convertType(binder, b_l).subst(methodTypeSubst);
 						if (!tEnv.isSubType(u_l, b_subst)) {
 							return null;
 						}
@@ -1965,8 +1977,9 @@ declared return type, Object .
     public static boolean containsTypeVariables(IJavaType t) {
     	BooleanVisitor v = new BooleanVisitor(false) {
 			@Override
-			public void accept(IJavaType t) {
+			public boolean accept(IJavaType t) {
 				result |= t instanceof TypeVariable;
+				return !result;
 			}    		
     	};
     	t.visit(v);

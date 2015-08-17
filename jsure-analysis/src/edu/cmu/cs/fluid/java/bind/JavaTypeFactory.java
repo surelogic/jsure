@@ -54,6 +54,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
+import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.ReboundedTypeFormal;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
@@ -156,6 +157,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     @Override
     public void visit(Visitor v) {
     	v.accept(this);
+    	v.finish(this);
     }
     
     /*******************************************************
@@ -644,21 +646,51 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     } else if (op instanceof ParameterizedType) {
       IRNode baseNode = ParameterizedType.getBase(nodeType);
       IJavaType bt = convertNodeTypeToIJavaType(baseNode, binder);
+      
+      if (!(bt instanceof JavaDeclaredType)) {
+          LOG.severe("parameterizing what? " + bt);
+          return bt;
+      }
+      JavaDeclaredType base = (JavaDeclaredType)bt;
       List<IJavaType> typeActuals = new ArrayList<IJavaType>();
       IRNode args = ParameterizedType.getArgs(nodeType);
+      IRNode tformals;
+      if (ClassDeclaration.prototype.includes(base.getDeclaration())) {
+    	  tformals = ClassDeclaration.getTypes(base.getDeclaration());
+      } else {
+    	  tformals = InterfaceDeclaration.getTypes(base.getDeclaration());
+      }
+      Iterator<IRNode> it = JJNode.tree.children(tformals);
       for (Iterator<IRNode> ch = JJNode.tree.children(args); ch.hasNext();) {
         IRNode arg = ch.next();
-        typeActuals.add(convertNodeTypeToIJavaType(arg,binder));
+        IRNode tf = it.next();
+        IJavaType ta = convertNodeTypeToIJavaType(arg,binder);
+        /*
+        if (ta instanceof IJavaWildcardType) {
+        	IJavaTypeFormal f = JavaTypeFactory.getTypeFormal(tf);
+        	if (f.toString().contains("Enum")) {
+        		System.out.println("Got Enum formal");
+        	}
+        	IJavaReferenceType bound = f.getExtendsBound(binder.getTypeEnvironment());
+        	if (!bound.equals(binder.getTypeEnvironment().getObjectType())) {
+            	IJavaWildcardType wt = (IJavaWildcardType) ta;
+            	IJavaReferenceType upper;
+            	if (wt.getUpperBound() == null) {
+            		upper = bound;
+            	} else {
+            		TypeUtils helper = new TypeUtils(binder.getTypeEnvironment());
+            		upper = helper.getLowestUpperBound(wt.getUpperBound(), bound);
+            	}
+            	ta = JavaTypeFactory.getWildcardType(upper, wt.getLowerBound());
+        	}
+        }
+        */
+        typeActuals.add(ta);
       }
       if (AbstractJavaBinder.isBinary(nodeType) && bt == null) {    	
     	System.err.println("Null base type for "+DebugUnparser.toString(nodeType));
     	return null;  
       }      
-      if (!(bt instanceof JavaDeclaredType)) {
-        LOG.severe("parameterizing what? " + bt);
-        return bt;
-      }
-      JavaDeclaredType base = (JavaDeclaredType)bt;
       /* Check unneeded due to changes for NamedType
       if (base.getTypeParameters().size() > 0) {
         LOG.severe("Already has parameters! " + bt);
@@ -680,8 +712,10 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       IBinding baseB = binder.getIBinding(baseNode);
       if (baseB != null && !TypeUtil.isStatic(baseB.getNode())) {
     	  // Adjust for outer class parameters only if non-static
-    	  return baseB.convertType(binder, rv);
+    	  rv = baseB.convertType(binder, rv);
       }
+      // WILDCARD
+      //rv = JavaTypeVisitor.captureWildcards(binder, rv);
       return rv;
     } else if (op instanceof WildcardSuperType) {
       IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardSuperType.getLower(nodeType),binder);
@@ -983,7 +1017,9 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
   }
 
   public void visit(Visitor v) {
-	  v.accept(this);
+	  if (v.accept(this)) {
+		  v.finish(this);
+	  }
   }
   
   /*******************************************************
@@ -1174,6 +1210,9 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
     if (rv != this) {
     	return rv;
     }
+    if (!couldNeedSubst(s,getExtendsBound(s.getTypeEnv()))) {
+    	return this;
+    }
     return new BoundedTypeFormal(this, s);
   }
   
@@ -1259,6 +1298,26 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   public IJavaReferenceType getLowerBound() {
 	  return null;
   }
+  
+  boolean couldNeedSubst(final IJavaTypeSubstitution s, IJavaType t) {
+	  TypeFormalChecker c = new TypeFormalChecker();
+	  t.visit(c);
+	  return c.result && s.involves(c.formals);
+  }
+}
+
+class TypeFormalChecker extends BooleanVisitor {
+	final Set<IJavaTypeFormal> formals = new HashSet<>();
+	
+	@Override
+	public boolean accept(IJavaType t) {
+		if (t instanceof IJavaTypeFormal) {
+			result = true;
+			formals.add((IJavaTypeFormal) t);
+		}
+		return true;
+	}
+	
 }
 
 class BoundedTypeFormal extends JavaTypeFormal {
@@ -1446,14 +1505,16 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
   }
   
   @Override
-  public void visit(Visitor v) {
-	super.visit(v);
-	  
-	if (primaryBound != null) {
-		primaryBound.visit(v);
-	}
-	if (secondaryBound != null) {
-		secondaryBound.visit(v);
+  public final void visit(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {
+		if (primaryBound != null) {
+			primaryBound.visit(v);
+		}
+		if (secondaryBound != null) {
+			secondaryBound.visit(v);
+		}
+		v.finish(this);
 	}
   }	    
   
@@ -1550,14 +1611,16 @@ class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
 	  }
 	  
 	  @Override
-	  public void visit(Visitor v) {
-		super.visit(v);
-		  
-		if (primaryBound != null) {
-			primaryBound.visit(v);
-		}
-		if (secondaryBound != null) {
-			secondaryBound.visit(v);
+	  public final void visit(Visitor v) {
+		boolean go = v.accept(this);
+		if (go) { 
+			if (primaryBound != null) {
+				primaryBound.visit(v);
+			}
+			if (secondaryBound != null) {
+				secondaryBound.visit(v);
+			}
+			v.finish(this);
 		}
 	  }	  
 	  
@@ -1705,14 +1768,16 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   }
   
   @Override
-  public void visit(Visitor v) {
-	super.visit(v);
-	  
-	if (upperBound != null) {
-		upperBound.visit(v);
-	}
-	if (lowerBound != null) {
-		lowerBound.visit(v);
+  public final void visit(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {
+		if (upperBound != null) {
+			upperBound.visit(v);
+		}
+		if (lowerBound != null) {
+			lowerBound.visit(v);
+		}
+		v.finish(this);
 	}
   }	 
 }
@@ -1833,8 +1898,9 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
 			  return false;
 		  }
 		  return true;
-	  }
-	  return false;
+	  }	  
+	  //return false;
+	  return t2.isSubtype(env, upperBound); // TODO is this right?
   }
 
   public IJavaReferenceType getUpperBound(ITypeEnvironment te) {
@@ -1842,14 +1908,16 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   }
   
   @Override
-  public void visit(Visitor v) {
-	super.visit(v);
-	  
-	if (upperBound != null) {
-		upperBound.visit(v);
-	}
-	if (lowerBound != null) {
-		lowerBound.visit(v);
+  public final void visit(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {  
+		if (upperBound != null) {
+			upperBound.visit(v);
+		}
+		if (lowerBound != null) {
+			lowerBound.visit(v);
+		}
+		v.finish(this);
 	}
   }	 
 }
@@ -1940,9 +2008,12 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   }
   
   @Override
-  public void visit(Visitor v) {
-	  super.visit(v);
-	  elementType.visit(v);
+  public final void visit(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {
+		elementType.visit(v);
+		v.finish(this);
+	}
   }
 }
 
@@ -2109,11 +2180,19 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   
   @Override
   public void visit(Visitor v) {
-	super.visit(v);
-	  
-	for(IJavaType p : parameters) {
-		p.visit(v);
+	  if (visit_private(v)) {
+		  v.finish(this);
+	  }
+  }
+  
+  final boolean visit_private(Visitor v) {
+	boolean go = v.accept(this);
+	if (go) {
+		for(IJavaType p : parameters) {
+			p.visit(v);
+		}
 	}
+	return go;
   }
   
   /*******************************************************
@@ -2202,9 +2281,12 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     }
 
     @Override
-    public void visit(Visitor v) {
-    	super.visit(v);
-    	getOuterType().visit(v);
+    public final void visit(Visitor v) {
+    	boolean go = super.visit_private(v);
+    	if (go) {
+    		getOuterType().visit(v);
+    		v.finish(this);
+    	}
     }
   }
   

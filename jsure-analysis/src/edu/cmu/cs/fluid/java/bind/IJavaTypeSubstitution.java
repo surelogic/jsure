@@ -30,6 +30,8 @@ public interface IJavaTypeSubstitution {
 
   IJavaTypeSubstitution combine(IJavaTypeSubstitution other);
   
+  boolean involves(Set<? extends IJavaTypeFormal> formals);
+  
   static final IJavaTypeSubstitution NULL = new IJavaTypeSubstitution() {
     @Override
     public IJavaType get(IJavaTypeFormal jtf) {
@@ -52,6 +54,10 @@ public interface IJavaTypeSubstitution {
 	@Override
   public ITypeEnvironment getTypeEnv() {
 		return null;
+	}
+	@Override
+	public boolean involves(Set<? extends IJavaTypeFormal> formals) {
+		return false;
 	}
   };
 }

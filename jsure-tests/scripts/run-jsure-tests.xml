@@ -443,7 +443,7 @@
 							<entry key="plugin-name" value="${jsure-tests-plugin-id}" />
 							<entry key="classname" value="${jsure-tests-plugin-id}.RunARegressionTest" />
 							<entry key="junit-report-output" value="${workspace.dir}${fs}@{project}" />
-							<entry key="extraVMargs" value="-Dtest.module=${sandbox.suites.dir}${fs}@{suite}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
+							<entry key="extraVMargs" value="-Dtest.module=${sandbox.suites.dir}${fs}@{suite}${fs}@{project} -Xmx4096m -XX:MaxPermSize=1024m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 						</propertyfile>
 						<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
 							<property file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}test.properties" />

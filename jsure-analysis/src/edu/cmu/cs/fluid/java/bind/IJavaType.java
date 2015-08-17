@@ -73,13 +73,25 @@ public interface IJavaType extends IType {
    * Contains state of whatever results will be returned
    */
   interface Visitor {
-	  void accept(IJavaType t);
+	  /**
+	   * @return true if continuing to visit
+	   */
+	  boolean accept(IJavaType t);
+	  void finish(IJavaType t);
   }
   abstract class BooleanVisitor implements Visitor {
 	  public boolean result;
 	  
 	  public BooleanVisitor(boolean initial) {
 		  result = initial;
+	  }
+	  
+	  public BooleanVisitor() {
+		  this(false);
+	  }
+	  
+	  public void finish(IJavaType t) {
+		  // do nothing
 	  }
   }
 }
