@@ -3,19 +3,29 @@ package com.surelogic.analysis.concurrency.model;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 
 /**
  * Lock in the lock model.
  */
-public abstract class AbstractModelLock<A extends PromiseDrop<? extends IAASTRootNode>, L extends LockImplementation>
+public abstract class AbstractModelLock<
+    A extends PromiseDrop<? extends IAASTRootNode>,
+    L extends LockImplementation>
 implements ModelLock<A, L> {
   protected final A sourceDrop;
   protected final L lockImpl;
+  // Derived from sourceDrop, so doesn't participate in hash code or equality
+  protected final IJavaDeclaredType declaredInClass;
   
-  protected AbstractModelLock(final A sourceDrop, final L lockImpl) {
+  protected AbstractModelLock(
+      final A sourceDrop, final L lockImpl, final IRNode classNode) {
     this.sourceDrop = sourceDrop;
     this.lockImpl = lockImpl;
+    this.declaredInClass = 
+        (IJavaDeclaredType) JavaTypeFactory.getMyThisType(classNode);
   }
 
   
@@ -28,6 +38,11 @@ implements ModelLock<A, L> {
   @Override
   public final L getImplementation() {
     return lockImpl;
+  }
+  
+  @Override
+  public IJavaDeclaredType getDeclaredInClass() {
+    return declaredInClass;
   }
   
   @Override

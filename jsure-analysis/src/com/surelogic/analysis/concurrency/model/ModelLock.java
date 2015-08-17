@@ -4,6 +4,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 
 /**
  * Lock in the lock model.
@@ -20,6 +21,11 @@ public interface ModelLock<A extends PromiseDrop<? extends IAASTRootNode>, L ext
    */
   public L getImplementation();
 
+  /**
+   * Get the class in which the lock is declared.
+   */
+  public IJavaDeclaredType getDeclaredInClass();
+  
   /**
    * Returns whether the lock is static: whether the field/method representing
    * the lock is static, or if the lock is a class representation.

@@ -5,7 +5,6 @@ package com.surelogic.analysis.concurrency.heldlocks;
 import java.text.MessageFormat;
 
 import com.surelogic.Region;
-import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
@@ -40,11 +39,7 @@ public final class RegionLockRecord extends AbstractLockRecord {
     super(binder, cd, ld);
     LockDeclarationNode lock = (LockDeclarationNode) ld.getAAST(); 
     if (lock != null) {
-      final IRegionBinding b = lock.getRegion().resolveBinding();
-      if (b == null) {
-    	  lock.getRegion().resolveBinding();
-      }
-      region = b.getModel();
+      region = lock.getRegion().resolveBinding().getModel();
     } else {
       region = RegionModel.getInstanceRegion(ld.getNode());
     }

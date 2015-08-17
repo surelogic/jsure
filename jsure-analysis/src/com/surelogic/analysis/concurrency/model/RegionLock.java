@@ -1,10 +1,27 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
-public final class RegionLock extends AbstractNamedLock<LockModel>{
-  public RegionLock(final LockModel lockModel, final NamedLockImplementation lockImpl) {
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+
+public final class RegionLock
+extends AbstractNamedLock<LockModel>
+implements StateLock<LockModel, NamedLockImplementation> {
+  // Derived from the lock annotation, so does not participate in hash code or equality
+  private final IRegion protectedRegion;
+  
+  public RegionLock(
+      final LockModel lockModel, final NamedLockImplementation lockImpl) {
     super(lockModel, lockImpl);
+    final LockDeclarationNode lock = (LockDeclarationNode) lockModel.getAAST();
+    protectedRegion = lock.getRegion().resolveBinding().getModel();
+  }
+  
+  @Override
+  public IRegion getRegion() {
+    return protectedRegion;
   }
   
   @Override
@@ -25,6 +42,8 @@ public final class RegionLock extends AbstractNamedLock<LockModel>{
   
   @Override
   public String toString() {
-    return "@PolicyLock(" + lockImpl + ")";
+    return "@RegionLock(" + lockImpl + " protects " + 
+        protectedRegion.getName() + ") on class " +
+        ClassDeclaration.getId(declaredInClass.getDeclaration());
   }
 }
