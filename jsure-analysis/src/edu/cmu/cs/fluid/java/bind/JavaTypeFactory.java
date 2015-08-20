@@ -554,7 +554,8 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	  if (MethodDeclaration.prototype.includes(op)) {
 		  tformals = MethodDeclaration.getTypes(memDecl);
 		  formals = MethodDeclaration.getParams(memDecl);
-		  returnType = binder.getJavaType(MethodDeclaration.getReturnType(memDecl));
+		  IRNode rtype = MethodDeclaration.getReturnType(memDecl);
+		  returnType = binder.getJavaType(rtype);
 		  if (receiverType != null) {
 			  paramTypes.add(receiverType);
 		  }

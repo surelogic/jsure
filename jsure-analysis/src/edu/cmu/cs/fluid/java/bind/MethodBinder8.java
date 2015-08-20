@@ -1647,9 +1647,9 @@ declared return type, Object .
     	}
     	
     	static MethodBinding8 create(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		if (c.toString().contains("map(Paths:: <> get)")) {
+    		if (c.toString().contains("ImmutableList.of(Multisets.immutableEntry(#.checkNotNull#, 1))")) {
     		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
-    			System.out.println("Creating boundset");
+    			System.out.println("Creating boundset: "+b);
     		}
     		final BoundSet result = TypeInference8.resolve(b, null);    		
     		/*
