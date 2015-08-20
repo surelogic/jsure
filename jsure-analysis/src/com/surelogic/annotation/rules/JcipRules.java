@@ -51,25 +51,6 @@ public class JcipRules extends AnnotationRules {
 			return storeDropIfNotNull(a, scrubGuardedBy(getContext(), a));
 		}
 	};
-	
-//	/**
-//	 * The IRNode of the lock field (class, or receiver decl)
-//	 * 
-//	 * A hack, but it works because we're no longer doing incremental runs
-//	 */	
-//	private static final Map<IRNode,LockDeclarationNode> declaredLocks = new HashMap<IRNode,LockDeclarationNode>();
-	
-//	/**
-//	 *  Referenced region also declared at the same time
-//	 *  
-//	 *  Also adds the node to the set
-//	 */
-//	private static boolean isLockAlreadyDeclared(IRNode lockNode) {		
-//		if (lockNode == null) {
-//			throw new NullPointerException();
-//		}
-//		return declaredLocks.containsKey(lockNode);
-//	}
 			
 	public static AnnotationRules getInstance() {
 		return instance;
@@ -392,16 +373,6 @@ public class JcipRules extends AnnotationRules {
       
       return true;
     }
-
-//    public Result visit(ExpressionNode lock) {
-//      context.reportError("Unconverted @GuardedBy: " + lock, anno);
-//      return null;
-//    }
-
-//    private String makeNewInRegion(String lockId, boolean alsoUnique) {
-//      final String newRegionId = MessageFormat.format("State$_{0}", lockId);
-//      return newRegionId;
-//    }
 
     private static boolean isPrimitiveTyped(final IRNode fieldOrMethodDecl) {
       final IRNode type = VariableDeclarator.getType(fieldOrMethodDecl);

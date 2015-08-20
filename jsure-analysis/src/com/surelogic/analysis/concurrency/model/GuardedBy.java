@@ -12,13 +12,13 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * A lock from a GuardedBy field annotation.
  *
  */
-public class GuardedBy
+public final class GuardedBy
 extends AbstractModelLock<GuardedByPromiseDrop, UnnamedLockImplementation>
 implements StateLock<GuardedByPromiseDrop, UnnamedLockImplementation>{
   // Derived from the annotation so does not participate in hash code or equality
   private final IRegion protectedRegion;
   
-  protected GuardedBy(
+  public GuardedBy(
       final GuardedByPromiseDrop sourceDrop,
       final UnnamedLockImplementation lockImpl) {
     super(sourceDrop, lockImpl, VisitUtil.getEnclosingType(sourceDrop.getNode()));

@@ -1,5 +1,6 @@
 package com.surelogic.analysis.concurrency.driver;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -15,6 +16,7 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 import com.surelogic.analysis.concurrency.heldlocks.LockVisitor;
+import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.threadsafe.ContainableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ImmutableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ThreadSafeProcessor;
@@ -28,6 +30,7 @@ import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
+import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutablePromiseDrop;
@@ -38,6 +41,7 @@ import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 
 public class LockAnalysis
 		extends
@@ -144,17 +148,10 @@ public class LockAnalysis
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
 
-		/*
-		 * This seems stupid to me. I feel like I should be able to get the
-		 * LockModel object from the LockDeclarationDrop and
-		 * PromiseLockDeclarationDrop objects. I shouldn't have to use the lock
-		 * name as an intermediary. But the as far as I can tell, there is no
-		 * back link from the drop to the LockModel.
-		 */
-
+		final AnalysisLockModel newLockModel = new AnalysisLockModel(binder);
+		
 		// Run through the LockModel and add them to the GlobalLockModel
-    final List<LockModel> lockModelDrops = Sea.getDefault().getDropsOfType(LockModel.class);
-		for (LockModel lockDrop : lockModelDrops) {
+    for (LockModel lockDrop : Sea.getDefault().getDropsOfType(LockModel.class)) {
 			if (lockDrop.getMessage().contains("MUTEX")) {
 				System.err.println("Looking at @"+lockDrop.getMessage());
 			}
@@ -177,14 +174,26 @@ public class LockAnalysis
 					// between the LockModel and RegionModel (for UI purposes)
 					continue;
 				}
+				newLockModel.addLockDeclaration(lockDrop);
 				globalLockModel.addRegionLockDeclaration(binder, lockDrop,
 						(IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl));
 			} else {
+        newLockModel.addLockDeclaration(lockDrop);
 				globalLockModel.addPolicyLockDeclaration(binder, lockDrop,
 						(IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl));
 			}
 		}
 
+		// Get all the GuardedBy annotations on fields
+    for (GuardedByPromiseDrop guardedByDrop : Sea.getDefault().getDropsOfType(GuardedByPromiseDrop.class)) {
+      final IRNode decl = guardedByDrop.getNode();
+      if (!SomeFunctionDeclaration.prototype.includes(decl)) { // Ignore method/constructor annotations
+        newLockModel.addGuardedByDelaration(guardedByDrop);
+      }
+    }		
+
+    newLockModel.dumpModel(new PrintWriter(System.out));
+    
 		// Share the new global lock model with the lock visitor, and other
 		// helpers
 		lockModelHandle.set(globalLockModel);

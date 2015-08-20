@@ -978,8 +978,6 @@ public class LockRules extends AnnotationRules {
                 com.surelogic.analysis.concurrency.driver.Messages.VOUCHED_FINAL_WITH_REASON,
                 id, reason);
           }
-          
-//          lockModel.addDependent(vouchFieldIs);
         }
       }
     }
