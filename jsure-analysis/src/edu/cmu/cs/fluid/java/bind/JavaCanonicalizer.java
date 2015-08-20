@@ -165,6 +165,10 @@ public class JavaCanonicalizer {
   // For debugging
   private static boolean isCanonicalizing = false;
 
+  private enum TypeParamHandling {
+  	KEEP, KEEP_IF_NOT_ALL_FORMALS, DISCARD
+  }
+  
   private static synchronized void setActive(boolean state) {
     isCanonicalizing = state;
   }
@@ -716,7 +720,11 @@ public class JavaCanonicalizer {
             baseType = CogenUtil.createNamedType(enclosingType);
             addBinding(baseType, IBinding.Util.makeBinding(enclosingType));
           } else {
-            baseType = createDeclaredType(enclosingT, isNonstaticNestedClass(tdecl));
+        	if (enclosingT.toString().equals("java.util.Map<K extends java.lang.Object in testGuava.MapConstraints.ConstrainedMultimap,java.util.Collection<V extends java.lang.Object in testGuava.MapConstraints.ConstrainedMultimap>>")) {
+        		System.out.println("Found offending Map");
+        	}
+        	final boolean needsTypeParams = isNonstaticNestedClass(tdecl);
+            baseType = createDeclaredType(enclosingT, needsTypeParams ? TypeParamHandling.KEEP : TypeParamHandling.DISCARD);
           }
           return result = TypeRef.createNode(baseType, name);
         }
@@ -746,7 +754,7 @@ public class JavaCanonicalizer {
         return null;
       }
       if (t instanceof IJavaDeclaredType) {
-        return createDeclaredType((IJavaDeclaredType) t, false);
+        return createDeclaredType((IJavaDeclaredType) t, TypeParamHandling.KEEP_IF_NOT_ALL_FORMALS);
       }
       if (t instanceof IJavaTypeFormal) {
         IJavaTypeFormal f = (IJavaTypeFormal) t;
@@ -786,8 +794,8 @@ public class JavaCanonicalizer {
       }
       throw new IllegalStateException("Unexpected type: " + t);
     }
-
-    private IRNode createDeclaredType(IJavaDeclaredType dt, boolean preserveTypeParams) {
+    
+    private IRNode createDeclaredType(IJavaDeclaredType dt, TypeParamHandling typeParamHandling) {
       IRNode enclosingT = dt.getDeclaration();
       IBinding b;
       if (dt.getOuterType() != null) {
@@ -800,12 +808,20 @@ public class JavaCanonicalizer {
       if (dt.getTypeParameters().isEmpty()) {
         return result;
       }
-      // Don't keep parameters if all formals
-      // BUT
-      // Need to preserve parameters if it's surrounding a non-static class
-      if (allTypeFormals(dt.getTypeParameters()) && !preserveTypeParams) {
-        return result;
-      }  
+      switch (typeParamHandling) {
+      case DISCARD:
+    	  return result;
+      case KEEP_IF_NOT_ALL_FORMALS:
+          // Don't keep parameters if all formals
+          // BUT
+          // Need to preserve parameters if it's surrounding a non-static class
+          if (allTypeFormals(dt.getTypeParameters())) {
+            return result;
+          }          
+      default:
+    	  // keep going
+      }
+      
       IRNode[] args = new IRNode[dt.getTypeParameters().size()];
       for (int i = 0; i < args.length; i++) {
         args[i] = createType(dt.getTypeParameters().get(i));
@@ -992,7 +1008,13 @@ public class JavaCanonicalizer {
           i++;
         }
         tree.removeChildren(node);
-        newArgs[numLastParam] = VarArgsExpression.createNode(varArgs.toArray(new IRNode[varArgs.size()]));
+        IRNode varargsE = VarArgsExpression.createNode(varArgs.toArray(new IRNode[varArgs.size()]));
+        if (!varArgs.isEmpty()) {
+        	SkeletonJavaRefUtility.copyIfPossible(varArgs.get(0), varargsE);
+        } else {
+        	SkeletonJavaRefUtility.copyIfPossible(node, varargsE);
+        }
+        newArgs[numLastParam] = varargsE;
         replaceSubtree(node, Arguments.createNode(newArgs));
         changed = true;
       }
