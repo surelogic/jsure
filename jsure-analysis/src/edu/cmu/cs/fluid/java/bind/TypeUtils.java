@@ -467,39 +467,17 @@ public class TypeUtils {
       // otherwise, we haven't started computing this yet
       p.start("lub(" + types[0] + ", " + types[1] + ")");
     }
-
-    Iterable<IJavaSourceRefType> allSupers = getST(types);
-    IJavaReferenceType result = null;
-    for (IJavaReferenceType t : getMEC(types)) {
-      /*
-       * String unparse = t.toString(); if (unparse.equals(
-       * "java.lang.Comparable<T extends java.lang.Object in Comparable>")) {
-       * System.out.println("Potential StackOverflow"); }
-       */
-      try {
-        IJavaReferenceType c = getCandidate(allSupers, t);
-        if (result == null) {
-          result = c;
-        } else {
-          result = JavaTypeFactory.getIntersectionType(c, result);
-        }
-      } catch (StackOverflowError e) {
-        StackTraceElement[] trace = e.getStackTrace();
-        System.err.println("StackOverflow on " + t + ": " + trace.length);
-        StackTraceElement first = trace[0];
-        for (int i = 0; i < 15; i++) {
-          if (trace[i].equals(first)) {
-            break;
-          }
-          System.err.println("\tat " + trace[i]);
-        }
-      }
-    }
+    final IJavaReferenceType result = computeLowestUpperBound(types);
     /*
      * if (result == null) { return tEnv.getObjectType(); }
      */
     if (p != null) {
-      p.finishType(result);
+      try {
+    	  p.finishType(result);
+      } catch(IllegalStateException e) {
+    	  computeLowestUpperBound(types);
+    	  throw e;
+      }
     }
     /*
      * try { result.isValid(); } catch(StackOverflowError e) { e = null; new
@@ -508,6 +486,37 @@ public class TypeUtils {
     return result;
   }
 
+  private IJavaReferenceType computeLowestUpperBound(IJavaReferenceType... types) {
+	  Iterable<IJavaSourceRefType> allSupers = getST(types);
+	  IJavaReferenceType result = null;
+	  for (IJavaReferenceType t : getMEC(types)) {
+		  /*
+		   * String unparse = t.toString(); if (unparse.equals(
+		   * "java.lang.Comparable<T extends java.lang.Object in Comparable>")) {
+		   * System.out.println("Potential StackOverflow"); }
+		   */
+		  try {
+			  IJavaReferenceType c = getCandidate(allSupers, t);
+			  if (result == null) {
+				  result = c;
+			  } else {
+				  result = JavaTypeFactory.getIntersectionType(c, result);
+			  }
+		  } catch (StackOverflowError e) {
+			  StackTraceElement[] trace = e.getStackTrace();
+			  System.err.println("StackOverflow on " + t + ": " + trace.length);
+			  StackTraceElement first = trace[0];
+			  for (int i = 0; i < 15; i++) {
+				  if (trace[i].equals(first)) {
+					  break;
+				  }
+				  System.err.println("\tat " + trace[i]);
+			  }
+		  }
+	  }
+	  return result;
+  }
+  
   // (�5.1.10) - no formal definition there
   public IJavaReferenceType getGreatestLowerBound(IJavaReferenceType... bounds) {
     IJavaReferenceType result = null;

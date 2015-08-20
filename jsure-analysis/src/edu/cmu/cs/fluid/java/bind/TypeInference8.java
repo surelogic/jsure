@@ -894,6 +894,11 @@ public class TypeInference8 {
      * - Otherwise, the constraint formula < R θ -> T > is reduced and
      * incorporated with B 2 .
      */
+    /*
+    if (call.toString().equals("ImmutableList.of(Multisets.immutableEntry(#.checkNotNull#, 1))")) {
+    	System.out.println("Found all");
+    }
+    */
     reduceConstraintFormula(b_3, new ConstraintFormula(r_subst, FormulaConstraint.IS_COMPATIBLE, t));
     return b_3;
   }
@@ -3597,14 +3602,17 @@ public class TypeInference8 {
           throw new IllegalStateException();
         }
 
+        /* 
+         * TODO this isn't right for type formals as bounds?         
         // Check if the bounds are well-formed
         IJavaType l_i = v.getLowerBound();
         IJavaType u_i = v.getUpperBound(tEnv);
         if (l_i != null && u_i != null && !l_i.isSubtype(tEnv, u_i)) {
+          l_i.isSubtype(tEnv, u_i);
           return null;
         }
+        */
         // TODO how to check for intersection type?
-
       }
       rv.incorporate(newBounds);
       return rv;
@@ -3680,6 +3688,7 @@ public class TypeInference8 {
     while (!subset.isEmpty()) {
       BoundSet next = resolveVariables(current, subset);
       if (next == null || next.isFalse) {
+    	resolveVariables(current, subset);
         return null;
       }
       last = current;
