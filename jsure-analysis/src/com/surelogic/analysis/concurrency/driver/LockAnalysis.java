@@ -1,5 +1,6 @@
 package com.surelogic.analysis.concurrency.driver;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -192,7 +193,13 @@ public class LockAnalysis
       }
     }		
 
-    newLockModel.dumpModel(new PrintWriter(System.out));
+//    try {
+//      final PrintWriter pw = new PrintWriter("/Users/aarong/model.txt");
+//      newLockModel.dumpModel(pw);
+//      pw.close();
+//    } catch (IOException e) {
+//      // eat it
+//    }
     
 		// Share the new global lock model with the lock visitor, and other
 		// helpers

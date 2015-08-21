@@ -8,13 +8,14 @@ import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import com.surelogic.aast.java.ClassExpressionNode;
+import com.surelogic.aast.bind.IType;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.FieldRefNode;
 import com.surelogic.aast.java.MethodCallNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
+import com.surelogic.aast.promise.ClassLockExpressionNode;
 import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
@@ -229,6 +230,10 @@ public final class AnalysisLockModel {
     /**
      * The locks declared in this class.
      */
+    /* XXX: Should this really contain PolicyLocks?  If not, then we should
+     * replace the whole clazz hierarchy model wit ha map from regions to 
+     * locks.  
+     */
     private final Set<ModelLock<?, ?>> declaredLocks = new ConcurrentHashSet<>();
 
     
@@ -262,7 +267,7 @@ public final class AnalysisLockModel {
     }
   }
   
-  // ======================================================================
+  // ====================================================================== 
   // ======================================================================
   
   private static abstract class SimpleExpressionNodeSwitch<T> {
@@ -273,8 +278,8 @@ public final class AnalysisLockModel {
     }
     
     public final T apply(final ExpressionNode exprNode) {
-      if (exprNode instanceof ClassExpressionNode) {
-        return caseClassExpression((ClassExpressionNode) exprNode);
+      if (exprNode instanceof ClassLockExpressionNode) {
+        return caseClassLockExpression((ClassLockExpressionNode) exprNode);
       } else if (exprNode instanceof FieldRefNode) {
         return caseFieldRef((FieldRefNode) exprNode);
       } else if (exprNode instanceof ItselfNode) {
@@ -290,7 +295,7 @@ public final class AnalysisLockModel {
       return null;
     }
     
-    protected abstract T caseClassExpression(ClassExpressionNode exprNode);
+    protected abstract T caseClassLockExpression(ClassLockExpressionNode exprNode);
     protected abstract T caseFieldRef(FieldRefNode exprNode);
     protected abstract T caseItself(ItselfNode exprNode);
     protected abstract T caseMethodCall(MethodCallNode exprNode);
@@ -304,9 +309,10 @@ public final class AnalysisLockModel {
     }
     
     @Override
-    protected UnnamedLockImplementation caseClassExpression(final ClassExpressionNode exprNode) {
+    protected UnnamedLockImplementation caseClassLockExpression(final ClassLockExpressionNode exprNode) {
+      final IType a = exprNode.resolveType();
       return new ClassImplementation(
-          (IJavaDeclaredType) exprNode.resolveType());
+          (IJavaDeclaredType) exprNode.resolveType().getJavaType());
     }
   
     @Override
@@ -339,9 +345,9 @@ public final class AnalysisLockModel {
     }
     
     @Override
-    protected Member caseClassExpression(final ClassExpressionNode exprNode) {
+    protected Member caseClassLockExpression(final ClassLockExpressionNode exprNode) {
       return new ClassObject(
-          ((IJavaDeclaredType) exprNode.resolveType()).getDeclaration());
+          ((IJavaDeclaredType) exprNode.resolveType().getJavaType()).getDeclaration());
     }
   
     @Override
