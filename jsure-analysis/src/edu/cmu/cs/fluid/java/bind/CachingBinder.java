@@ -9,6 +9,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -68,7 +69,12 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 			activeCUs.add(tree);
 		}
 		for(IRNode n : JJNode.tree.bottomUp(tree)) {
-			Operator op = JJNode.tree.getOperator(n);
+			final Operator op = JJNode.tree.getOperator(n);
+			/*
+			if (op == Type.prototype) {
+				System.out.println("Computing bindings for Type");
+			}
+			*/
 			//if (!isUJB) { 
 			if (true) {
 				if (op instanceof IHasBinding) {
