@@ -2126,6 +2126,23 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       return null;
     }
 
+    private IJavaType computeReceiverType(IRNode receiver) {
+        final Operator rop = JJNode.tree.getOperator(receiver);
+        if (rop instanceof ImplicitReceiver) {
+        	return null;
+        } else {
+        	return getApproxJavaType(receiver, rop);
+        }
+    }
+    
+    private IJavaScope computeScope(IJavaType recType) {
+    	if (recType == null) {
+    		return scope;
+    	} else {
+    		return typeScope(recType);
+    	}
+    }
+    
     @Override
     public Void visitMethodCall(IRNode node) {
       visit(node); // bind the arguments etc
@@ -2135,27 +2152,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IRNode receiver = call.get_Object(node);
       IRNode args = call.get_Args(node);
       IRNode targs = call.get_TypeArgs(node);
-      IJavaScope toUse = null;
-      IJavaType recType = null;
+      final IJavaType recType = computeReceiverType(receiver);
       final String name = MethodCall.getMethod(node);
       /*
       if (name.equals("asList")) {
     	  System.out.println("Trying to bind "+DebugUnparser.toString(node));
       }
       */
-      final Operator rop = JJNode.tree.getOperator(receiver);
-      if (rop instanceof ImplicitReceiver) {
-        toUse = scope;
-      } else {
-        recType = getApproxJavaType(receiver, rop);
-        // if (recType instanceof IJavaDeclaredType) {
-        // System.out.println(DebugUnparser.toString(((IJavaDeclaredType)
-        // recType).getDeclaration()));
-        // }
-        // String recName = recType.toString();
-        if (recType != null)
-          toUse = typeScope(recType);
-      }
+      final IJavaScope toUse = computeScope(recType);
       if (toUse != null) {
         if (recType instanceof IJavaDeclaredType) {
           IJavaDeclaredType dt = (IJavaDeclaredType) recType;
@@ -2189,8 +2193,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
               }
               System.out.println("Receiver: " + DebugUnparser.toString(receiver));
               System.out.println("Args:     " + DebugUnparser.toString(args));
-              IJavaType temp = getApproxJavaType(receiver, rop);
-              typeScope(temp);
+              IJavaType temp = computeReceiverType(receiver);
+              computeScope(temp);
               bindCall(state, name, toUse);
             }
           }
