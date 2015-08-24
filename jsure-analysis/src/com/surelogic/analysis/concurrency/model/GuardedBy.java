@@ -29,6 +29,11 @@ implements StateLock<GuardedByPromiseDrop, UnnamedLockImplementation>{
   public IRegion getRegion() {
     return protectedRegion;
   }
+  
+  @Override
+  public boolean protects(final IRegion region) {
+    return protectedRegion.ancestorOf(region);
+  }
 
   @Override
   public int hashCode() {

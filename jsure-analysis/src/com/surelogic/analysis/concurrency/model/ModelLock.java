@@ -1,6 +1,7 @@
 package com.surelogic.analysis.concurrency.model;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -53,4 +54,9 @@ public interface ModelLock<A extends PromiseDrop<? extends IAASTRootNode>, L ext
    * {@link java.util.concurrent.ReadWriteLock}. 
    */
   public boolean isReadWrite(IBinder binder);
+  
+  /**
+   * Does the lock protect the given region.
+   */
+  public boolean protects(IRegion region);
 }

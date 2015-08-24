@@ -18,6 +18,7 @@ import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.aast.promise.ClassLockExpressionNode;
 import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
@@ -478,7 +479,6 @@ public final class AnalysisLockModel {
       final IRNode annotatedItem, final ExpressionNode exprNode) {
     return new ExpressionToMemberSwitch(annotatedItem).apply(exprNode);
   }
-
   
   // ----------------------------------------------------------------------
   
@@ -491,6 +491,33 @@ public final class AnalysisLockModel {
     
     for (final Clazz clazz : classes.values()) {
       clazz.dumpClazz(pw);
+    }
+  }
+  
+  // ----------------------------------------------------------------------
+
+  /**
+   * Get the model lock for the lock that protects the given region in the 
+   * given class.
+   * @return The lock declaration for the lock that protects the given region,
+   *         which may in fact be associated with a super region.
+   *         <code>null</code> if the region is unprotected.
+   */
+  public ModelLock<?, ?> getLockForRegion(
+      final IJavaType javaType, final IRegion region) {
+    final Clazz clazz = classes.get(javaType);
+    if (clazz == null) {
+      throw new IllegalArgumentException("Class " + javaType.getName() + " not found in the lock model");
+    } else {
+      for (final ModelLock<?, ?> lock : clazz.getDeclaredLocks()) {
+        /* This only works because sanity checking already makes sure each 
+         * region is protected by at most 1 lock.
+         */
+        if (lock.protects(region)) {
+          return lock;
+        }
+      }
+      return null;
     }
   }
 }

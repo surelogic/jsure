@@ -25,6 +25,11 @@ implements StateLock<LockModel, NamedLockImplementation> {
   }
   
   @Override
+  public boolean protects(final IRegion region) {
+    return protectedRegion.ancestorOf(region);
+  }
+  
+  @Override
   public int hashCode() {
     return super.partialHashCode();
   }
