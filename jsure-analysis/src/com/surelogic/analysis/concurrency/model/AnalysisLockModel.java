@@ -8,7 +8,6 @@ import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import com.surelogic.aast.bind.IType;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.FieldRefNode;
 import com.surelogic.aast.java.MethodCallNode;
@@ -311,7 +310,6 @@ public final class AnalysisLockModel {
     
     @Override
     protected UnnamedLockImplementation caseClassLockExpression(final ClassLockExpressionNode exprNode) {
-      final IType a = exprNode.resolveType();
       return new ClassImplementation(
           (IJavaDeclaredType) exprNode.resolveType().getJavaType());
     }
@@ -319,12 +317,12 @@ public final class AnalysisLockModel {
     @Override
     protected UnnamedLockImplementation caseFieldRef(final FieldRefNode exprNode) {
       return new FieldImplementation(
-          exprNode.resolveBinding().getNode());
+          exprNode.resolveBinding().getNode(), false);
     }
   
     @Override
     protected UnnamedLockImplementation caseItself(final ItselfNode exprNode) {
-      return new FieldImplementation(annotatedItem);
+      return new FieldImplementation(annotatedItem, true);
     }
   
     @Override
@@ -458,8 +456,8 @@ public final class AnalysisLockModel {
   public void addGuardedByDelaration(final GuardedByPromiseDrop guardedByDrop) {
     final IRNode promisedFor = guardedByDrop.getPromisedFor();
     final ExpressionNode lockField = guardedByDrop.getAAST().getLock();
-    final UnnamedLockImplementation lockImpl = getLockImplementation(
-        promisedFor, lockField);
+    final UnnamedLockImplementation lockImpl =
+        getLockImplementation(promisedFor, lockField);
     if (lockImpl != null) {
       final Member member = getMember(promisedFor, lockField);
       insertLockIntoModel(member, new GuardedBy(guardedByDrop, lockImpl));
@@ -503,18 +501,21 @@ public final class AnalysisLockModel {
    *         which may in fact be associated with a super region.
    *         <code>null</code> if the region is unprotected.
    */
-  public ModelLock<?, ?> getLockForRegion(
+  public StateLock<?, ?> getLockForRegion(
       final IJavaType javaType, final IRegion region) {
     final Clazz clazz = classes.get(javaType);
     if (clazz == null) {
       throw new IllegalArgumentException("Class " + javaType.getName() + " not found in the lock model");
     } else {
       for (final ModelLock<?, ?> lock : clazz.getDeclaredLocks()) {
-        /* This only works because sanity checking already makes sure each 
-         * region is protected by at most 1 lock.
-         */
-        if (lock.protects(region)) {
-          return lock;
+        if (lock instanceof StateLock<?, ?>) {
+          /* This only works because sanity checking already makes sure each 
+           * region is protected by at most 1 lock.
+           */
+          final StateLock<?, ?> stateLock = (StateLock<?, ?>) lock;
+          if (stateLock.protects(region)) {
+            return stateLock;
+          }
         }
       }
       return null;

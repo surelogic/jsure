@@ -24,7 +24,7 @@ public final class ClassImplementation implements UnnamedLockImplementation {
   @Override
   public int hashCode() {
     int result = 17;
-    result = 31 * clazz.hashCode();
+    result += 31 * clazz.hashCode();
     return result;
   }
   
@@ -50,7 +50,20 @@ public final class ClassImplementation implements UnnamedLockImplementation {
   }
   
   @Override
+  public String getClassName() {
+    return clazz.toFullyQualifiedText();
+  }
+  
+  @Override
+  public String getPostfixId() {
+    return ".class";
+  }
+  
+  @Override
   public boolean isStatic() { return true; }
+  
+  @Override
+  public boolean isFinalProtected() { return false; }
   
   @Override
   public boolean isIntrinsic(IBinder binder) { return true; }

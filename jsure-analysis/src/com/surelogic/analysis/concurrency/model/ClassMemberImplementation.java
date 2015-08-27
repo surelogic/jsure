@@ -1,11 +1,13 @@
 package com.surelogic.analysis.concurrency.model;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public abstract class ClassMemberImplementation implements UnnamedLockImplementation {
   /** The name of the interface {@code java.util.concurrent.locks.Lock}. */
@@ -28,7 +30,7 @@ public abstract class ClassMemberImplementation implements UnnamedLockImplementa
   
   protected final int partialHashCode() {
     int result = 17;
-    result = 31 * memberDecl.hashCode();
+    result += 31 * memberDecl.hashCode();
     return result;
   }
   
@@ -51,6 +53,11 @@ public abstract class ClassMemberImplementation implements UnnamedLockImplementa
     return JavaTypeFactory.convertNodeTypeToIJavaType(
         typeEnv.findNamedType(
             JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK), binder);
+  }
+  
+  @Override
+  public final String getClassName() {
+    return JavaNames.getFullTypeName(VisitUtil.getEnclosingType(memberDecl));
   }
   
   @Override

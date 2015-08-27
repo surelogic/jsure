@@ -44,7 +44,20 @@ public final class SelfImplementation implements UnnamedLockImplementation {
 //  }
   
   @Override
+  public String getClassName() {
+    return "java.lang.Object";
+  }
+  
+  @Override
+  public String getPostfixId() {
+    return "";
+  }
+
+  @Override
   public boolean isStatic() { return false; }
+  
+  @Override
+  public boolean isFinalProtected() { return false; }
   
   @Override
   public boolean isIntrinsic(IBinder binder) { return true; }

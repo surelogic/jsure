@@ -31,8 +31,8 @@ public final class NamedLockImplementation implements LockImplementation {
   @Override
   public int hashCode() {
     int result = 17;
-    result = 31 * result + name.hashCode();
-    result = 31 * result + lockImpl.hashCode();
+    result += 31 * result + name.hashCode();
+    result += 31 * result + lockImpl.hashCode();
     return result;
   }
   
@@ -56,9 +56,22 @@ public final class NamedLockImplementation implements LockImplementation {
   }
   
   @Override
+  public String getClassName() {
+    return lockImpl.getClassName();
+  }
+  
+  @Override
+  public String getPostfixId() {
+    return ":" + name;
+  }
+
+  @Override
   public boolean isStatic() {
     return lockImpl.isStatic();
   }
+  
+  @Override
+  public boolean isFinalProtected() { return lockImpl.isFinalProtected(); }
   
   @Override
   public boolean isIntrinsic(IBinder binder) {

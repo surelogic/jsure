@@ -4,14 +4,33 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
  * Represents the implementation of a lock.
- *
  */
 public interface LockImplementation {
+  /**
+   * Get the name of the class whose member or reference is being
+   * used as the lock.
+   */
+  public String getClassName();
+  
+  /**
+   * Get the "id" for the lock in a form suitable for appending to a qualifying
+   * label.  That is, the id should start with the appropriate separator 
+   * notation.
+   */
+  public String getPostfixId();
+  
   /**
    * Returns whether the lock is static: whether the field/method representing
    * the lock is static, or if the lock is a class representation.
    */
   public boolean isStatic();
+  
+  /**
+   * Whether the lock protects final fields or not.  Right now the only time
+   * a final field is protected is to implement the "itself" case of the
+   * GuardedBy annotation.
+   */
+  public boolean isFinalProtected();
   
   /** 
    * Returns whether the lock is an intrinsic Java lock, that is one that

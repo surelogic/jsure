@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 
 /**
- * Represents a field being used a lock.
+ * Represents a method being used a lock.
  */
 public final class MethodImplementation extends ClassMemberImplementation {
   public MethodImplementation(final IRNode methodDecl) {
@@ -26,7 +26,7 @@ public final class MethodImplementation extends ClassMemberImplementation {
   
   @Override
   public String toString() {
-    return JavaNames.genMethodConstructorName(memberDecl) + "()";
+    return JavaNames.genMethodConstructorName(memberDecl);
   }
   
   @Override
@@ -46,6 +46,14 @@ public final class MethodImplementation extends ClassMemberImplementation {
   }
 
   
+
+  @Override
+  public String getPostfixId() {
+    return "." + JavaNames.genSimpleMethodConstructorName(memberDecl);
+  }
+
+  @Override
+  public boolean isFinalProtected() { return false; }
   
   @Override
   protected IJavaType getMemberLockType(final IBinder binder) {

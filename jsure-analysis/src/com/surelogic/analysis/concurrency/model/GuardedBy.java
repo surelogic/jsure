@@ -31,8 +31,8 @@ implements StateLock<GuardedByPromiseDrop, UnnamedLockImplementation>{
   }
   
   @Override
-  public boolean protects(final IRegion region) {
-    return protectedRegion.ancestorOf(region);
+  public final boolean protects(final IRegion region) {
+    return (!lockImpl.isFinalProtected() && region.isFinal()) ? false : protectedRegion.ancestorOf(region);
   }
 
   @Override

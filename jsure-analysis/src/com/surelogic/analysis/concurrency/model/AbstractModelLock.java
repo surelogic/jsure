@@ -69,8 +69,8 @@ implements ModelLock<A, L> {
   
   protected final int partialHashCode() {
     int result = 17;
-    result = 31 * sourceDrop.hashCode();
-    result = 31 * lockImpl.hashCode();
+    result += 31 * sourceDrop.hashCode();
+    result += 31 * lockImpl.hashCode();
     return result;
   }
   

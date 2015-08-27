@@ -11,9 +11,17 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * Represents a field being used a lock.
  */
 public final class FieldImplementation extends ClassMemberImplementation {
+  /**
+   * Whether final fields are protected.  This is only true when this 
+   * implementation is for field 'f' and is associated with the field 'f'
+   * via GuardedBy("itself") on field 'f'.  
+   */
+  private final boolean protectsFinal;
+  
   // memberDecl is a VariableDeclarator
-  public FieldImplementation(final IRNode varDecl) {
+  public FieldImplementation(final IRNode varDecl, final boolean protectsFinal) {
     super(varDecl);
+    this.protectsFinal = protectsFinal;
   }
   
   /**
@@ -48,6 +56,14 @@ public final class FieldImplementation extends ClassMemberImplementation {
   }
 
   
+  
+  @Override
+  public String getPostfixId() {
+    return "." + VariableDeclarator.getId(memberDecl);
+  }
+
+  @Override
+  public boolean isFinalProtected() { return protectsFinal; }
   
   @Override
   protected IJavaType getMemberLockType(final IBinder binder) {

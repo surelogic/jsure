@@ -12,4 +12,11 @@ extends ModelLock<A, L> {
    * The region protected by this lock.
    */
   public IRegion getRegion();
+  
+  /**
+   * Does the lock protect the given region.  Takes into account the region
+   * hierarchy, as well as any modifiers (final, volatile, etc.) on the 
+   * region.
+   */
+  public boolean protects(IRegion region);
 }
