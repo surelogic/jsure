@@ -1,14 +1,18 @@
 package com.surelogic.analysis.concurrency.model;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+
 public final class NeededStaticLock extends AbstractNeededLock {
-  public NeededStaticLock(final ModelLock<?, ?> modelLock) {
-    super(modelLock);
+  public NeededStaticLock(
+      final ModelLock<?, ?> modelLock, final IRNode source) {
+    super(modelLock, source);
   }
 
   @Override
   public int hashCode() {
     int result = 17;
     result += 31 * modelLock.hashCode();
+    result += 31 * source.hashCode();
     return result;
   }
   
@@ -18,7 +22,8 @@ public final class NeededStaticLock extends AbstractNeededLock {
       return true;
     } else if (other instanceof NeededStaticLock) {
       final NeededStaticLock o = (NeededStaticLock) other;
-      return this.modelLock.equals(o.modelLock);
+      return this.modelLock.equals(o.modelLock) &&
+          this.source.equals(o.source);
     } else {
       return false;
     }

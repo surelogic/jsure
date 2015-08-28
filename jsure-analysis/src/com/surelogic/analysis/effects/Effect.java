@@ -1,6 +1,10 @@
 package com.surelogic.analysis.effects;
 
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.concurrency.model.NeededLock;
 import com.surelogic.analysis.effects.targets.EmptyTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
@@ -48,11 +52,16 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * unique references and to trace uses of local variables to more concrete 
  * sources such as method parameters or method return values.
  * 
+ * <p>An Effect also refers to the set of locks that must be held by the thread
+ * that produces this effect in order for the code that produces the effect
+ * to comply with the programs locking policy.
+ * 
  * @see Target
  * @author Aaron Greenhouse
  */
 public abstract class Effect {
   private static final class EmptyEffect extends Effect {
+    /** Only for use by changeSource(). */
     private EmptyEffect(final IRNode src, final Target t) {
       super(src, t);
     }
@@ -158,6 +167,13 @@ public abstract class Effect {
   
   private abstract static class RealEffect extends Effect {
     /**
+     * The set of locks that should be held before producing this effect.
+     */
+    protected final Set<NeededLock> neededLocks;
+
+    
+    
+    /**
      * Create a new effect instance
      * 
      * @param src
@@ -165,8 +181,10 @@ public abstract class Effect {
      * @param t
      *          Target of the effect
      */
-    protected RealEffect(final IRNode src, final Target t) {
+    protected RealEffect(final IRNode src, final Target t,
+        final Set<NeededLock> neededLocks) {
       super(src, t);
+      this.neededLocks = neededLocks;
     }
 
     protected final Effect maskImpl(final IBinder binder, final boolean isRead) {
@@ -176,7 +194,7 @@ public abstract class Effect {
       } else if (maskedTarget == target) {
         return this;        
       } else {
-        return newEffect(source, isRead, maskedTarget);
+        return newEffect(source, isRead, maskedTarget, neededLocks);
       }
     }
 
@@ -200,8 +218,9 @@ public abstract class Effect {
   
   
   private static final class ReadEffect extends RealEffect {
-    private ReadEffect(final IRNode src, final Target t) {
-      super(src, t);
+    private ReadEffect(final IRNode src, final Target t,
+        final Set<NeededLock> neededLocks) {
+      super(src, t, neededLocks);
     }
 
     @Override
@@ -211,7 +230,7 @@ public abstract class Effect {
     
     @Override
     public ReadEffect changeSource(final IRNode src, final TargetEvidence e) {
-      return new ReadEffect(src, target.changeEvidence(e));
+      return new ReadEffect(src, target.changeEvidence(e), neededLocks);
     }
     
     @Override
@@ -285,8 +304,9 @@ public abstract class Effect {
   
   
   private static final class WriteEffect extends RealEffect {
-    private WriteEffect(final IRNode src, final Target t) {
-      super(src, t);
+    private WriteEffect(final IRNode src, final Target t,
+        final Set<NeededLock> neededLocks) {
+      super(src, t, neededLocks);
     }
 
     @Override
@@ -296,7 +316,7 @@ public abstract class Effect {
     
     @Override
     public WriteEffect changeSource(final IRNode src, final TargetEvidence e) {
-      return new WriteEffect(src, target.changeEvidence(e));
+      return new WriteEffect(src, target.changeEvidence(e), neededLocks);
     }
     
     @Override
@@ -404,8 +424,9 @@ public abstract class Effect {
    * @return An effect of the appropriate kind on target <tt>t</tt>
    */
   public static Effect newEffect(
-      final IRNode src, final boolean read, final Target t) {
-    return read ? newRead(src, t) : newWrite(src, t);
+      final IRNode src, final boolean read, final Target t,
+      final Set<NeededLock> neededLocks) {
+    return read ? newRead(src, t, neededLocks) : newWrite(src, t, neededLocks);
   }
   
   /**
@@ -417,8 +438,9 @@ public abstract class Effect {
    *          Target of the effect
    * @return An read affect on <tt>t</tt>
    */
-  public static Effect newRead(final IRNode src, final Target t) {
-    return new ReadEffect(src, t);
+  public static Effect newRead(final IRNode src, final Target t,
+      final Set<NeededLock> neededLocks) {
+    return new ReadEffect(src, t, neededLocks);
   }
 
   /**
@@ -430,8 +452,9 @@ public abstract class Effect {
    *          Target of the effect
    * @return An write affect on <tt>t</tt>
    */
-  public static Effect newWrite(final IRNode src, final Target t) {
-    return new WriteEffect(src, t);
+  public static Effect newWrite(final IRNode src, final Target t,
+      final Set<NeededLock> neededLocks) {
+    return new WriteEffect(src, t, neededLocks);
   }
   
   /**

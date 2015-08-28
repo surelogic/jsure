@@ -1,5 +1,7 @@
 package com.surelogic.analysis.concurrency.model;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+
 /**
  * A lock that needs to be held before a particular region can be accessed.
  * Originates from a specific region access.  These are instantiations of
@@ -15,5 +17,9 @@ package com.surelogic.analysis.concurrency.model;
  * with a parse tree node that gives rise to the region access.
  */
 public interface NeededLock {
-  // Add stuff here as needed
+  /**
+   * Get the parse tree node of the region access that causes the need for 
+   * the lock.
+   */
+  public IRNode getSource();
 }

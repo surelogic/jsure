@@ -6,8 +6,10 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 public final class NeededInstanceLock extends AbstractNeededLock {
   private final IRNode objectRefExpr;
   
-  public NeededInstanceLock(final IRNode objectRefExpr, final ModelLock<?, ?> modelLock) {
-    super(modelLock);
+  public NeededInstanceLock(
+      final IRNode objectRefExpr, final ModelLock<?, ?> modelLock,
+      final IRNode source) {
+    super(modelLock, source);
     this.objectRefExpr = objectRefExpr;
   }
 
@@ -15,6 +17,7 @@ public final class NeededInstanceLock extends AbstractNeededLock {
   public int hashCode() {
     int result = 17;
     result += 31 * modelLock.hashCode();
+    result += 31 * source.hashCode();
     result += 31 * objectRefExpr.hashCode();
     return result;
   }
@@ -26,7 +29,8 @@ public final class NeededInstanceLock extends AbstractNeededLock {
     } else if (other instanceof NeededInstanceLock) {
       final NeededInstanceLock o = (NeededInstanceLock) other;
       return this.modelLock.equals(o.modelLock) && 
-          this.objectRefExpr.equals(o.objectRefExpr);
+          this.objectRefExpr.equals(o.objectRefExpr) &&
+          this.source.equals(o.source);
     } else {
       return false;
     }
