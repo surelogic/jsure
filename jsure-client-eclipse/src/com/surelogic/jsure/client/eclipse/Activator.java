@@ -149,8 +149,4 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
     IDecl p = new Decl.ClassBuilder(cu).setParent(new Decl.PackageBuilder(pkg)).build();
     HistoricalSourceView.tryToOpenInEditor(p, false);
   }
-
-  public static String getVersion() {
-    return EclipseUtility.getMajorMinorDotVersion(getDefault());
-  }
 }
