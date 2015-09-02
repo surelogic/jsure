@@ -1787,7 +1787,7 @@ public class TypeUtils {
        */
       IJavaFunctionType ftype = computeInvocationTypeForCall(call, p, eliminateTypeVars, bi);
       if (ftype == null) {
-        throw new IllegalStateException();
+        throw new IllegalStateException("Couldn't compute function type for "+DebugUnparser.toString(call)+" -> "+bi);
       }
       final int n = bi.isConstructor || TypeUtil.isStatic(bi.getNode()) ? i : i + 1;
       final int numFormals = ftype.getParameterTypes().size();
