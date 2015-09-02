@@ -363,6 +363,7 @@
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 	<target name="run JSure on test suites" depends="setup test suites to analyze">
+	    <property name="jsure.tests.focus" value="n/a"/>
 	    <if>
              <matches string="${jsure.tests.archive.use}" pattern="4\.[2345](.*)" />
              <then>
@@ -445,9 +446,21 @@
 							<entry key="junit-report-output" value="${workspace.dir}${fs}@{project}" />
 							<entry key="extraVMargs" value="-Dtest.module=${sandbox.suites.dir}${fs}@{suite}${fs}@{project} -Xmx4096m -XX:MaxPermSize=1024m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 						</propertyfile>
-						<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
-							<property file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}test.properties" />
-						</ant>
+						
+						<if>
+						    <or>
+          		        	    <equals arg1="${jsure.tests.focus}" arg2="n/a" />
+          		        	    <equals arg1="${jsure.tests.focus}" arg2="@{project}" />
+		          		    </or>
+						    <then>
+						        <ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
+									<property file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}test.properties" />
+								</ant>
+						    </then>
+						    <else>
+								<echo message="Ignoring project @{project}"/>						        
+						    </else>
+						</if>
 
 						<move todir="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}">
 							<fileset dir="${workspace.dir}${fs}@{project}" includes="**/*" defaultexcludes="no" />
