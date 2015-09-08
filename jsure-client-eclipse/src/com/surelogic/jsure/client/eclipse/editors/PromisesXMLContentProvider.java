@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.editors;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
@@ -188,12 +189,12 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
           InputStream in = url.openStream();
           status = FileStatus.READ_ONLY;
           roots[0] = pkg = PromisesXMLReader.loadRaw(in);
-          fluidXML = FileUtility.getStreamContentsAsString(location.toString(), url.openStream());
+          fluidXML = FileUtility.getStreamContentsAsString(url.openStream(), true);
 
           final File dummy = File.createTempFile("dummy", TestXMLParserConstants.SUFFIX);
           dummy.deleteOnExit();
           localXML = dummy.toURI();
-        } catch (IllegalArgumentException e) {
+        } catch (IOException noExistingFile) {
           final String path = location.toASCIIString();
           Pair<File, File> rv = PromisesXMLParser.findPromisesXML(path);
           roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), ignoreDiffs ? null : rv.second());
@@ -340,8 +341,8 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
       Image i = SLImages.getImage(key);
       if (i != null) {
         if (e.isStatic()) {
-          return SLImages.getDecoratedImage(i, new ImageDescriptor[] { null, SLImages.getImageDescriptor(CommonImages.DECR_STATIC),
-              null, null, null });
+          return SLImages.getDecoratedImage(i,
+              new ImageDescriptor[] { null, SLImages.getImageDescriptor(CommonImages.DECR_STATIC), null, null, null });
         } else
           return i;
       }
