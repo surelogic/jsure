@@ -11,9 +11,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
-import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.ref.Decl;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
@@ -58,7 +56,7 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
   // Used for startup
   @Override
   public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-    monitor.beginTask("Initializing the JSure tool", 7);
+    monitor.beginTask("Initializing the JSure tool", 5);
 
     /*
      * "Touch" common-core-eclipse so the logging gets Eclipse-ified.
@@ -76,9 +74,6 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
      * "Touch" the JSure preference initialization.
      */
     JSurePreferencesUtility.initializeDefaultScope();
-    monitor.worked(1);
-
-    EclipseUtility.getProductReleaseDateJob(SLLicenseProduct.JSURE, this).schedule();
     monitor.worked(1);
 
     SelectionManager.getInstance().load(getSelectionSaveFile());
