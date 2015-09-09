@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing.text" release="1">
+    <class name="StyleContext">
+        <class name="SmallAttributeSet">
+            <method name="clone">
+                <NonNull/>
+                <RegionEffects>reads All</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+        </class>
+    </class>
+</package>
