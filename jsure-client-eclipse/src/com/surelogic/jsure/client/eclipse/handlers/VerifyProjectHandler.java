@@ -25,89 +25,69 @@ import com.surelogic.common.ui.dialogs.JavaProjectSelectionDialog;
 import com.surelogic.common.ui.dialogs.SaveDirtyFilesUtility;
 import com.surelogic.common.ui.dialogs.SaveDirtyFilesUtility.Config;
 import com.surelogic.common.ui.handlers.AbstractProjectSelectedMenuHandler;
-import com.surelogic.jsure.core.driver.*;
+import com.surelogic.jsure.core.driver.JSureDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
-public final class VerifyProjectHandler extends
-		AbstractProjectSelectedMenuHandler {
+public final class VerifyProjectHandler extends AbstractProjectSelectedMenuHandler {
 
-	@Override
-	protected void runActionOn(final List<IJavaProject> selectedProjects) {
-		verify(selectedProjects);
-	}
-	
-	public static void verify(final List<IJavaProject> selectedProjects) {
-		/*
-		 * License check: A hack because JSure is not using SLJobs yet.
-		 */
-		final SLStatus failed = SLLicenseUtility.validateSLJob(
-				SLLicenseProduct.JSURE, new NullSLProgressMonitor());
-		if (failed != null) {
-			SLLogger.getLogger().log(failed.getSeverity().toLevel(),
-					failed.getMessage(), failed.getException());
-			return;
-		}
-		final SLJob job = new AbstractSLJob("Checking for builds in progress") {
-			@Override
-			public SLStatus run(SLProgressMonitor monitor) {
-				JSureDriver.waitForBuild();
+  @Override
+  protected void runActionOn(final List<IJavaProject> selectedProjects) {
+    verify(selectedProjects);
+  }
 
-				final boolean okay = 
-						JavaBuild.analyze(JSureDriver.getInstance(), selectedProjects, BalloonUtility.errorListener) != null;
-				if (okay) {
-					showStartBalloon();
-				}
-				return SLStatus.OK_STATUS;
-			}
-		};
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				final IProject[] projects = new IProject[selectedProjects
-						.size()];
-				for (int i = 0; i < projects.length; i++) {
-					projects[i] = selectedProjects.get(i).getProject();
-				}
-				final boolean before = EclipseUtility
-						.getBooleanPreference(JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY);
-				Config c = new Config(
-						"Save and Verify",
-						I18N.msg("jsure.eclipse.preference.page.autoSaveBeforeVerify"),
-						before);
-				boolean scan = SaveDirtyFilesUtility.saveDirtyResources(projects, c);
-				if (c.getAlwaysSavePref() != before) {
-					EclipseUtility
-							.setBooleanPreference(
-									JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY,
-									c.getAlwaysSavePref());
-				}
-				if (scan) {
-				  final Job eJob = EclipseUtility.toEclipseJob(job);
-				  eJob.schedule();
-				}
-			}
-		};
-		EclipseUIUtility.asyncExec(r);
-	}
+  public static void verify(final List<IJavaProject> selectedProjects) {
+    /*
+     * License check: A hack because JSure is not using SLJobs yet.
+     */
+    final SLStatus failed = SLLicenseUtility.validateSLJob(SLLicenseProduct.JSURE, new NullSLProgressMonitor());
+    if (failed != null) {
+      SLLogger.getLogger().log(failed.getSeverity().toLevel(), failed.getMessage(), failed.getException());
+      return;
+    }
+    final SLJob job = new AbstractSLJob("Checking for builds in progress") {
+      @Override
+      public SLStatus run(SLProgressMonitor monitor) {
+        JSureDriver.waitForBuild();
 
-	@Override
-	protected JavaProjectSelectionDialog.Configuration getDialogInfo(
-			List<IJavaProject> selectedProjects) {
-		return new JavaProjectSelectionDialog.Configuration(
-				"Select project(s) to verify:",
-				"Verify",
-				SLImages.getImage(CommonImages.IMG_JSURE_VERIFY),
-				selectedProjects,
-				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN,
-				JSurePreferencesUtility.LAST_TIME_PROJECTS_TO_SCAN);
-	}
+        final boolean okay = JavaBuild.analyze(JSureDriver.getInstance(), selectedProjects, BalloonUtility.errorListener) != null;
+        if (okay) {
+          showStartBalloon();
+        }
+        return SLStatus.OK_STATUS;
+      }
+    };
+    Runnable r = new Runnable() {
+      @Override
+      public void run() {
+        final IProject[] projects = new IProject[selectedProjects.size()];
+        for (int i = 0; i < projects.length; i++) {
+          projects[i] = selectedProjects.get(i).getProject();
+        }
+        final boolean before = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY);
+        Config c = new Config("Save and Verify", I18N.msg("jsure.eclipse.preference.page.autoSaveBeforeVerify"), before);
+        boolean scan = SaveDirtyFilesUtility.saveDirtyResources(projects, c);
+        if (c.getAlwaysSavePref() != before) {
+          EclipseUtility.setBooleanPreference(JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY, c.getAlwaysSavePref());
+        }
+        if (scan) {
+          final Job eJob = EclipseUtility.toEclipseJob(job);
+          eJob.schedule();
+        }
+      }
+    };
+    EclipseUIUtility.asyncExec(r);
+  }
 
-	static void showStartBalloon() {
-		if (EclipseUtility
-				.getBooleanPreference(JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS)) {
-			BalloonUtility.showMessage(
-					I18N.msg("jsure.balloon.scanstart.title"),
-					I18N.msg("jsure.balloon.scanstart.msg"));
-		}
-	}
+  @Override
+  protected JavaProjectSelectionDialog.Configuration getDialogInfo(List<IJavaProject> selectedProjects) {
+    return new JavaProjectSelectionDialog.Configuration("Select project(s) to verify:", "Verify",
+        SLImages.getImage(CommonImages.IMG_JSURE_VERIFY), selectedProjects,
+        JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN, JSurePreferencesUtility.LAST_TIME_PROJECTS_TO_SCAN);
+  }
+
+  static void showStartBalloon() {
+    if (EclipseUtility.getBooleanPreference(JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS)) {
+      BalloonUtility.showMessage(I18N.msg("jsure.balloon.scanstart.title"), I18N.msg("jsure.balloon.scanstart.msg"));
+    }
+  }
 }
