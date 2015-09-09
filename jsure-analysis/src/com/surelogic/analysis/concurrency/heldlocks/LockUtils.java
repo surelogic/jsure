@@ -444,8 +444,8 @@ public final class LockUtils {
       final Effects.Query fxQuery, final ConflictChecker conflicter, 
       final IRNode array, final IRNode sync) {
     if (sync != null) {
-      final Set<Effect> exprEffects =Collections.singleton(
-          Effect.newRead(null,
+      final Set<Effect> exprEffects = Collections.singleton(
+          Effect.read(null,
               new InstanceTarget(thisExprBinder.bindThisExpression(array),
                   RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE)));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
@@ -1452,7 +1452,7 @@ public final class LockUtils {
      * read whatever it wants. Want to prevent the object from writing a
      * reference to itself into another object.
      */
-    final Effect writesInstance = Effect.newWrite(null,
+    final Effect writesInstance = Effect.write(null,
         new InstanceTarget(
             rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE));
 

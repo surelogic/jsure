@@ -60,16 +60,21 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * @author Aaron Greenhouse
  */
 public abstract class Effect {
+  public interface Builder {
+    public Effect create();
+    public Effect create(Set<NeededLock> neededLocks);
+  }
+  
   private static final class EmptyEffect extends Effect {
     /** Only for use by changeSource(). */
-    private EmptyEffect(final IRNode src, final Target t) {
-      super(src, t);
+    private EmptyEffect(final IRNode src, final Target t, final Set<NeededLock> neededLocks) {
+      super(src, t, neededLocks);
     }
 
-    private EmptyEffect(final IRNode src) {
+    private EmptyEffect(final IRNode src, final Set<NeededLock> neededLocks) {
       this(src, new EmptyTarget(
           new EmptyEvidence(
-              EmptyEvidence.Reason.DECLARES_NO_EFFECTS, null, null)));
+              EmptyEvidence.Reason.DECLARES_NO_EFFECTS, null, null)), neededLocks);
     }
 
   
@@ -90,7 +95,7 @@ public abstract class Effect {
     
     @Override
     public EmptyEffect changeSource(final IRNode src, final TargetEvidence e) {
-      return new EmptyEffect(src, target.changeEvidence(e));
+      return new EmptyEffect(src, target.changeEvidence(e), neededLocks);
     }
 
     @Override
@@ -167,13 +172,6 @@ public abstract class Effect {
   
   private abstract static class RealEffect extends Effect {
     /**
-     * The set of locks that should be held before producing this effect.
-     */
-    protected final Set<NeededLock> neededLocks;
-
-    
-    
-    /**
      * Create a new effect instance
      * 
      * @param src
@@ -183,8 +181,7 @@ public abstract class Effect {
      */
     protected RealEffect(final IRNode src, final Target t,
         final Set<NeededLock> neededLocks) {
-      super(src, t);
-      this.neededLocks = neededLocks;
+      super(src, t, neededLocks);
     }
 
     protected final Effect maskImpl(final IBinder binder, final boolean isRead) {
@@ -194,7 +191,7 @@ public abstract class Effect {
       } else if (maskedTarget == target) {
         return this;        
       } else {
-        return newEffect(source, isRead, maskedTarget, neededLocks);
+        return effect(source, isRead, maskedTarget, neededLocks);
       }
     }
 
@@ -406,9 +403,18 @@ public abstract class Effect {
 
   
   
-  private Effect(final IRNode src, final Target t) {
+  /**
+   * The set of locks that should be held before producing this effect.
+   */
+  protected final Set<NeededLock> neededLocks;
+
+  
+  
+  private Effect(final IRNode src, final Target t,
+      final Set<NeededLock> neededLocks) {
     target = t;
     source = src;
+    this.neededLocks = neededLocks;
   }
   
   /**
@@ -423,11 +429,34 @@ public abstract class Effect {
    *          Target of the effect
    * @return An effect of the appropriate kind on target <tt>t</tt>
    */
-  public static Effect newEffect(
+  public static Effect effect(
       final IRNode src, final boolean read, final Target t,
       final Set<NeededLock> neededLocks) {
-    return read ? newRead(src, t, neededLocks) : newWrite(src, t, neededLocks);
+    return read ? read(src, t, neededLocks) : write(src, t, neededLocks);
   }
+
+  public static Effect effect(
+      final IRNode src, final boolean read, final Target t,
+      final NeededLock neededLock) {
+    return read ? read(src, t, neededLock) : write(src, t, neededLock);
+  }
+
+  public static Effect effect(
+      final IRNode src, final boolean read, final Target t) {
+    return read ? read(src, t) : write(src, t);
+  }
+
+//  public static Builder build(final boolean isRead, final IRNode src, final Target t) {
+//    return new Builder() {
+//      @Override
+//      public Effect create() { return effect(src, isRead, t); }
+//      
+//      @Override
+//      public Effect create(final Set<NeededLock> neededLocks) {
+//        return effect(src, isRead, t, neededLocks);
+//      }
+//    };
+//  }
   
   /**
    * Create a new read effect.
@@ -438,11 +467,32 @@ public abstract class Effect {
    *          Target of the effect
    * @return An read affect on <tt>t</tt>
    */
-  public static Effect newRead(final IRNode src, final Target t,
+  public static Effect read(final IRNode src, final Target t) {
+    return new ReadEffect(src, t, ImmutableSet.<NeededLock>of());
+  }
+
+  public static Effect read(final IRNode src, final Target t,
+      final NeededLock neededLock) {
+    return new ReadEffect(src, t, ImmutableSet.of(neededLock));
+  }
+
+  public static Effect read(final IRNode src, final Target t,
       final Set<NeededLock> neededLocks) {
     return new ReadEffect(src, t, neededLocks);
   }
 
+//  public static Builder buildRead(final IRNode src, final Target t) {
+//    return new Builder() {
+//      @Override
+//      public Effect create() { return read(src, t); }
+//      
+//      @Override
+//      public Effect create(final Set<NeededLock> neededLocks) {
+//        return read(src, t, neededLocks);
+//      }
+//    };
+//  }
+  
   /**
    * Create a new write effect.
    * 
@@ -452,10 +502,31 @@ public abstract class Effect {
    *          Target of the effect
    * @return An write affect on <tt>t</tt>
    */
-  public static Effect newWrite(final IRNode src, final Target t,
+  public static Effect write(final IRNode src, final Target t) {
+    return new WriteEffect(src, t, ImmutableSet.<NeededLock>of());
+  }
+  
+  public static Effect write(final IRNode src, final Target t,
+      final NeededLock neededLock) {
+    return new WriteEffect(src, t, ImmutableSet.of(neededLock));
+  }
+  
+  public static Effect write(final IRNode src, final Target t,
       final Set<NeededLock> neededLocks) {
     return new WriteEffect(src, t, neededLocks);
   }
+
+//  public static Builder buildWrite(final IRNode src, final Target t) {
+//    return new Builder() {
+//      @Override
+//      public Effect create() { return write(src, t); }
+//      
+//      @Override
+//      public Effect create(final Set<NeededLock> neededLocks) {
+//        return write(src, t, neededLocks);
+//      }
+//    };
+//  }
   
   /**
    * Create a new empty effect.
@@ -463,11 +534,27 @@ public abstract class Effect {
    * @param src
    *          The source of the effect.
    */
-  public static Effect newEmpty(final IRNode src) {
-    return new EmptyEffect(src);
+  public static Effect empty(final IRNode src, final Set<NeededLock> neededLocks) {
+    return new EmptyEffect(src, neededLocks);
   }
 
-  
+  public static Effect empty(final IRNode src) {
+    return new EmptyEffect(src, ImmutableSet.<NeededLock>of());
+  }
+
+  public static Builder buildEmpty(final IRNode src) {
+    return new Builder() {
+      @Override
+      public Effect create() {
+        return empty(src);
+      }
+
+      @Override
+      public Effect create(final Set<NeededLock> neededLocks) {
+        return empty(src, neededLocks);
+      }
+    };
+  }  
   
   /**
    * Mask the effect, that is, convert it to an empty effect if the effect

@@ -6,7 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.surelogic.RegionEffects;
-import com.surelogic.analysis.*;
+import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
+import com.surelogic.analysis.ConcurrencyType;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
@@ -282,8 +285,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
         }
 
         final Target cleanedTarget = cleanInferredTarget(member, target);
-        final Effect cleanedEffect =
-            Effect.newEffect(null, maskedEffect.isRead(), cleanedTarget);
+        final Effect cleanedEffect = Effect.effect(
+            null, maskedEffect.isRead(), cleanedTarget);
         inferred.add(cleanedEffect);
       }
     } 

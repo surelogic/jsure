@@ -17,6 +17,7 @@ import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.aast.promise.ClassLockExpressionNode;
 import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
@@ -520,5 +521,9 @@ public final class AnalysisLockModel {
       }
       return null;
     }
+  }
+
+  public StateLock<?, ?> getLockForTarget(final IBinder binder, final Target target) {
+    return getLockForRegion(target.getRelativeClass(binder), target.getRegion());
   }
 }
