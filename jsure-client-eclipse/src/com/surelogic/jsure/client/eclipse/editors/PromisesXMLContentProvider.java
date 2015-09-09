@@ -2,7 +2,6 @@ package com.surelogic.jsure.client.eclipse.editors;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
@@ -184,7 +183,8 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
     if (location != null) {
       try {
         roots = new Object[1];
-        try {
+        if (location.getScheme() != null) {
+          // Looks like an absolute URI
           URL url = location.toURL();
           InputStream in = url.openStream();
           status = FileStatus.READ_ONLY;
@@ -194,7 +194,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
           final File dummy = File.createTempFile("dummy", TestXMLParserConstants.SUFFIX);
           dummy.deleteOnExit();
           localXML = dummy.toURI();
-        } catch (IOException noExistingFile) {
+        } else {
           final String path = location.toASCIIString();
           Pair<File, File> rv = PromisesXMLParser.findPromisesXML(path);
           roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), ignoreDiffs ? null : rv.second());
