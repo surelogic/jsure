@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="4">
+<package name="java.util" release="5">
     <class name="TreeMap">
         <Containable allowReferenceObject="true"/>
         <NotThreadSafe/>
@@ -59,8 +59,8 @@
         </method>
 
         <method name="clone">
-            <NonNull/>            
             <Borrowed>this</Borrowed>
+            <NonNull/>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
@@ -181,6 +181,12 @@
             <parameter index="0">
                 <Borrowed/>
             </parameter>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="keySet">

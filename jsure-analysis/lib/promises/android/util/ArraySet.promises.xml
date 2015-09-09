@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="android.util" release="1">
+    <class name="ArraySet">
+        <Containable implementationOnly="true"/>
+        <method name="add" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="addAll" params="java.util.Collection">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="clear">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="contains" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="containsAll" params="java.util.Collection">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="equals" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="hashCode">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="iterator">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="remove" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="removeAll" params="java.util.Collection">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="retainAll" params="java.util.Collection">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="toArray">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="toArray" params="java.lang.Object[]">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance; writes arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>
