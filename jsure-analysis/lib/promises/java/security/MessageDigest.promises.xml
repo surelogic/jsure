@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.security" release="1">
+    <class name="MessageDigest">
+        <method name="clone">
+            <NonNull/>
+            <RegionEffects>reads All</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>

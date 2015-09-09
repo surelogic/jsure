@@ -4,8 +4,6 @@ Bundle-Name: JSure Analysis/Transformation Core
 Bundle-SymbolicName: com.surelogic.jsure.analysis
 Bundle-Version: 5.6.1.qualifier
 Bundle-ClassPath: .,
- lib/runtime/log4j-xml-1.3alpha-8.jar,
- lib/runtime/log4j-1.3alpha-8.jar,
  lib/runtime/renamedJavac.jar
 Bundle-Vendor: SureLogic, Inc.
 Export-Package: 
@@ -94,7 +92,6 @@ Export-Package:
  edu.cmu.cs.fluid.java.unparse,
  edu.cmu.cs.fluid.java.util,
  edu.cmu.cs.fluid.java.xml,
- edu.cmu.cs.fluid.logging,
  edu.cmu.cs.fluid.mvc,
  edu.cmu.cs.fluid.mvc.attr,
  edu.cmu.cs.fluid.mvc.attributes,

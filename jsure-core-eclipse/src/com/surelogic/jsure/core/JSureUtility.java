@@ -236,7 +236,7 @@ public final class JSureUtility {
    * Matches all known versions of the promises.jar on a path.
    */
   static class PromisesJarMatcher extends IPathFilter {
-    final List<IPath> results = new ArrayList<IPath>();
+    final List<IPath> results = new ArrayList<>();
 
     @Override
     public boolean stopAfterMatch() {

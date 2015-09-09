@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.sound.midi" release="1">
+    <class name="MidiMessage">
+        <method name="clone">
+            <NonNull/>
+            <RegionEffects>reads All</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>

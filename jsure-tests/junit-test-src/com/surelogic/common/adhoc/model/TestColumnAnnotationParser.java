@@ -17,9 +17,9 @@ public class TestColumnAnnotationParser extends TestCase {
 
   @Override
   protected void setUp() throws Exception {
-    one = new HashSet<Integer>();
+    one = new HashSet<>();
     one.add(1);
-    oneThruFive = new HashSet<Integer>();
+    oneThruFive = new HashSet<>();
     oneThruFive.add(1);
     oneThruFive.add(2);
     oneThruFive.add(3);

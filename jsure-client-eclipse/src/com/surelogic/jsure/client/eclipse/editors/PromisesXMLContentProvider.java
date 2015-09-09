@@ -2,9 +2,7 @@ package com.surelogic.jsure.client.eclipse.editors;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -183,59 +181,48 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
     if (location != null) {
       try {
         roots = new Object[1];
-        try {
-          URL url = location.toURL();
-          InputStream in = url.openStream();
-          status = FileStatus.READ_ONLY;
-          roots[0] = pkg = PromisesXMLReader.loadRaw(in);
-          fluidXML = FileUtility.getStreamContentsAsString(location.toString(), url.openStream());
 
-          final File dummy = File.createTempFile("dummy", TestXMLParserConstants.SUFFIX);
-          dummy.deleteOnExit();
-          localXML = dummy.toURI();
-        } catch (IllegalArgumentException e) {
-          final String path = location.toASCIIString();
-          Pair<File, File> rv = PromisesXMLParser.findPromisesXML(path);
-          roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), ignoreDiffs ? null : rv.second());
+        final String path = location.toASCIIString();
+        Pair<File, File> rv = PromisesXMLParser.findPromisesXML(path);
+        roots[0] = pkg = PromisesXMLReader.load(path, rv.first(), ignoreDiffs ? null : rv.second());
 
-          if (pkg == null) {
-            // No XML at all, so we have to create something
-            final int lastSlash = path.lastIndexOf('/');
-            final String p, name;
-            final int len = path.length() - TestXMLParserConstants.SUFFIX.length();
-            if (lastSlash >= 0) {
-              p = path.substring(0, lastSlash).replace('/', '.');
-              name = path.substring(lastSlash + 1, len);
-            } else {
-              p = null;
-              name = path.substring(0, len);
-            }
-            if (AnnotationConstants.PACKAGE_INFO.equals(name)) {
-              // System.out.println("Making AST for "+p);
-              roots[0] = pkg = PromisesXMLBuilder.makePackageModel(p);
-            } else {
-              // System.out.println("Making AST for "+p+'.'+name);
-              roots[0] = pkg = PromisesXMLBuilder.makeModel(p, name);
-            }
-            PromisesXMLReader.cache(path, pkg);
-          } else {
-            if (PromisesXMLBuilder.updateElements(pkg)) {
-              // System.out.println("Added elements to "+location);
-            }
-          }
-          if (rv.first().isFile()) {
-            status = rv.second().isFile() ? FileStatus.LOCAL : FileStatus.FLUID;
-            fluidXML = FileUtility.getFileContentsAsStringOrDefaultValue(rv.first(), "");
-          } else {
-            status = FileStatus.LOCAL;
-            fluidXML = "";
-          }
-          // if (rv.second() != null) {
-          localXML = rv.second().toURI();
-          /*
-           * } else { localXML = null; }
-           */
+        if (pkg == null) {
+        	// No XML at all, so we have to create something
+        	final int lastSlash = path.lastIndexOf('/');
+        	final String p, name;
+        	final int len = path.length() - TestXMLParserConstants.SUFFIX.length();
+        	if (lastSlash >= 0) {
+        		p = path.substring(0, lastSlash).replace('/', '.');
+        		name = path.substring(lastSlash + 1, len);
+        	} else {
+        		p = null;
+        		name = path.substring(0, len);
+        	}
+        	if (AnnotationConstants.PACKAGE_INFO.equals(name)) {
+        		// System.out.println("Making AST for "+p);
+        		roots[0] = pkg = PromisesXMLBuilder.makePackageModel(p);
+        	} else {
+        		// System.out.println("Making AST for "+p+'.'+name);
+        		roots[0] = pkg = PromisesXMLBuilder.makeModel(p, name);
+        	}
+        	PromisesXMLReader.cache(path, pkg);
+        } else {
+        	if (PromisesXMLBuilder.updateElements(pkg)) {
+        		// System.out.println("Added elements to "+location);
+        	}
         }
+        if (rv.first().isFile()) {
+        	status = rv.second().isFile() ? FileStatus.LOCAL : FileStatus.FLUID;
+        	fluidXML = FileUtility.getFileContentsAsStringOrDefaultValue(rv.first(), "");
+        } else {
+        	status = FileStatus.LOCAL;
+        	fluidXML = "";
+        }
+        // if (rv.second() != null) {
+        localXML = rv.second().toURI();
+        /*
+         * } else { localXML = null; }
+         */
       } catch (Exception e) {
         pkg = null;
         roots = SLUtility.EMPTY_OBJECT_ARRAY;
@@ -340,8 +327,8 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
       Image i = SLImages.getImage(key);
       if (i != null) {
         if (e.isStatic()) {
-          return SLImages.getDecoratedImage(i, new ImageDescriptor[] { null, SLImages.getImageDescriptor(CommonImages.DECR_STATIC),
-              null, null, null });
+          return SLImages.getDecoratedImage(i,
+              new ImageDescriptor[] { null, SLImages.getImageDescriptor(CommonImages.DECR_STATIC), null, null, null });
         } else
           return i;
       }

@@ -1,7 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.management.relation" release="1">
+<package name="javax.management.relation" release="2">
     <class name="RoleUnresolvedList">
         <Containable allowReferenceObject="true"/>
+        <method name="add" params="int, java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="add" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="set" params="int, java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
     </class>
 </package>

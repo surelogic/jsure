@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.swing.text" release="1">
+<package name="javax.swing.text" release="2">
     <class name="Segment">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -17,6 +17,12 @@
         <method name="charAt" params="int">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="clone">
+            <NonNull/>
+            <RegionEffects>reads All</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
