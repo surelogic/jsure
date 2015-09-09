@@ -1,12 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="android.util" release="1">
+<package name="android.util" release="2">
     <class name="ArrayMap">
         <Containable implementationOnly="true"/>
+        <NotThreadSafe/>
+        <constructor>
+            <Borrowed>this</Borrowed>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="android.util.ArrayMap">
+            <Borrowed>this</Borrowed>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="int">
+            <Borrowed>this</Borrowed>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
+        </method>
+
+        <method name="containsAll" params="java.util.Collection">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
         </method>
 
         <method name="containsKey" params="java.lang.Object">

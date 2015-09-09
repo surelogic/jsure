@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="android.util" release="1">
+<package name="android.util" release="2">
     <class name="Rational">
-        <Immutable implementationOnly="true"/>
+        <Immutable/>
         <method name="doubleValue">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>

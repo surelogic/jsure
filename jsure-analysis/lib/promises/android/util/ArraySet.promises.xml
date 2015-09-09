@@ -1,9 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="android.util" release="1">
+<package name="android.util" release="2">
     <class name="ArraySet">
         <Containable implementationOnly="true"/>
+        <NotThreadSafe/>
+        <constructor>
+            <Borrowed>this</Borrowed>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="android.util.ArraySet">
+            <Borrowed>this</Borrowed>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="int">
+            <Borrowed>this</Borrowed>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
         <method name="add" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="addAll" params="android.util.ArraySet">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
             <Starts>nothing</Starts>
