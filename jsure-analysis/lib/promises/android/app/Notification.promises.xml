@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="android.app" release="2">
+    <class name="Notification">
+        <method name="clone">
+            <NonNull/>
+            <RegionEffects>reads All</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <class name="Action">
+            <method name="clone">
+                <NonNull/>
+                <RegionEffects>reads All</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <class name="WearableExtender">
+                <method name="clone">
+                    <NonNull/>
+                    <RegionEffects>reads All</RegionEffects>
+                    <Starts>nothing</Starts>
+                </method>
+            </class>
+        </class>
+
+        <class name="WearableExtender">
+            <method name="clone">
+                <NonNull/>
+                <RegionEffects>reads All</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+        </class>
+    </class>
+</package>

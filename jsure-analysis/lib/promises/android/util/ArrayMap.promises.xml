@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="3">
-    <class name="ConcurrentHashMap">
-        <AnnotationBounds referenceObject="K,V" threadSafe="K,V"/>
-        <ThreadSafe/>
+<package name="android.util" release="3">
+    <class name="ArrayMap">
+        <Containable implementationOnly="true"/>
+        <NotThreadSafe/>
         <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <constructor params="android.util.ArrayMap">
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
@@ -16,34 +22,13 @@
             <Unique>return</Unique>
         </constructor>
 
-        <constructor params="int, float">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </constructor>
-
-        <constructor params="int, float, int">
-            <RegionEffects>none</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </constructor>
-
-        <constructor params="java.util.Map">
-            <RegionEffects>reads arg0:Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-            <parameter index="0">
-                <Borrowed/>
-            </parameter>
-        </constructor>
-
         <method name="clear">
             <Borrowed>this</Borrowed>
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
-        <method name="contains" params="java.lang.Object">
+        <method name="containsAll" params="java.util.Collection">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
             <Starts>nothing</Starts>
@@ -68,13 +53,6 @@
             <parameter index="0">
                 <Borrowed/>
             </parameter>
-        </method>
-
-        <method name="elements">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
         </method>
 
         <method name="entrySet">
@@ -119,13 +97,6 @@
             <Starts>nothing</Starts>
         </method>
 
-        <method name="keys">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads this:Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <Unique>return</Unique>
-        </method>
-
         <method name="put" params="java.lang.Object, java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
@@ -141,12 +112,6 @@
             </parameter>
         </method>
 
-        <method name="putIfAbsent" params="java.lang.Object, java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
         <method name="remove" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
@@ -156,41 +121,7 @@
             </parameter>
         </method>
 
-        <method name="remove" params="java.lang.Object, java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance, arg1:Instance; writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <parameter index="0">
-                <Borrowed/>
-            </parameter>
-
-            <parameter index="1">
-                <Borrowed/>
-            </parameter>
-        </method>
-
-        <method name="replace" params="java.lang.Object, java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance, arg1:Instance; writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="replace" params="java.lang.Object, java.lang.Object, java.lang.Object">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads arg0:Instance, arg1:Instance; writes Instance</RegionEffects>
-            <Starts>nothing</Starts>
-            <parameter index="1">
-                <Borrowed/>
-            </parameter>
-        </method>
-
         <method name="size">
-            <Borrowed>this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
-            <Starts>nothing</Starts>
-        </method>
-
-        <method name="toString">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
