@@ -62,6 +62,10 @@ public class TypeUtils {
     tEnv = te;
   }
 
+  public ITypeEnvironment getTypeEnv() {
+	  return tEnv;
+  }
+  
   // Utility methods
   //
   public static IRNode getParametersForType(IRNode tdecl) {
