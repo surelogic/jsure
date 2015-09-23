@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JSure Analysis/Transformation Core
 Bundle-SymbolicName: com.surelogic.jsure.analysis
-Bundle-Version: 5.6.1.qualifier
+Bundle-Version: 5.7.0.qualifier
 Bundle-ClassPath: .,
  lib/runtime/renamedJavac.jar
 Bundle-Vendor: SureLogic, Inc.
