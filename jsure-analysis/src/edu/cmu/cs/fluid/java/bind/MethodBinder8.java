@@ -45,16 +45,27 @@ public class MethodBinder8 implements IMethodBinder {
     public BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call) {
         final Iterable<IBinding> methods = findMethods(scope, context, needMethod, from);
 
-        if (call.toString().equals("<implicit>.assertTrue(\"DOMResult does not contain a Document\", #.getNodeinstanceof Document)")) {
-    		System.out.println("Looking at call");
-    	}
         final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
         for(IBinding mb : methods) {
         	if (isPotentiallyApplicable(call, from, mb)) {
         		applicable.add(new MethodBinding(mb));
         	}
         }
-        IMethodBinding8 rv = tryToFindMostSpecific(call, applicable);
+    	// Eliminate A.foo() when subclass B.foo() overrides it (assumed by JLS)
+    	final Collection<MethodBinding> processedMethods = new ArrayList<MethodBinding>(applicable);
+    	for(MethodBinding mb : applicable) {
+    		for(IBinding b : binder.findOverriddenMethods(mb.getNode())) {
+    			Iterator<MethodBinding> it = processedMethods.iterator();
+    			while (it.hasNext()) {
+    				MethodBinding mb2 = it.next();
+    				if (mb2.getNode().equals(b.getNode())) {
+    					it.remove();
+    				}
+    			}
+    		}
+    	}
+        
+        IMethodBinding8 rv = tryToFindMostSpecific(call, processedMethods);
         if (rv == null) {
         	return null;
         }
@@ -62,7 +73,7 @@ public class MethodBinder8 implements IMethodBinder {
         return new BindingInfo(rv, 0, false, 0);
     }
 
-	private MethodBinding8 tryToFindMostSpecific(final ICallState call, final Set<MethodBinding> applicable) {
+	private MethodBinding8 tryToFindMostSpecific(final ICallState call, final Collection<MethodBinding> applicable) {
 		MethodBinding8 rv = findMostSpecific(call, applicable, STRICT_INVOCATION);
         if (rv == null && !call.needsExactInvocation()) {
         	rv = findMostSpecific(call, applicable, LOOSE_INVOCATION);
@@ -1328,7 +1339,8 @@ declared return type, Object .
 			if (subst != IJavaTypeSubstitution.NULL) {
 				System.out.println("Using nonnull subst");
 			}
-			if (isApplicableAndCompatible(call, m, subst, context, usesVarargs())) {
+			final boolean usesVarargs = usesVarargs();
+			if (isApplicableAndCompatible(call, m, subst, context, usesVarargs)) {
 				return MethodBinding8.create(call, m, tEnv, subst, getKind());
 			}
 			return null;
@@ -1338,8 +1350,9 @@ declared return type, Object .
     // Assumes that #formals == #args
 	// Check each arg for applicability / compatibility
 	boolean isApplicableAndCompatible(ICallState call, MethodBinding m, IJavaTypeSubstitution substForParams, ArgCompatibilityContext context, boolean varArity) {
-		int i=0;			
-		for(IJavaType pType : m.getParamTypes(binder, call.numArgs(), varArity)) {
+		final int numArgs = call.numArgs();
+		int i=0;
+		for(IJavaType pType : m.getParamTypes(binder, numArgs, varArity)) {
 			final IRNode arg = call.getArgOrNull(i);		
 			if (!isPertinentToApplicability(m, call.getNumTypeArgs() > 0, arg)) {
 				i++;
@@ -1484,23 +1497,10 @@ declared return type, Object .
     		}
     		return MethodBinding8.create(call, temp, tEnv, null, filter.getKind());
     	}
-    	// Eliminate A.foo() when subclass B.foo() overrides it (assumed by JLS)
-    	final Collection<MethodBinding> processedMethods = new ArrayList<MethodBinding>(methods);
-    	for(MethodBinding mb : methods) {
-    		for(IBinding b : binder.findOverriddenMethods(mb.getNode())) {
-    			Iterator<MethodBinding> it = processedMethods.iterator();
-    			while (it.hasNext()) {
-    				MethodBinding mb2 = it.next();
-    				if (mb2.getNode().equals(b.getNode())) {
-    					it.remove();
-    				}
-    			}
-    		}
-    	}
     	
     	// Arrays.stream(#.readLine#.split(#)).map(String:: <> trim)
     	final Set<MethodBinding8> applicable = new HashSet<MethodBinding8>();
-    	for(MethodBinding mb : processedMethods) {
+    	for(MethodBinding mb : methods) {
     		MethodBinding8 result = filter.isApplicable(call, mb);
     		if (result != null) {
     			applicable.add(result);
@@ -1579,6 +1579,7 @@ declared return type, Object .
 
     static class MethodBinding8 extends MethodBinding implements IMethodBinding8 {
     	final InvocationKind kind;
+    	final String call;
     	
     	MethodBinding8(ITypeEnvironment tEnv, ICallState call, IBinding b, InvocationKind invocationKind) {
     		super(b);
@@ -1596,6 +1597,7 @@ declared return type, Object .
     			}
     		}
     		kind = invocationKind;
+    		this.call = call.toString(); 
     	}
     	
     	public boolean isConcrete() {
@@ -1623,7 +1625,8 @@ declared return type, Object .
 		
 		@Override
 		public String toString() {
-			return bind.toString();
+			//return bind.toString();
+			return call;
 		}
 
 		@Override
@@ -1647,11 +1650,12 @@ declared return type, Object .
     	}
     	
     	static MethodBinding8 create(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		if (c.toString().contains("ImmutableList.of(Multisets.immutableEntry(#.checkNotNull#, 1))")) {
+    		final boolean debug = c.toString().contains("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
+    		if (debug) {
     		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
     			System.out.println("Creating boundset: "+b);
     		}
-    		final BoundSet result = TypeInference8.resolve(b, null);    		
+    		final BoundSet result = TypeInference8.resolve(b, null, debug);    		
     		/*
     		if ("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))".equals(c.toString())) {
     			boolean gotObject = false;
@@ -2077,7 +2081,7 @@ declared return type, Object .
 				System.out.println("Inferring invocation type for "+call);
 				if (call.toString().equals("ss.collect(<implicit>.toList)")) {//"Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)")) {
 					System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
-					BoundSet temp = TypeInference8.resolve(b_2, null);
+					BoundSet temp = TypeInference8.resolve(b_2, null, true);
 					temp.getFinalTypeSubst(eliminateTypeVars, false); 
 				}
 				IJavaFunctionType rv = typeInfer.inferForInvocationType(call, (MethodBinding8) mb, b_2, eliminateTypeVars, targetType);
