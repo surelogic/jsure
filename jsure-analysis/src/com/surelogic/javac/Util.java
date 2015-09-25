@@ -468,7 +468,9 @@ public class Util implements AnalysisConstants {
 
       perf.markTimeFor("Rewriting");
     }
-    canonicalizeCUs(perf, env.getMonitor(), cus, projects);
+    if (!analyses.isEmpty()) {
+    	canonicalizeCUs(perf, env.getMonitor(), cus, projects);
+    }
     // Checking if we added type refs by canonicalizing implicit refs
     loader.checkReferences(cus.asList());
     loader = null; // To free up memory
@@ -492,7 +494,9 @@ public class Util implements AnalysisConstants {
       clearCaches(projects);
     }
     perf.markTimeFor("Drop.creation");
-    parsePromises(cus, projects);
+    if (!analyses.isEmpty()) {
+    	parsePromises(cus, projects);
+    }
     /*
      * for(CodeInfo i : cus.asList()) { if (i.getFileName().endsWith(".java")) {
      * System.out.println("Found: "+i.getFileName()); } }
@@ -502,9 +506,13 @@ public class Util implements AnalysisConstants {
       return null;
     }
     // Needed by the scrubber
-    computeSubtypeInfo(projects);
-    scrubPromises(cus.asList(), projects.getMonitor());
+    if (!analyses.isEmpty()) {
+    	computeSubtypeInfo(projects);
+    	scrubPromises(cus.asList(), projects.getMonitor());
     // RegionModel.printModels();
+    } else {
+    	analyze = false;
+    }
 
     perf.markTimeFor("Promise.scrubbing");
     perf.setLongProperty("Total.nodes", AbstractIRNode.getTotalNodesCreated());
@@ -2001,7 +2009,7 @@ public class Util implements AnalysisConstants {
       location = new File(WORKSPACE + "/SmallWorld");
       break;
     }
-    final Config config = new Config(which.name(), location, false, which == Demo.JDK6);
+    final Config config = new Config(which.name(), true, location, false, which == Demo.JDK6);
     switch (which) {
     case TEST:
     case COMMON:
@@ -2064,7 +2072,7 @@ public class Util implements AnalysisConstants {
   static final NullFilter nullFilter = new NullFilter();
 
   public static void addJavaFiles(File loc, Config config, String dependentProject) {
-    Config dep = new Config(dependentProject, loc, true, false);
+    Config dep = new Config(dependentProject, true, loc, true, false);
     File dir = new File(loc, "src");
     addJavaFiles("", dir, dep, nullFilter);
     config.addToClassPath(dep);
