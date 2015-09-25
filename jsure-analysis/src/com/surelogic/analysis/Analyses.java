@@ -355,4 +355,8 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
       i++;
     }
   }
+
+  public boolean isEmpty() {
+	return groups.isEmpty();
+  }
 }
