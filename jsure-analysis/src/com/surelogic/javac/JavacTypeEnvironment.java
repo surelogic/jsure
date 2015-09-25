@@ -340,7 +340,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			} else {
 				// System.out.println("Added to "+project.getName()+": "+name+" = "+decl);
 				/*
-				 * if (name.startsWith("com.surelogic.common")) {
+				 * if (name.startsWith(SLUtility.COMMON_PLUGIN_ID)) {
 				 * System.out.println(); }
 				 */
 			}

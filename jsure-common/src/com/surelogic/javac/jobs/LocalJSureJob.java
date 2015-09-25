@@ -12,6 +12,7 @@ import org.apache.tools.ant.types.CommandlineJava;
 import org.apache.tools.ant.types.Path;
 
 import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.jobs.remote.AbstractLocalHandlerFactory;
 import com.surelogic.common.jobs.remote.AbstractLocalSLJob;
@@ -56,7 +57,7 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
   @Override
   protected void setupClassPath(final ConfigHelper util, CommandlineJava cmdj, Project proj, Path path) {
     // All unpacked
-    util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
+    util.addPluginAndJarsToPath(SLUtility.COMMON_PLUGIN_ID, "lib/runtime");
     util.addPluginAndJarsToPath(JSureConstants.JSURE_COMMON_PLUGIN_ID, "lib/runtime");
     util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime");
     /*
