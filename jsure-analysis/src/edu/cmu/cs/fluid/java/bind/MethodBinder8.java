@@ -1329,6 +1329,9 @@ declared return type, Object .
 				final TypeFormalCollector v = new TypeFormalCollector();
 				// copied from isApplicableAndCompatible()
 				for(IJavaType pType : m.getParamTypes(binder, call.numArgs(), usesVarargs())) {
+					if (pType == null) {
+						m.getParamTypes(binder, call.numArgs(), usesVarargs());
+					}
 					pType.visit(v);
 				}		
 				subst = v.getSubst(tEnv);
@@ -1363,6 +1366,7 @@ declared return type, Object .
 			// Try to get the arg type if the arg is null
 			final IJavaType argType = arg != null ? null : call.getArgType(i);
 			if (!context.isCompatible(null, substType, arg, argType)) {
+				context.isCompatible(null, substType, arg, argType);
 				return false;										
 			}
 			i++;
