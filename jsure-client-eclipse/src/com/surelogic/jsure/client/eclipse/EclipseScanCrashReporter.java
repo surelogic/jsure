@@ -31,42 +31,39 @@ import com.surelogic.common.ui.serviceability.SendServiceMessageWizard;
 @Singleton
 public final class EclipseScanCrashReporter implements IScanCrashReporter {
 
-	static private final EclipseScanCrashReporter INSTANCE = new EclipseScanCrashReporter();
+  static private final EclipseScanCrashReporter INSTANCE = new EclipseScanCrashReporter();
 
-	public static IScanCrashReporter getInstance() {
-		return INSTANCE;
-	}
+  public static IScanCrashReporter getInstance() {
+    return INSTANCE;
+  }
 
-	private EclipseScanCrashReporter() {
-		// singleton
-	}
+  private EclipseScanCrashReporter() {
+    // singleton
+  }
 
-	@Override
-	public void reportScanCrash(final SLStatus status, final File scanLog) {
-		final UIJob job = new SLUIJob() {
-			@Override
-			public IStatus runInUIThread(IProgressMonitor monitor) {
-				SendServiceMessageWizard.openJSureScanCrashReport(
-						SLLicenseProduct.JSURE
-								+ " "
-								+ EclipseUtility.getVersion(Activator
-										.getDefault()), status, scanLog);
-				return Status.OK_STATUS;
-			}
-		};
-		job.schedule();
-	}
+  @Override
+  public void reportScanCrash(final SLStatus status, final File scanLog) {
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        SendServiceMessageWizard.openJSureScanCrashReport(SLLicenseProduct.JSURE + " " + EclipseUtility.getSureLogicToolsVersion(),
+            status, scanLog);
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
+  }
 
-	@Override
-	public void reportScanCancellation(final String msg) {
-		final UIJob job = new SLUIJob() {
-			@Override
-			public IStatus runInUIThread(IProgressMonitor monitor) {
-				MessageDialog.openInformation(EclipseUIUtility.getShell(), "JSure Scan was Cancelled", msg);
-				SLLogger.getLogger().info(msg);
-				return Status.OK_STATUS;
-			}
-		};
-		job.schedule();
-	}
+  @Override
+  public void reportScanCancellation(final String msg) {
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        MessageDialog.openInformation(EclipseUIUtility.getShell(), "JSure Scan was Cancelled", msg);
+        SLLogger.getLogger().info(msg);
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
+  }
 }
