@@ -3789,6 +3789,8 @@ public class TypeInference8 {
       computeStronglyConnectedComponents();
 
       final List<T> ordering = computeTopologicalSort();
+      Collections.reverse(ordering); // FIX to match dependOn
+      
       final Set<T> rv = new HashSet<T>();
       boolean foundComponent = false;
       // Find the first component with uninstantiated vars
