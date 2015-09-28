@@ -44,7 +44,6 @@ public class MethodBinder8 implements IMethodBinder {
 	
     public BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call) {
         final Iterable<IBinding> methods = findMethods(scope, context, needMethod, from);
-
         final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
         for(IBinding mb : methods) {
         	if (isPotentiallyApplicable(call, from, mb)) {
@@ -64,7 +63,6 @@ public class MethodBinder8 implements IMethodBinder {
     			}
     		}
     	}
-        
         IMethodBinding8 rv = tryToFindMostSpecific(call, processedMethods);
         if (rv == null) {
         	return null;
