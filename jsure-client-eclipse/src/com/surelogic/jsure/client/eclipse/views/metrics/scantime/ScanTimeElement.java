@@ -57,7 +57,6 @@ public abstract class ScanTimeElement {
    * complex nested declarations in the code base.
    */
 
-  @NonNull
   private ArrayList<ScanTimeElement> f_children = null;
   private long f_durationNs;
   private String f_durationNsCachedString; // avoid re-computing this a lot
@@ -241,7 +240,10 @@ public abstract class ScanTimeElement {
    */
   public final String getDurationAsHumanReadableString(ScanTimeOptions options) {
     if (f_children == null)
-      return f_durationNsCachedString;
+      if (f_durationNsCachedString == null)
+        return "unknown";
+      else
+        return f_durationNsCachedString;
     else {
       return SLUtility.toStringDurationNS(getDurationNs(options), TimeUnit.NANOSECONDS);
     }
