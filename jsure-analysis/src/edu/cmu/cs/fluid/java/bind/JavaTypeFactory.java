@@ -1901,6 +1901,9 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
 		  return true;
 	  }	  
 	  //return false;
+	  if (t2 == null) {
+		  return false;
+	  }
 	  return t2.isSubtype(env, upperBound); // TODO is this right?
   }
 
