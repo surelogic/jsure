@@ -2501,7 +2501,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     private void bindToPackage(IRNode node, String pkgName) {
       IRNode pkg;
       if (pkgName.length() == 0) {
-        PackageDrop drop = PackageDrop.findPackage("");
+        PackageDrop drop = PackageDrop.findPackage("", node);
         pkg = drop == null ? null : drop.getCompilationUnitIRNode();
       } else {
         pkg = getClassTable().getOuterClass(pkgName, node);

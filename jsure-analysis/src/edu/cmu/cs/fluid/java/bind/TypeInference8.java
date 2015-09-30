@@ -2754,7 +2754,7 @@ public class TypeInference8 {
         final IJavaType t = instantiations.get(e.getValue());
         if (t == null) {
           getInstantiations();
-          throw new IllegalStateException("No instantiation for " + e.getKey());
+          System.err.println("No instantiation for " + e.getKey());
         }
         if (useSubstAsBounds && t.getName().equals("java.lang.Object")) {
           /*

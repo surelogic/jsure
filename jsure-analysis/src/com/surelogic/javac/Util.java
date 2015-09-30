@@ -1681,7 +1681,7 @@ public class Util implements AnalysisConstants {
         // Process any pre-existing package-level scoped promises?
         // (If the package is reprocessed, there shouldn't be any promises on it
         // here)
-        final PackageDrop pkg = PackageDrop.findPackage(info.getFile().getPackage());
+        final PackageDrop pkg = PackageDrop.findPackage(info.getFile().getPackage(), info.getNode());
         if (pkg != null) {
           final IRNode decl = CompilationUnit.getPkg(pkg.getCompilationUnitIRNode());
           for (PromisePromiseDrop sp : ScopedPromiseRules.getScopedPromises(decl)) {
@@ -1856,7 +1856,7 @@ public class Util implements AnalysisConstants {
       if (info.getType() == Type.SOURCE) { // TODO what about interfaces?
         CUDrop d;
         if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-          d = PackageDrop.findPackage(info.getFile().getPackage());
+          d = PackageDrop.findPackage(info.getFile().getPackage(), info.getNode());
         } else {
           d = SourceCUDrop.queryCU(info.getFile());
         }
@@ -1922,7 +1922,7 @@ public class Util implements AnalysisConstants {
     case INTERFACE:
       if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
         // System.out.println("Found package: "+info.getFileName());
-        outOfDate = PackageDrop.findPackage(file.getPackage());
+        outOfDate = PackageDrop.findPackage(file.getPackage(), info.getNode());
       } else {
         // System.out.println("Found source: "+info.getFileName());
         outOfDate = SourceCUDrop.queryCU(file);

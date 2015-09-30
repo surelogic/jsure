@@ -452,7 +452,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		private boolean isPackageBinary(IRNode decl) {
 			IRNode cu = VisitUtil.findCompilationUnit(decl);
 			String pkg = VisitUtil.getPackageName(cu);
-			PackageDrop p = PackageDrop.findPackage(pkg);
+			PackageDrop p = PackageDrop.findPackage(pkg, cu);
 			if (p == null) {
 				return false; // Unknown
 			}

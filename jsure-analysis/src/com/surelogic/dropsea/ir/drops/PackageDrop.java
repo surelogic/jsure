@@ -46,20 +46,29 @@ public final class PackageDrop extends CUDrop {
   private static final ConcurrentHashMap<String, PackageDrop> NAME_TO_INSTANCE = new ConcurrentHashMap<String, PackageDrop>();
 
   private final IRNode f_packageDeclarationNode; // PackageDeclaration
+  private final PackageDrop other;
+  private final IIRProject project;
 
   public IRNode getPackageDeclarationNode() {
     return f_packageDeclarationNode;
   }
 
+  public IIRProject getProject() {
+	return project;
+  }
+  
   @InRegion("DropState")
   private boolean hasPromises = false;
 
-  private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n, boolean fromSrc) {
+  private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n, boolean fromSrc, PackageDrop o) {
     super(pkgName, root, fromSrc);
     f_packageDeclarationNode = n;
+    other = o;
+    project = tEnv.getProject();
 
-    // System.out.println("Creating pkg: "+pkgName);
-
+    if (pkgName.equals("org.apache.hadoop.yarn.util")) {
+    	System.out.println("Creating pkg: "+pkgName);
+    }
     // Look for XML annotations
     final String xmlName = PackageAccessor.computeXMLPath(pkgName);
     try {
@@ -83,8 +92,8 @@ public final class PackageDrop extends CUDrop {
     Projects.setProject(root, tEnv.getProject());
   }
 
-  private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n) {
-    this(tEnv, pkgName, root, n, !XML.getDefault().processingXML());
+  private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n, PackageDrop other) {
+    this(tEnv, pkgName, root, n, !XML.getDefault().processingXML(), other);
   }
 
   public static class Info {
@@ -145,13 +154,13 @@ public final class PackageDrop extends CUDrop {
   private static final String DEFAULT_NAME = "(default)";
 
   public static PackageDrop createPackage(IIRProject proj, String name, IRNode root, String id, Config.Type type) {
-    final PackageDrop pd = findPackage(name);
+    final PackageDrop pd = findPackage(name, proj);
     if (root == null) {
-      if (pd != null && pd.isValid()) {
+      if (pd != null && pd.isValid() && (proj == null || proj == pd.getProject())) {    	
         return pd;
       }
     }
-
+    
     name = CommonStrings.intern(name);
     IRNode n;
     if (root == null) {
@@ -190,8 +199,11 @@ public final class PackageDrop extends CUDrop {
       name = CommonStrings.intern(name);
     }
 
-    PackageDrop pkg = new PackageDrop(proj.getTypeEnv(), name, root, n);
-    NAME_TO_INSTANCE.put(name, pkg);
+    PackageDrop pkg = new PackageDrop(proj.getTypeEnv(), name, root, n, pd != null && proj != pd.getProject() ? pd : null);
+    PackageDrop old = NAME_TO_INSTANCE.put(name, pkg);
+    if (old != null) {
+    	System.out.println("Replacing "+pkg);
+    }
     if (DEFAULT_NAME.equals(name)) {
       NAME_TO_INSTANCE.put("", pkg);
     }
@@ -201,8 +213,24 @@ public final class PackageDrop extends CUDrop {
     return pkg;
   }
 
-  public static PackageDrop findPackage(String name) {
-    return NAME_TO_INSTANCE.get(name);
+  public static PackageDrop findPackage(String name, IRNode context) {
+	return findPackage(name, Projects.getEnclosingProject(context));
+  }
+  
+  /**
+   * Tries to match both the name and the project, 
+   * otherwise returns the "first" package with the same name
+   */
+  public static PackageDrop findPackage(String name, IIRProject proj) {
+    final PackageDrop p = NAME_TO_INSTANCE.get(name);
+    PackageDrop next = p;
+    while (next != null) {
+    	if (proj == next.getProject()) {
+    		return next;
+    	}
+    	next = next.other;
+    }
+    return p;
   }
 
   public static Collection<PackageDrop> getKnownPackageDrops() {

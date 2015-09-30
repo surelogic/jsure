@@ -547,7 +547,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       visit(node); // bind the object
       if (isFullPass) {
         String pkg     = DemandName.getPkg(node);
-        PackageDrop pd = PackageDrop.findPackage(pkg);
+        PackageDrop pd = PackageDrop.findPackage(pkg, node);
         IRNode p = null;
         if (pd == null) {
         	//System.out.println("unknown package: "+pkg);     

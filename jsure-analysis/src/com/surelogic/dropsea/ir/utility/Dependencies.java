@@ -611,7 +611,7 @@ public class Dependencies {
         final String name = VisitUtil.getPackageName(e.getKey());
         System.out.println("Scanning for dependencies in package: " + name);
         // TODO does this have the right info?
-        final PackageDrop pd = PackageDrop.findPackage(name);
+        final PackageDrop pd = PackageDrop.findPackage(name, te.getProject());
         for (CUDrop cud : pd.getCUDrops()) {
           scanCUDrop(te.getBinder(), cud, decls);
         }

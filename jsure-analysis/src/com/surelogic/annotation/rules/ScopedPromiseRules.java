@@ -731,7 +731,7 @@ public class ScopedPromiseRules extends AnnotationRules {
         } else {
           if (NamedPackageDeclaration.prototype.includes(aast.getPromisedFor())) {
             final String name = NamedPackageDeclaration.getId(aast.getPromisedFor());
-            PackageDrop pkg = PackageDrop.findPackage(name);
+            PackageDrop pkg = PackageDrop.findPackage(name, aast.getPromisedFor());
             if (pkg.getNode() == VisitUtil.findCompilationUnit(aast.getPromisedFor())) {
               origin = AnnotationOrigin.SCOPED_ON_PKG;
             } else {
@@ -801,7 +801,7 @@ public class ScopedPromiseRules extends AnnotationRules {
      */
     final IRNode pd = d.getNode();
     final String pkgName = NamedPackageDeclaration.getId(pd);
-    final PackageDrop pkg = PackageDrop.findPackage(pkgName);
+    final PackageDrop pkg = PackageDrop.findPackage(pkgName, pd);
     if (pkg == null) {
       System.out.println("No package drop for " + d.getAAST());
       return;
