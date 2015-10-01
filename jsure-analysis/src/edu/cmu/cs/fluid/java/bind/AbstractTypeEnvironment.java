@@ -1391,13 +1391,17 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
    * Added to deal with the fact that Eclipse seems to allow classes from different JREs
    * to be considered the same
    */
-  private boolean areEquivalent(IJavaDeclaredType sd, IJavaDeclaredType td) {
-	  final String sId = JJNode.getInfoOrNull(sd.getDeclaration());
-	  final String tId = JJNode.getInfoOrNull(td.getDeclaration());
+  public static boolean areEquivalent(IJavaDeclaredType sd, IJavaDeclaredType td) {
+	  return areEquivalent(sd.getDeclaration(), td.getDeclaration());
+  }
+  
+  public static boolean areEquivalent(IRNode sd, IRNode td) {
+	  final String sId = JJNode.getInfoOrNull(sd);
+	  final String tId = JJNode.getInfoOrNull(td);
 	  if (sId.equals(tId)) {
-		  final String sName = JavaNames.getFullTypeName(sd.getDeclaration()); 
+		  final String sName = JavaNames.getFullTypeName(sd); 
 		  //if (sName.startsWith("java")) {
-			  final String tName = JavaNames.getFullTypeName(td.getDeclaration()); 
+			  final String tName = JavaNames.getFullTypeName(td); 
 			  return sName.equals(tName);
 		  //}
 	  }

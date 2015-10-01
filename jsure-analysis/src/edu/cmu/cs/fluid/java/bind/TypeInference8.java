@@ -4738,6 +4738,7 @@ public class TypeInference8 {
             reduceTypeArgContainmentConstraints(bounds, b_i, a_i);
           }
         } else {
+          //findCorrespondingSuperType(dt.getDeclaration(), s);
           bounds.addFalse();
         }
       } else if (tEnv.isSubType(s, t)) {
@@ -4799,7 +4800,7 @@ public class TypeInference8 {
   private IJavaDeclaredType findCorrespondingSuperType(final IRNode decl, IJavaType s) {
     if (s instanceof IJavaDeclaredType) {
       IJavaDeclaredType ds = (IJavaDeclaredType) s;
-      if (ds.getDeclaration().equals(decl)) {
+      if (ds.isSameDecl(decl)) {
         return ds;
       }
     }
