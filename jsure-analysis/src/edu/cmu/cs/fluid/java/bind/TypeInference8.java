@@ -2754,7 +2754,7 @@ public class TypeInference8 {
         final IJavaType t = instantiations.get(e.getValue());
         if (t == null) {
           getInstantiations();
-          throw new IllegalStateException("No instantiation for " + e.getKey());
+          System.err.println("No instantiation for " + e.getKey());
         }
         if (useSubstAsBounds && t.getName().equals("java.lang.Object")) {
           /*
@@ -3301,7 +3301,8 @@ public class TypeInference8 {
     Set<InferenceVariable> chooseUninstantiated(final Set<InferenceVariable> toResolve, boolean debug) {
       final Set<InferenceVariable> vars = collectVariables();
       final Set<InferenceVariable> uninstantiated = new HashSet<InferenceVariable>(vars);
-      uninstantiated.removeAll(getInstantiations().keySet());
+      final Map<InferenceVariable, IJavaType> instantiations = getInstantiations();
+      uninstantiated.removeAll(instantiations.keySet());
       if (uninstantiated.size() < 1) {
         return uninstantiated;
       }
@@ -3313,11 +3314,11 @@ public class TypeInference8 {
           return Collections.emptySet();
         }
       }
-      VarDependencies deps = computeVarDependencies(debug);
+      VarDependencies deps = computeVarDependencies(debug, instantiations);
       return deps.chooseUninstantiated(uninstantiated);
     }
 
-    private VarDependencies computeVarDependencies(boolean debug) {
+    private VarDependencies computeVarDependencies(final boolean debug, final Map<InferenceVariable, IJavaType> instantiations) {
       VarDependencies deps = new VarDependencies(debug);
       Set<IJavaType> lhsInCapture = new HashSet<IJavaType>();
       for (CaptureBound b : captures) {
@@ -3707,6 +3708,7 @@ public class TypeInference8 {
     if (bounds == null || bounds.isFalse) {
       return null;
     }
+    Set<InferenceVariable> lastSubset = null;
     Set<InferenceVariable> subset = bounds.chooseUninstantiated(toResolve, debug);
     BoundSet current = bounds, last = bounds;
     while (!subset.isEmpty()) {
@@ -3717,7 +3719,12 @@ public class TypeInference8 {
       }
       last = current;
       current = next;
+      lastSubset = subset;
       subset = next.chooseUninstantiated(toResolve, debug);
+      if (lastSubset.equals(subset)) {
+    	  // Nothing more that we can do?
+    	  break;
+      }
     }
     return current;
   }
@@ -3782,6 +3789,8 @@ public class TypeInference8 {
       computeStronglyConnectedComponents();
 
       final List<T> ordering = computeTopologicalSort();
+      Collections.reverse(ordering); // FIX to match dependOn
+      
       final Set<T> rv = new HashSet<T>();
       boolean foundComponent = false;
       // Find the first component with uninstantiated vars

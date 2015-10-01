@@ -251,6 +251,9 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     	  // check if we can unbox t2
     	  if (t2 instanceof IJavaDeclaredType) {
     		  IJavaPrimitiveType pt2 = JavaTypeFactory.getCorrespondingPrimType((IJavaDeclaredType) t2);
+    		  if (pt2 == null) {
+    			  return false;
+    		  }
     		  return arePrimTypesCompatible((IJavaPrimitiveType) t1, pt2, n2);
     	  } else {
     		  return false;

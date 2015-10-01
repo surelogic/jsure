@@ -334,7 +334,7 @@ public class LayerRules extends AnnotationRules {
 							pkg = qname.substring(0, lastDot);
 						}
 						final String name  = qname.substring(lastDot+1);
-						PackageDrop pd     = PackageDrop.findPackage(pkg);
+						PackageDrop pd     = PackageDrop.findPackage(pkg, a.getAnnoContext());
 						if (pd == null) {
 							if (lastDot < 0) {
 								LOG.severe("Couldn't find "+pkg+" for "+a);

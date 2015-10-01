@@ -551,7 +551,8 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
   private class AdaptMembers extends AbstractSourceFunction<Tree> {
     final String className;
     final TypeKind kind;
-
+    boolean hasConstructor = false;
+    
     AdaptMembers(String name, TypeKind k) {
       className = name;
       kind = k;
@@ -573,7 +574,11 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
         IRNode block = asBinary ? BlockStatement.createNode(noNodes) : acceptNode(t, context);
         return ClassInitializer.createNode(isStatic ? JavaNode.STATIC : 0, block);
       case METHOD:
-        return adaptMethod((MethodTree) t, className, kind, context);
+    	IRNode m = adaptMethod((MethodTree) t, className, kind, context, hasConstructor);
+    	if (!hasConstructor) {
+    		hasConstructor = ConstructorDeclaration.prototype.includes(m);
+    	}
+    	return m;
       case VARIABLE:
         return adaptField((VariableTree) t, className, kind, context);
       default:
@@ -1295,7 +1300,7 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     throw new UnsupportedOperationException();
   }
 
-  public IRNode adaptMethod(MethodTree node, String className, TypeKind kind, CodeContext context) {
+  public IRNode adaptMethod(MethodTree node, String className, TypeKind kind, CodeContext context, boolean enclosingTypeHasConstructor) {
     List<? extends VariableTree> params = node.getParameters();
 
     int mods = adaptModifiers(node.getModifiers());
@@ -1308,7 +1313,21 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
       context = new CodeContext(context, mods);
     }
     IRNode rType = adaptType(node.getReturnType(), context);
-
+    if (kind == TypeKind.ENUM && asBinary && rType == null) {
+    	// Looking at a enum constructor
+    	if (enclosingTypeHasConstructor) {
+    		return null;
+    	}
+    	// Creating default constructor
+        IRNode rv = ConstructorDeclaration.createNode(Annotations.createNode(noNodes), 
+        		JavaNode.PRIVATE, TypeFormals.createNode(noNodes), className, 
+        		Parameters.createNode(noNodes), Throws.createNode(noNodes), 
+        		NoMethodBody.prototype.jjtCreate());
+        addJavaRefAndCheckForJavadocAnnotations(node, rv);
+        createRequiredConstructorNodes(rv);
+        return rv;
+    }
+    
     IRNode annos = adaptAnnotations(node.getModifiers(), context);
     IRNode[] typs = map(acceptNodes, node.getTypeParameters(), context);
     IRNode[] fmls = adaptParameterList(params, context);
@@ -1691,8 +1710,14 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
   private IRNode adaptEnumConstant(final String id, VariableTree node, CodeContext context) {
     // Always non-null
     NewClassTree init = (NewClassTree) node.getInitializer();
-    IRNode[] rawArgs = map(adaptExprs, init.getArguments(), context);
-    IRNode args = Arguments.createNode(rawArgs);
+    final IRNode[] rawArgs;
+    if (asBinary) {
+    	// Omit the arguments
+    	rawArgs = noNodes;
+    } else {        
+    	rawArgs = map(adaptExprs, init.getArguments(), context);
+    }
+    final IRNode args = Arguments.createNode(rawArgs);
     ClassTree cbody = init.getClassBody();
     IRNode impliedInit = ImpliedEnumConstantInitialization.prototype.jjtCreate();
     IRNode annos = adaptAnnotations(node.getModifiers(), context);

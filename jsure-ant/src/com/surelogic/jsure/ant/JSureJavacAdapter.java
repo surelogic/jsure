@@ -155,7 +155,7 @@ public final class JSureJavacAdapter extends DefaultCompilerAdapter {
   }
 
   private Config createConfig(@Nullable File surelogicToolsPropertyFile) throws IOException {
-    Config config = new Config(scan.getProjectName(), null, false, false);
+    Config config = new Config(scan.getProjectName(), true, null, false, false);
     config.setOption(Config.AS_SOURCE, Boolean.TRUE);
     config.initFromSureLogicToolsProps(surelogicToolsPropertyFile);
     final String srcLevel = scan.getSource();
