@@ -5,7 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map.Entry;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -22,14 +24,25 @@ import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.hash.*;
+import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.guava.StreamFunnel;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.*;
+import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
+import com.surelogic.dropsea.ir.HintDrop;
+import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.SeaConsistencyProofHook;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Util;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.CommonStrings;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.*;
@@ -93,14 +106,17 @@ import edu.cmu.cs.fluid.util.Triple;
 
 public class ClassAdapter extends AbstractAdapter {
   private static final String PACKAGE_INFO_CLASS = "package-info.class";
-
+  public static final SlotInfo<Object> hashSI = JavaNode.getSlotInfo("MD5 Hash");
+  public static final Multimap<String,Pair<IRNode,IRNode>> conflictingClassWarningsToGenerate = HashMultimap.create();
+  
   final boolean debug;
   final ZipFile jar;
   final String className;
   final File classFile;
   final ClassResource resource;
   final DeclFactory declFactory;
-
+  final boolean generateMD5Hash;
+  
   final boolean isInner;
   final int mods; // Only applicable if nested
   int access;
@@ -116,7 +132,7 @@ public class ClassAdapter extends AbstractAdapter {
   final List<IRNode> annos = new ArrayList<IRNode>();
   final List<IRNode> members = new ArrayList<IRNode>();
 
-  public ClassAdapter(JavacProject project, ZipFile j, String qname, boolean inner, int mods) {
+  public ClassAdapter(JavacProject project, ZipFile j, String qname, boolean inner, int mods, boolean hash) {
     super(SLLogger.getLogger());
     jar = j;
     className = qname.replace('.', '/') + ".class";
@@ -127,9 +143,10 @@ public class ClassAdapter extends AbstractAdapter {
     this.mods = mods;
     resource = new ClassResource(project, qname, j.getName(), className);
     declFactory = new DeclFactory(project.getTypeEnv().getBinder());
+    generateMD5Hash = hash;
   }
 
-  public ClassAdapter(JavacProject project, File f, String qname, boolean inner, int mods) {
+  public ClassAdapter(JavacProject project, File f, String qname, boolean inner, int mods, boolean hash) {
     super(SLLogger.getLogger());
     jar = null;
     className = qname.replace('.', '/') + ".class";
@@ -139,6 +156,7 @@ public class ClassAdapter extends AbstractAdapter {
     this.mods = mods;
     resource = new ClassResource(project, qname, f);
     declFactory = new DeclFactory(project.getTypeEnv().getBinder());
+    generateMD5Hash = hash;
   }
 
   public File getSource() {
@@ -148,19 +166,75 @@ public class ClassAdapter extends AbstractAdapter {
     return new File(jar.getName());
   }
 
+  private Pair<String,InputStream> getStream() throws IOException {
+	final String label;
+	InputStream is = null;
+	if (jar != null) {
+	  label = className;
+	  ZipEntry e = jar.getEntry(className);
+	  if (e != null) {
+		is = jar.getInputStream(e);
+	  }
+	} else {
+	  label = classFile.getAbsolutePath();
+	  is = new FileInputStream(classFile);
+	}
+	return new Pair<>(label, is);
+  }
+  
+  byte[] computeMD5Hash() throws IOException {
+	  HashFunction f = Hashing.md5();
+	  InputStream is = getStream().second();
+	  HashCode hash = f.hashObject(is, new StreamFunnel());
+	  return hash.asBytes();
+  }
+  
+  public static boolean compareHash(String qname, IRNode sd, IRNode td) {
+	  if (sd.valueExists(hashSI)) {
+		  if (td.valueExists(hashSI)) {
+			  byte[] sHash = (byte[]) sd.getSlotValue(hashSI);
+			  byte[] tHash = (byte[]) td.getSlotValue(hashSI);
+			  //return Arrays.equals(sHash, tHash);
+			  IJavaRef sRef = JavaNode.getJavaRef(sd);
+			  IJavaRef tRef = JavaNode.getJavaRef(td);
+			  if (!Arrays.equals(sHash, tHash)) {			
+				  System.out.println("Hashes don't match for "+qname+":\n\t"+sRef.getAbsolutePathOrNull()+"\n\t"+tRef.getAbsolutePathOrNull());
+				  conflictingClassWarningsToGenerate.put(qname, sd.hashCode() < td.hashCode() ? new Pair<>(sd, td) : new Pair<>(td, sd));
+			  } else {
+				  System.out.println("Hashes match for "+qname+":\n\t"+sRef.getAbsolutePathOrNull()+"\n\t"+tRef.getAbsolutePathOrNull());
+			  }
+			  // Eclipse only cares about the name
+			  return true;
+		  }
+		  //return false;
+	  }
+	  //return !td.valueExists(hashSI);
+	  throw new IllegalStateException("No hash for "+JavaNames.getFullTypeName(sd));
+  }
+  
+  public static SeaConsistencyProofHook generateWarningsHook() {
+	return new AbstractSeaConsistencyProofHook() {
+		@Override
+		public void postConsistencyProof(Sea s) {
+			for(Entry<String,Pair<IRNode,IRNode>> e : conflictingClassWarningsToGenerate.entries()) {
+				final IRNode sd = e.getValue().first();
+				final IRNode td = e.getValue().second();
+				final IJavaRef sRef = JavaNode.getJavaRef(sd);
+				final IJavaRef tRef = JavaNode.getJavaRef(td);
+				final HintDrop d = HintDrop.newWarning(sd);
+				d.setMessage(1000, e.getKey(), sRef.getEclipseProjectName(), tRef.getEclipseProjectName());
+				d.setCategorizingMessage(1000);
+				d.addInformationHint(sd, 1001, sRef.getEclipseProjectName(), sRef.getAbsolutePathOrNull());
+				d.addInformationHint(td, 1001, tRef.getEclipseProjectName(), tRef.getAbsolutePathOrNull());				
+			}
+		}
+	};
+  }
+  
   public IRNode getRoot() throws IOException {
-    final String label;
-    InputStream is = null;
-    if (jar != null) {
-      label = className;
-      ZipEntry e = jar.getEntry(className);
-      if (e != null) {
-        is = jar.getInputStream(e);
-      }
-    } else {
-      label = classFile.getAbsolutePath();
-      is = new FileInputStream(classFile);
-    }
+	final Pair<String,InputStream> stream = getStream();  
+    final String label = stream.first();
+    final InputStream is = stream.second();
     if (is != null) {
       ClassReader cr = new ClassReader(is);
       cr.accept(new Visitor(), 0);
@@ -169,9 +243,14 @@ public class ClassAdapter extends AbstractAdapter {
        * AnalyzeSignaturesVisitor(), 0);
        */
       if (root != null) {
+    	if (generateMD5Hash) {
+    	  root.setSlotValue(hashSI, computeMD5Hash());
+    	}
+    	/*
         if (resource.pkg.equals("usingPromises")) {
           System.out.println("Finishing " + resource.getCUName());
         }
+        */
         SkeletonJavaRefUtility.registerBinaryCode(declFactory, root, resource, 0);
         for (IRNode a : annos) {
           copyRefToTree(root, a);
@@ -328,7 +407,7 @@ public class ClassAdapter extends AbstractAdapter {
     final int mods = adaptModifiers(access);
     ClassAdapter a;
     if (jar != null) {
-      a = new ClassAdapter(resource.getProject(), jar, name.replace('/', '.'), true, mods);
+      a = new ClassAdapter(resource.getProject(), jar, name.replace('/', '.'), true, mods, generateMD5Hash);
     } else {
       int lastSlash = name.lastIndexOf('/');
       if (lastSlash >= 0) {
@@ -336,7 +415,7 @@ public class ClassAdapter extends AbstractAdapter {
       }
       String className = name + ".class";
       a = new ClassAdapter(resource.getProject(), new File(classFile.getParentFile(), className), name.replace('/', '.'), true,
-          mods);
+          mods, generateMD5Hash);
     }
     try {
       IRNode result = a.getRoot();

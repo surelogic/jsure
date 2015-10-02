@@ -31,6 +31,7 @@ import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.PairIterator;
 import com.surelogic.common.util.SimpleIterator;
 import com.surelogic.common.util.SingletonIterator;
+import com.surelogic.javac.adapter.ClassAdapter;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -1396,14 +1397,17 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
   }
   
   public static boolean areEquivalent(IRNode sd, IRNode td) {
+	  if (sd == td) {
+		  return true;
+	  }
 	  final String sId = JJNode.getInfoOrNull(sd);
 	  final String tId = JJNode.getInfoOrNull(td);
 	  if (sId.equals(tId)) {
 		  final String sName = JavaNames.getFullTypeName(sd); 
-		  //if (sName.startsWith("java")) {
-			  final String tName = JavaNames.getFullTypeName(td); 
-			  return sName.equals(tName);
-		  //}
+		  final String tName = JavaNames.getFullTypeName(td);
+		  if (sName.equals(tName)) {
+			 return ClassAdapter.compareHash(sName, sd, td);
+		  }
 	  }
 	  return false;
   }

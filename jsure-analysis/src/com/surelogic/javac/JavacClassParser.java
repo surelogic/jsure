@@ -740,7 +740,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
            * ("java.lang.Enum".equals(ref)) { System.out.println(
            * "Got Enum from "+project+": "+jar.getName()); }
            */
-          ClassAdapter p = new ClassAdapter(srcProject, jar, ref, false, 0);
+          ClassAdapter p = new ClassAdapter(srcProject, jar, ref, false, 0, generateMD5Hash(ref));
           ICodeFile file = new JarResource(jar.getName(), ref, project);
           info = adaptClass(srcProject, p, file, ref, cus);
         } else {
@@ -777,7 +777,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       final JavacProject srcProject = projects.get(project);
       CodeInfo info = findClass(srcProject, ref, classFile);
       if (info == null) {
-        ClassAdapter p = new ClassAdapter(srcProject, classFile, ref, false, 0);
+        ClassAdapter p = new ClassAdapter(srcProject, classFile, ref, false, 0, generateMD5Hash(ref));
         ICodeFile file = new FileResource(projects, classFile, ref, project);
         info = adaptClass(srcProject, p, file, ref, cus);
       }
