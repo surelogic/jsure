@@ -201,7 +201,7 @@ public class ClassAdapter extends AbstractAdapter {
 				  System.out.println("Hashes don't match for "+qname+":\n\t"+sRef.getAbsolutePathOrNull()+"\n\t"+tRef.getAbsolutePathOrNull());
 				  conflictingClassWarningsToGenerate.put(qname, sd.hashCode() < td.hashCode() ? new Pair<>(sd, td) : new Pair<>(td, sd));
 			  } else {
-				  System.out.println("Hashes match for "+qname+":\n\t"+sRef.getAbsolutePathOrNull()+"\n\t"+tRef.getAbsolutePathOrNull());
+				  //System.out.println("Hashes match for "+qname+":\n\t"+sRef.getAbsolutePathOrNull()+"\n\t"+tRef.getAbsolutePathOrNull());
 			  }
 			  // Eclipse only cares about the name
 			  return true;
