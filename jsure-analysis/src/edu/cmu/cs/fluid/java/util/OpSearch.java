@@ -180,4 +180,12 @@ public class OpSearch implements JavaGlobals {
 		  return op instanceof Annotation; 
 	  }
   };  
+  
+  public static final OpSearch nonTypeSearch = new OpSearch() {
+	  @Override
+	  protected boolean found( final Operator op )
+	  { 
+		  return !(op instanceof Type || op instanceof TypeActuals); 
+	  }
+  };  
 }
