@@ -1,5 +1,5 @@
 # $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/MoreBounds.op,v 1.4 2006/07/06 20:39:40 chance Exp $
-public operator MoreBounds {
+public operator MoreBounds implements TypeExtensionInterface {
   syntax {
     ( "extends" bound:ClassType +/ ( <> "&" <> ) ) ?
   }
