@@ -31,6 +31,7 @@ import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.PairIterator;
 import com.surelogic.common.util.SimpleIterator;
 import com.surelogic.common.util.SingletonIterator;
+import com.surelogic.javac.adapter.ClassAdapter;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -1391,15 +1392,22 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
    * Added to deal with the fact that Eclipse seems to allow classes from different JREs
    * to be considered the same
    */
-  private boolean areEquivalent(IJavaDeclaredType sd, IJavaDeclaredType td) {
-	  final String sId = JJNode.getInfoOrNull(sd.getDeclaration());
-	  final String tId = JJNode.getInfoOrNull(td.getDeclaration());
+  public static boolean areEquivalent(IJavaDeclaredType sd, IJavaDeclaredType td) {
+	  return areEquivalent(sd.getDeclaration(), td.getDeclaration());
+  }
+  
+  public static boolean areEquivalent(IRNode sd, IRNode td) {
+	  if (sd == td) {
+		  return true;
+	  }
+	  final String sId = JJNode.getInfoOrNull(sd);
+	  final String tId = JJNode.getInfoOrNull(td);
 	  if (sId.equals(tId)) {
-		  final String sName = JavaNames.getFullTypeName(sd.getDeclaration()); 
-		  //if (sName.startsWith("java")) {
-			  final String tName = JavaNames.getFullTypeName(td.getDeclaration()); 
-			  return sName.equals(tName);
-		  //}
+		  final String sName = JavaNames.getFullTypeName(sd); 
+		  final String tName = JavaNames.getFullTypeName(td);
+		  if (sName.equals(tName)) {
+			 return ClassAdapter.compareHash(sName, sd, td);
+		  }
 	  }
 	  return false;
   }

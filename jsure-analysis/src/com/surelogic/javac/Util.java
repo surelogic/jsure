@@ -84,6 +84,7 @@ import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
 import com.surelogic.java.persistence.JSureDataDirScanner;
+import com.surelogic.javac.adapter.ClassAdapter;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSurePerformance;
 import com.surelogic.javac.persistence.JSureSubtypeInfo;
@@ -543,6 +544,7 @@ public class Util implements AnalysisConstants {
       final SeaConsistencyProofHook nonNullHook = new NonNullModelClearOutUnusedVirtualProofHook();
       final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
       final SeaConsistencyProofHook clearResultsHook = new ClearOutUnconnectedResultsProofHook();
+      final SeaConsistencyProofHook generateWarningsHook = ClassAdapter.generateWarningsHook();
       // final SeaConsistencyProofHook scanTimeMetricCompactHook = new
       // ScanTimeMetricCompactProofHook();
       Sea.getDefault().addConsistencyProofHook(vouchHook);
@@ -550,9 +552,11 @@ public class Util implements AnalysisConstants {
       Sea.getDefault().addConsistencyProofHook(nonNullHook);
       Sea.getDefault().addConsistencyProofHook(cuDropHook);
       Sea.getDefault().addConsistencyProofHook(clearResultsHook);
+      Sea.getDefault().addConsistencyProofHook(generateWarningsHook);
       // Sea.getDefault().addConsistencyProofHook(scanTimeMetricCompactHook);
       Sea.getDefault().updateConsistencyProof();
       // Sea.getDefault().removeConsistencyProofHook(scanTimeMetricCompactHook);
+      Sea.getDefault().removeConsistencyProofHook(generateWarningsHook);
       Sea.getDefault().removeConsistencyProofHook(clearResultsHook);
       Sea.getDefault().removeConsistencyProofHook(cuDropHook);
       Sea.getDefault().removeConsistencyProofHook(nonNullHook);

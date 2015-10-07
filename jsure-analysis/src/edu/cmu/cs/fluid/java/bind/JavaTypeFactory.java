@@ -1010,6 +1010,11 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
 	  if (this == t2) {
 		  return true;
 	  }
+	  if (this instanceof IJavaDeclaredType && t2 instanceof IJavaDeclaredType) {
+		  IJavaDeclaredType dt = (IJavaDeclaredType) this;
+		  IJavaDeclaredType dt2 = (IJavaDeclaredType) t2;
+		  return AbstractTypeEnvironment.areEquivalent(dt, dt2);
+	  }
 	  if (t2 instanceof IJavaTypeFormal && this instanceof IJavaTypeFormal) {
 		  IJavaTypeFormal tf = (IJavaTypeFormal) t2;
 		  return tf.isEqualTo(env, this);
@@ -2042,6 +2047,10 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     List<IJavaType> newParams = s.substTypes(this, parameters);
     if (newParams == parameters) return this;
     return JavaTypeFactory.getDeclaredType(declaration,newParams,null);
+  }
+  
+  public boolean isSameDecl(IRNode other) {
+	return AbstractTypeEnvironment.areEquivalent(declaration, other);
   }
   
   @Override

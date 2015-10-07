@@ -53,4 +53,6 @@ public interface IJavaDeclaredType extends IJavaSourceRefType, IDeclaredType {
    * Returns whether this would be considered a raw type
    */
   boolean isRawType(ITypeEnvironment tEnv);
+  
+  boolean isSameDecl(IRNode other);
 }
