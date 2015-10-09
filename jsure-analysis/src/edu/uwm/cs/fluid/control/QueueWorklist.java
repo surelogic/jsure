@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/control/QueueWorklist.java,v 1.6 2008/06/24 19:13:16 thallora Exp $*/
 package edu.uwm.cs.fluid.control;
 
 import java.util.LinkedList;
@@ -12,10 +11,10 @@ import edu.cmu.cs.fluid.control.ControlNode;
 
 public class QueueWorklist implements Worklist {
 
-  private static Logger LOG = SLLogger.getLogger("FLUID.analysis");
-  
-  private Queue<ControlNode> queue = new LinkedList<ControlNode>();
-  
+  static Logger LOG = SLLogger.getLogger("FLUID.analysis");
+
+  Queue<ControlNode> queue = new LinkedList<>();
+
   public QueueWorklist() {
     super();
   }
@@ -25,7 +24,7 @@ public class QueueWorklist implements Worklist {
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("initializing");
     }
-   // do nothing
+    // do nothing
   }
 
   @Override
@@ -40,9 +39,9 @@ public class QueueWorklist implements Worklist {
 
   @Override
   public int size() {
-	return queue.size();
+    return queue.size();
   }
-  
+
   @Override
   public ControlNode next() {
     return queue.remove();
@@ -60,7 +59,7 @@ public class QueueWorklist implements Worklist {
   public QueueWorklist clone() {
     try {
       QueueWorklist copy = (QueueWorklist) super.clone();
-      copy.queue = new LinkedList<ControlNode>();
+      copy.queue = new LinkedList<>();
       return copy;
     } catch (CloneNotSupportedException e) {
       // won't happen

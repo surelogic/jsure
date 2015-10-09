@@ -15,6 +15,7 @@ public interface IDEPreferences {
   String TIMEOUT_WARNING_SEC = PREFIX + "timeoutWarningSec";
   String TIMEOUT_FLAG = PREFIX + "timeoutFlag";
   String TIMEOUT_SEC = PREFIX + "timeoutSec";
+  int DEFAULT_TIMEOUT_SEC = 60; // seconds
 
   String PHYS_MEMORY = PREFIX + "physMemoryInMB";
 
