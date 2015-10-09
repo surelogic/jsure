@@ -780,11 +780,20 @@ public class TypeInference8 {
         newVars.add(new InferenceVariable(null)); // TODO
       }
       // TODO subst?
-      final IJavaType g_beta = JavaTypeFactory.getDeclaredType(g.getDeclaration(), newVars, g.getOuterType());
+      final IJavaDeclaredType g_beta = JavaTypeFactory.getDeclaredType(g.getDeclaration(), newVars, g.getOuterType());
+      // Connects the new inference variables to the return type
       b_3.addCaptureBound(g_beta, g);
+      
+      // Connects the new inference variables to the target type
       reduceConstraintFormula(b_3, new ConstraintFormula(g_beta, FormulaConstraint.IS_COMPATIBLE, t));
+
       // final BoundSet temp = new BoundSet(b_3);
       b_3.addInferenceVariables(newVars);
+      
+      BoundSet b_3_hack = checkIfHackIsRequiredToB3(b_3, g_beta, g);
+      if (b_3_hack != null) {
+    	  return b_3_hack;
+      }
       return b_3;
     }
     /*
@@ -905,6 +914,63 @@ public class TypeInference8 {
   }
 
   /**
+   * Checks for 
+   * @param g The return type of the method in question, substituted
+   * @param g_beta g, but replaced with inference variables    
+   */
+  private BoundSet checkIfHackIsRequiredToB3(BoundSet orig, IJavaDeclaredType g_beta, IJavaDeclaredType g) {
+	final BoundSet rv = new BoundSet(orig);
+	boolean hacked = false;
+	
+	final int num = g_beta.getTypeParameters().size();
+	for(int i=0; i<num; i++) {
+		final IJavaType a_i = g.getTypeParameters().get(i);
+		if (a_i instanceof IJavaWildcardType) {
+			final IJavaWildcardType w_i = (IJavaWildcardType) a_i;
+			if (w_i.getUpperBound() != null) {
+				final Set<InferenceVariable> vars = new HashSet<>(); 
+				getReferencedInferenceVariables(vars, w_i.getUpperBound());
+				// TODO save a copy of vars
+				
+				if (!vars.isEmpty()) {
+					// Check for connection between alpha_i and vars among the bounds involved alpha_i		
+					final InferenceVariable alpha_i = (InferenceVariable) g_beta.getTypeParameters().get(i);
+					final BoundSubset related = rv.findAssociatedBounds(alpha_i);	
+					final Set<InferenceVariable> relatedVars = new HashSet<>();
+					related.examine(new BoundCondition() {											
+						public boolean examineUpperBound(IJavaType t) {
+							getReferencedInferenceVariables(relatedVars, t);
+							return false;
+						}
+						public boolean examineLowerBound(IJavaType t) {
+							getReferencedInferenceVariables(relatedVars, t);
+							return false;
+						}
+						public boolean examineEquality(Equality e) {
+							relatedVars.addAll(e.vars);
+							for(IJavaReferenceType t : e.values) {
+								getReferencedInferenceVariables(relatedVars, t);
+							}
+							return false;
+						}
+					});
+					vars.removeAll(relatedVars);
+					if (!vars.isEmpty()) {
+						// No connection found, so add constraint
+						reduceConstraintFormula(rv, new ConstraintFormula(alpha_i, FormulaConstraint.IS_SUBTYPE, w_i.getUpperBound()));
+						hacked = true;
+					}
+				}
+			}
+		}
+	}
+	if (hacked) {
+		return rv;
+	}
+	return null;
+  }
+
+/**
    * From 18.5.2 Invocation Type Inference:
    * 
    * Let e 1 , ..., e k be the actual argument expressions of the invocation. If
@@ -3226,14 +3292,16 @@ public class TypeInference8 {
              * implies the constraint formula ‹Bi θ <: R› – R <: αi implies the
              * bound false
              */
-
+        	final IJavaReferenceType t = wt.getUpperBound();
+        	  
             for (SubtypeBound sb : copy(subtypeBounds)) {
               if (alpha_i == sb.s && !(sb.t instanceof InferenceVariable)) {
+            	final IJavaReferenceType r = sb.t;
                 if (b_i == tEnv.getObjectType()) {
-                  reduceSubtypingConstraints(bounds, wt.getUpperBound(), sb.t);
+                  reduceSubtypingConstraints(bounds, t, r);
                 }
-                if (wt.getUpperBound() == tEnv.getObjectType()) {
-                  reduceSubtypingConstraints(bounds, b_i.subst(theta), sb.t);
+                if (t == tEnv.getObjectType()) {
+                  reduceSubtypingConstraints(bounds, b_i.subst(theta), r);
                 }
               }
               if (alpha_i == sb.t && !(sb.s instanceof InferenceVariable)) {
@@ -4191,7 +4259,8 @@ public class TypeInference8 {
       } else if (NewExpression.prototype.includes(op) || MethodCall.prototype.includes(op)) {
         try {
           // Need to substitute for inference variables used here
-          final BoundSet b_3 = computeInvocationBounds((CallInterface) op, e, t).third();
+          final Triple<CallState, MethodBinding8, BoundSet> result = computeInvocationBounds((CallInterface) op, e, t);
+          final BoundSet b_3 = result.third();
           bounds.mergeWithSubst(b_3, bounds.getInitialVarSubst());
         } catch (NoArgs e1) {
           throw new IllegalStateException("No arguments for " + DebugUnparser.toString(e));
@@ -4961,6 +5030,15 @@ public class TypeInference8 {
     else if (s instanceof TypeVariable || t instanceof TypeVariable) {
       // the other type is not a proper type, since that case is handled above
       // so ignore for now until we handle the rest of the substitution
+    }
+    else if (t instanceof IJavaTypeVariable) {
+      final IJavaTypeVariable v = (IJavaTypeVariable) t;
+      final IJavaType ub = v.getUpperBound(tEnv); 
+      if (ub != null) {
+    	reduceTypeEqualityConstraints(bounds, s, ub);
+      } else {
+    	reduceTypeEqualityConstraints(bounds, s, tEnv.getObjectType());
+      }
     } else {
       bounds.addFalse();
     }

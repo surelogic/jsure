@@ -2692,7 +2692,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       Operator bbop = JJNode.tree.getOperator(baseBinding.getNode());
       IJavaScope scope;
       if (bbop instanceof TypeDeclaration) {
-        IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding.getNode(), true);
+        IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding.getNode(), true, false);
         scope = typeScope(baseBinding.convertType(AbstractJavaBinder.this, baseType));
       } else if (bbop instanceof VariableDeclarator || bbop instanceof ParameterDeclaration) {
         scope = typeScope(getType(baseBinding));

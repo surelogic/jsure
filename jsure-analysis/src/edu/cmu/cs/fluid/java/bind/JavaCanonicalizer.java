@@ -502,7 +502,7 @@ public class JavaCanonicalizer {
         return TypeExpression.createNode(nt);
       }
       IRNode thisClass = VisitUtil.getEnclosingType(context);
-      IJavaType thisClassType = JavaTypeFactory.getMyThisType(thisClass, true);
+      IJavaType thisClassType = JavaTypeFactory.getMyThisType(thisClass, true, false);
       if (tEnv.isRawSubType(thisClassType, type)) {
         return ThisExpression.prototype.createNode();
       }
@@ -723,7 +723,7 @@ public class JavaCanonicalizer {
         	if (enclosingT.toString().equals("java.util.Map<K extends java.lang.Object in testGuava.MapConstraints.ConstrainedMultimap,java.util.Collection<V extends java.lang.Object in testGuava.MapConstraints.ConstrainedMultimap>>")) {
         		System.out.println("Found offending Map");
         	}
-        	final boolean needsTypeParams = isNonstaticNestedClass(tdecl);
+        	final boolean needsTypeParams = isNonstaticNestedClass(tdecl) && (nameNode == null || JavaTypeFactory.isRelatedTo(tEnv, nameNode, tdecl));
             baseType = createDeclaredType(enclosingT, needsTypeParams ? TypeParamHandling.KEEP : TypeParamHandling.DISCARD);
           }
           return result = TypeRef.createNode(baseType, name);
@@ -831,7 +831,7 @@ public class JavaCanonicalizer {
       return rv;
     }
 
-    private boolean allTypeFormals(List<IJavaType> typeParameters) {
+	private boolean allTypeFormals(List<IJavaType> typeParameters) {
       for (IJavaType tp : typeParameters) {
         if (tp instanceof IJavaTypeFormal) {
           continue;

@@ -1932,7 +1932,8 @@ public class TypeUtils {
   }
   
   private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args, boolean eliminateTypeVars) {
-    MethodBinding8 bi = (MethodBinding8) tEnv.getBinder().getIBinding(call);
+	IBinding b = tEnv.getBinder().getIBinding(call);
+    MethodBinding8 bi = (MethodBinding8) b;
     return computeInvocationTypeForCall(call, args, eliminateTypeVars, bi);
   }
 
