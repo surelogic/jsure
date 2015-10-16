@@ -46,7 +46,7 @@ o "surelogictoolspropertiesfile" (optional) This sets the location of a
 
 -- Example --
 
-For the JSureTutorial_BoundedFIFO project create a build.xml at the
+For the JSureTutorial_BoundedFIFO project create a jsure-scan.xml at the
 project root:
 
 <?xml version="1.0" encoding="UTF-8"?>
