@@ -533,6 +533,9 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   static IJavaDeclaredType computeErasure(IJavaDeclaredType t) {
+	if (t == null) {
+	  return null;
+	}
     if (t.getTypeParameters().size() > 0) {
       return JavaTypeFactory.getDeclaredType(t.getDeclaration(), 
                                              Collections.<IJavaType>emptyList(), 
