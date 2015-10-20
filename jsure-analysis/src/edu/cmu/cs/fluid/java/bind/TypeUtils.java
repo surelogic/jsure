@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
+import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8;
 import edu.cmu.cs.fluid.java.operator.Arguments;
@@ -1793,7 +1794,7 @@ public class TypeUtils {
       if (ftype == null) {
         throw new IllegalStateException("Couldn't compute function type for "+DebugUnparser.toString(call)+" -> "+bi);
       }
-      final int n = bi.isConstructor || TypeUtil.isStatic(bi.getNode()) ? i : i + 1;
+      final int n = bi.mkind == MethodInfo.Kind.CONSTRUCTOR || TypeUtil.isStatic(bi.getNode()) ? i : i + 1;
       final int numFormals = ftype.getParameterTypes().size();
       IJavaType rt;      
       if (n < numFormals) {
@@ -1813,10 +1814,12 @@ public class TypeUtils {
       }
       return rt;
     } else if (MethodCall.prototype.includes(op)) { // As receiver
-      MethodCall call = (MethodCall) op;
-      IJavaFunctionType ftype = computeInvocationTypeForCall(p, call.get_Args(p), eliminateTypeVars);
+      final MethodCall call = (MethodCall) op;
+      final IRNode targs = call.get_TypeArgs(p);
+      final IRNode args = call.get_Args(p);
+      IJavaFunctionType ftype = computeInvocationTypeForCall(p, targs, args, eliminateTypeVars);
       if (ftype == null) {
-        computeInvocationTypeForCall(p, call.get_Args(p), eliminateTypeVars);
+        computeInvocationTypeForCall(p, targs, args, eliminateTypeVars);
         throw new IllegalStateException();
       }
       return ftype.getParameterTypes().get(0);
@@ -1931,8 +1934,16 @@ public class TypeUtils {
   	return false;    	
   }
   
-  private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args, boolean eliminateTypeVars) {
-    MethodBinding8 bi = (MethodBinding8) tEnv.getBinder().getIBinding(call);
+  private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode targs, IRNode args, boolean eliminateTypeVars) {
+	IBinding b = tEnv.getBinder().getIBinding(call);
+    MethodBinding8 bi;
+    if (b instanceof MethodBinding8) {
+    	bi = (MethodBinding8) b;
+    } else {
+    	MethodBinding m = new MethodBinding(b);
+    	CallState state = new CallState(tEnv.getBinder(), call, targs, args, b.getReceiverType());
+    	bi = MethodBinding8.create(state, m, tEnv, IJavaTypeSubstitution.NULL, IMethodBinder.InvocationKind.STRICT);
+    }
     return computeInvocationTypeForCall(call, args, eliminateTypeVars, bi);
   }
 

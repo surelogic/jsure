@@ -51,6 +51,7 @@ import edu.cmu.cs.fluid.ir.IRPersistent;
 import edu.cmu.cs.fluid.ir.IRType;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
@@ -74,6 +75,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.MoreBounds;
 import edu.cmu.cs.fluid.java.operator.NameType;
 import edu.cmu.cs.fluid.java.operator.NamedType;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
@@ -81,6 +83,7 @@ import edu.cmu.cs.fluid.java.operator.ShortType;
 import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeExtensionInterface;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
@@ -90,6 +93,7 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.operator.WildcardExtendsType;
 import edu.cmu.cs.fluid.java.operator.WildcardSuperType;
 import edu.cmu.cs.fluid.java.operator.WildcardType;
+import edu.cmu.cs.fluid.java.util.OpSearch;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -296,7 +300,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
         lowerBounded.put(lower,res);
       }
     } else if (lower == null) {
-      if (SLUtility.JAVA_LANG_OBJECT.equals(upper.getName())) {
+      if (upper instanceof IJavaDeclaredType && SLUtility.JAVA_LANG_OBJECT.equals(upper.getName())) {
         return wildcardType; // HACK?
       }
       res = upperBounded.get(upper);
@@ -491,7 +495,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
   private static Map<JavaFunctionType,JavaFunctionType> functionTypes =
 	      new HashMap<JavaFunctionType,JavaFunctionType>();
   private static final IJavaTypeFormal[] emptyTypeFormals = new IJavaTypeFormal[0];
-  static final IJavaType[] emptyTypes = new IJavaType[0];
+  static final IJavaType[] emptyTypes = JavaGlobals.noTypes;
 	
 
   public static IJavaFunctionType getFunctionType(
@@ -628,7 +632,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     	  }
     	  */
     	  //return b.convertType(convertNodeTypeToIJavaType(decl, binder));
-    	  return b.convertType(binder, getMyThisType(decl, true));
+    	  return b.convertType(binder, getMyThisType(decl, true, !isRelatedTo(binder.getTypeEnvironment(), nodeType, decl)));
       }  
     } else if (op instanceof TypeRef) {
       IJavaType outer = convertNodeTypeToIJavaType(TypeRef.getBase(nodeType),binder);
@@ -746,6 +750,69 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     }
   }
 
+  /**
+   * Check if other is related to n
+   * e.g. n is not in a subclass/inner class of other
+   */
+  public static boolean isRelatedTo(ITypeEnvironment tEnv, IRNode n, IRNode other) {	  
+	  // Need to check if n is part of the extends/implements -- otherwise, infinite loop
+	  final IRNode parent = OpSearch.nonTypeSearch.findEnclosing(n);
+	  final Operator pop = JJNode.tree.getOperator(parent);
+	  if (pop instanceof TypeExtensionInterface) {
+		  return true;
+	  }
+	  // Check if n specifies the superclass
+	  if (ClassDeclaration.prototype.includes(parent)) {
+		  return true;
+	  }
+	  if (NewExpression.prototype.includes(parent)) {
+		  final IRNode gparent = JJNode.tree.getParentOrNull(parent);
+		  if (AnonClassExpression.prototype.includes(gparent)) {
+			  return true;
+		  }
+	  }
+	  final IJavaType tt = getThisType(n);
+	  final IJavaSourceRefType thisType = (IJavaSourceRefType) tt;
+	  if (thisType == null) {
+		  return false;
+	  }
+	  final IJavaSourceRefType otherType = (IJavaSourceRefType) getMyThisType(other); // Just to get supertype
+	  /*
+	  final String msg = "Checking if "+thisType+" is related to "+otherType;
+	  if ("Checking if vuze.ACETest.ACE #1 is related to vuze.ACETest.Inner".equals(msg) ||
+          "Checking if E extends java.lang.Enum <E> in java.lang.Enum is related to java.lang.Enum<E extends java.lang.Enum <E> in java.lang.Enum>".equals(msg)) {
+		  System.err.println("Got infinite loop");
+	  } else {
+		  System.err.println(msg);
+	  }
+	  */
+	  return isRelatedTo(tEnv, thisType, otherType);
+  }
+
+  private static boolean isRelatedTo(final ITypeEnvironment tEnv, final IJavaSourceRefType thisT, final IJavaSourceRefType otherT) {  
+	  if (thisT.getDeclaration().equals(otherT.getDeclaration())) {
+		  return true;
+	  }
+	  if (thisT instanceof IJavaDeclaredType) {
+		  IJavaDeclaredType tt = (IJavaDeclaredType) thisT;
+		  if (tt.getOuterType() != null && isRelatedTo(tEnv, tt.getOuterType(), otherT)) {
+			  return true;
+		  }
+	  }
+	  if (otherT instanceof IJavaDeclaredType) {
+		  IJavaDeclaredType ot = (IJavaDeclaredType) otherT;
+		  if (ot.getOuterType() != null && isRelatedTo(tEnv, thisT, ot.getOuterType())) {
+			  return true;
+		  }		  
+	  }
+	  for(IJavaType parent : thisT.getSupertypes(tEnv)) {
+		  if (isRelatedTo(tEnv, (IJavaSourceRefType) parent, otherT)) {
+			  return true;
+		  }
+	  }
+	  return false;
+  }
+  
   // Meant to compute glb(Bi, Ui[A1 := S1, ..., An := Sn]) 
   public static IJavaReferenceType computeGreatestLowerBound(IBinder binder, IJavaReferenceType wildcardBound, IRNode moreBounds, IJavaTypeSubstitution subst) {	  
       IJavaReferenceType result = null;
@@ -780,7 +847,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
   }
     
   public static IJavaSourceRefType getMyThisType(IRNode tdecl) {
-	  return getMyThisType(tdecl, false);
+	  return getMyThisType(tdecl, false, false);
   }
   
   private static IJavaDeclaredType computeRawType(IJavaDeclaredType dt) {
@@ -799,7 +866,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
    * @param tdecl type declaration node
    * @return type of "this" within this class/interface.
    */
-  public static IJavaSourceRefType getMyThisType(IRNode tdecl, boolean raw) {
+  public static IJavaSourceRefType getMyThisType(IRNode tdecl, boolean raw, boolean isUnrelated) {
     TypeDeclInterface op = (TypeDeclInterface)JJNode.tree.getOperator(tdecl);    
     if (op instanceof TypeFormal) {
       return JavaTypeFactory.getTypeFormal(tdecl); 
@@ -808,7 +875,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       return JavaTypeFactory.getAnonType(tdecl);
     }
     IJavaDeclaredType outer = (IJavaDeclaredType) getThisType(tdecl);
-    if (outer != null && !outer.getTypeParameters().isEmpty() && TypeUtil.isStatic(tdecl)) {
+    if (outer != null && !outer.getTypeParameters().isEmpty() && (isUnrelated || TypeUtil.isStatic(tdecl))) {
     	outer = computeRawType(outer);
     }
     IRNode typeFormals = null;
@@ -1213,6 +1280,9 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
 	}
 	*/
     IJavaType rv = s.get(this);
+    if (rv == null) {
+    	return getExtendsBound(s.getTypeEnv());
+    }
     if (rv != this) {
     	return rv;
     }
@@ -1817,6 +1887,11 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
 	}	
 	IJavaType newLower = lowerBound == null ? null : lowerBound.subst(s);
 	IJavaType newUpper = upperBound == null ? null : upperBound.subst(s);
+	/*
+	if (newUpper instanceof IJavaCaptureType) {
+		System.out.println("Original before subst: "+this);
+	}
+	*/
     IJavaType newBase = wildcard.subst(s); // Either wildcard or capture
     if (newBase == wildcard && newLower == lowerBound && newUpper == upperBound) {
     	return this;
@@ -2030,10 +2105,15 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   // private final static Logger LOG = SLLogger.getLogger("FLUID.java.bind");
   final IRNode declaration;
   final List<IJavaType> parameters;
+  final boolean isRaw;
 
   JavaDeclaredType() { this(null); }
   JavaDeclaredType(IRNode n) { this(n, Collections.<IJavaType>emptyList()); }
-  JavaDeclaredType(IRNode n, /* @immutable */ List<IJavaType> l) { declaration = n; parameters = l; }
+  JavaDeclaredType(IRNode n, /* @immutable */ List<IJavaType> l) { 
+	declaration = n; 
+	parameters = l; 
+	isRaw = isRawType_private();
+  }
   
   public IRNode getDeclaration() { return declaration; }
 
@@ -2182,6 +2262,13 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   }
   
   public boolean isRawType(ITypeEnvironment tEnv) {
+	return isRaw;
+  }
+  
+  private boolean isRawType_private() {
+	  if (declaration == null) {
+		  return false;
+	  }
 	  if (parameters.isEmpty()) {
 		  final IRNode typeParams = TypeUtils.getParametersForType(declaration);
 		  if (typeParams != null) {

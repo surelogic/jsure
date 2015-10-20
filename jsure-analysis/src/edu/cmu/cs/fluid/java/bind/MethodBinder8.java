@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
+import edu.cmu.cs.fluid.java.bind.MethodInfo.Kind;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.LambdaCache;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeFormalCollector;
@@ -1009,12 +1010,9 @@ public class MethodBinder8 implements IMethodBinder {
 		if (result) {
 			return true;
 		}
-		final TypeFormalCollector v = new TypeFormalCollector();
-		ftype.getReturnType().visit(v);
-		if (!v.formals.isEmpty()) {
-			// Try type substitution
-			final IJavaType subst = ftype.getReturnType().subst(v.getSubst(tEnv));
-			return tEnv.isCallCompatible(pType, subst);
+		final IJavaType rtype_subst = TypeInference8.eliminateReboundedTypeFormals(tEnv, ftype.getReturnType());
+		if (rtype_subst != ftype.getReturnType()) {
+			return tEnv.isCallCompatible(pType, rtype_subst);
 		}
 		return false;
 	}
@@ -1652,7 +1650,7 @@ declared return type, Object .
     	}
     	
     	static MethodBinding8 create(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		final boolean debug = c.toString().contains("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
+    		final boolean debug = false;//c.toString().equals("<implicit>.expect(context.lookup(#))");
     		if (debug) {
     		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
     			System.out.println("Creating boundset: "+b);
@@ -2165,7 +2163,7 @@ declared return type, Object .
 		//
 		// The subst below should convert the receiver to the right type
 		IJavaType receiver = TypeUtil.isStatic(m.bind.getNode()) ? null : 
-							 m.isConstructor ? m.bind.getContextType() :
+							 m.mkind == Kind.CONSTRUCTOR ? m.bind.getContextType() :
 					         JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
 		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), receiver, tEnv.getBinder());
 		//return t;

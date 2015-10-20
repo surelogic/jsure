@@ -82,7 +82,7 @@ public final class JSurePreferencesUtility {
 
       EclipseUtility.setDefaultIntPreference(IDEPreferences.TIMEOUT_WARNING_SEC, 30);
       EclipseUtility.setDefaultBooleanPreference(IDEPreferences.TIMEOUT_FLAG, true);
-      EclipseUtility.setDefaultIntPreference(IDEPreferences.TIMEOUT_SEC, 60);
+      EclipseUtility.setDefaultIntPreference(IDEPreferences.TIMEOUT_SEC, IDEPreferences.DEFAULT_TIMEOUT_SEC);
 
       EclipseUtility.setDefaultBooleanPreference(SAVE_DIRTY_EDITORS_BEFORE_VERIFY, false);
 

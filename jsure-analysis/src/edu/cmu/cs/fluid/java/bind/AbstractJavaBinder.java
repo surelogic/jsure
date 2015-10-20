@@ -2152,13 +2152,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IRNode receiver = call.get_Object(node);
       IRNode args = call.get_Args(node);
       IRNode targs = call.get_TypeArgs(node);
-      final IJavaType recType = computeReceiverType(receiver);
       final String name = MethodCall.getMethod(node);
       /*
       if (name.equals("asList")) {
     	  System.out.println("Trying to bind "+DebugUnparser.toString(node));
       }
       */
+      final IJavaType recType = computeReceiverType(receiver);
       final IJavaScope toUse = computeScope(recType);
       if (toUse != null) {
         if (recType instanceof IJavaDeclaredType) {
@@ -2692,7 +2692,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       Operator bbop = JJNode.tree.getOperator(baseBinding.getNode());
       IJavaScope scope;
       if (bbop instanceof TypeDeclaration) {
-        IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding.getNode(), true);
+        IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding.getNode(), true, false);
         scope = typeScope(baseBinding.convertType(AbstractJavaBinder.this, baseType));
       } else if (bbop instanceof VariableDeclarator || bbop instanceof ParameterDeclaration) {
         scope = typeScope(getType(baseBinding));

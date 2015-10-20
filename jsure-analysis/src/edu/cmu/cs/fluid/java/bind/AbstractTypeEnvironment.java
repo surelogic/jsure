@@ -932,7 +932,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
     final boolean needsErasure;
 
     SupertypesIterator(IJavaType first, Iterator<IRNode> nodes, IJavaTypeSubstitution s, boolean needsErasure) {
-      super(first);
+      super(needsErasure ? JavaTypeVisitor.computeErasure((IJavaDeclaredType) first) : first);
       this.nodes = nodes;
       this.subst = s;
       this.needsErasure = needsErasure;
@@ -1121,6 +1121,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
       return new EmptyIterator<IJavaType>();
     }
     Iterator<IRNode> ch = JJNode.tree.children(superinterfaces);
+    // Note: superclass already has subst applied above
     return new SupertypesIterator(superclass,ch,subst,needsErasure);
   }
   

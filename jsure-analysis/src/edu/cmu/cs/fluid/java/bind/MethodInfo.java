@@ -5,6 +5,7 @@ import java.util.*;
 import com.surelogic.common.util.FilterIterator;
 
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -16,8 +17,12 @@ class MethodInfo {
 	final IRNode formals;
 	final IRNode typeFormals;
 	final int numTypeFormals;
-	final boolean isConstructor;
 	final int numFormals;
+	final Kind mkind;
+	
+	enum Kind {
+		METHOD, CONSTRUCTOR, ANNO_ELT
+	}
 	
 	MethodInfo(IRNode m) {
 		mdecl = m;
@@ -31,14 +36,23 @@ class MethodInfo {
 	        	System.out.println();
 	        }
     		 */
-    		isConstructor = false;
+    		mkind = Kind.METHOD;
+    	} else if (op instanceof AnnotationElement) {
+    		formals = null;
+    		typeFormals = null;
+    		mkind = Kind.ANNO_ELT;
     	} else {
     		formals = ConstructorDeclaration.getParams(mdecl);
     		typeFormals = ConstructorDeclaration.getTypes(mdecl);
-    		isConstructor = true;
+    		mkind = Kind.CONSTRUCTOR;
     	}
-    	numTypeFormals = AbstractJavaBinder.numChildrenOrZero(typeFormals);
-    	numFormals = AbstractJavaBinder.numChildrenOrZero(formals);
+    	if (formals != null) {
+    		numTypeFormals = AbstractJavaBinder.numChildrenOrZero(typeFormals);
+    		numFormals = AbstractJavaBinder.numChildrenOrZero(formals);
+    	} else {
+    		numTypeFormals = 0;
+    		numFormals = 0;
+    	}
 	}
 	
 	int getNumFormals() {
@@ -61,6 +75,9 @@ class MethodInfo {
 	}
 	
     IJavaType[] getParamTypes(IBinder b, int callArgs, boolean varArity, boolean withSubst) {
+    	if (formals == null) {
+    		return JavaGlobals.noTypes;
+    	}
     	IJavaType[] rv = new IJavaType[callArgs];
     	int i=0;
 		for(IRNode f : Parameters.getFormalIterator(formals)) {
@@ -129,7 +146,7 @@ class MethodInfo {
      * @return true if the return type T is a type parameter for the method
      */
     boolean hasTypeParameterAsReturnType(IBinder b) {
-    	if (isConstructor) {
+    	if (mkind != Kind.METHOD) {
     		return false;
     	}
     	IRNode rtype = MethodDeclaration.getReturnType(mdecl);
@@ -152,9 +169,14 @@ class MethodInfo {
     
     Iterable<IJavaType> getThrownExceptions(final IBinder b) {
 		IRNode thrown;
-		if (isConstructor) {
+		switch (mkind) {
+		case ANNO_ELT:
+			return Collections.emptyList();
+		case CONSTRUCTOR:
 			thrown = ConstructorDeclaration.getExceptions(mdecl);
-		} else {
+			break;
+		case METHOD:
+		default:
 			thrown = MethodDeclaration.getExceptions(mdecl);
 		}
 		return new FilterIterator<IRNode,IJavaType>(Throws.getTypeIterator(thrown)) {
