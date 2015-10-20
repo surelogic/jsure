@@ -502,6 +502,7 @@ public final class AnalysisLockModel {
    *         which may in fact be associated with a super region.
    *         <code>null</code> if the region is unprotected.
    */
+  // XXX: Do we need this 
   public StateLock<?, ?> getLockForRegion(
       final IJavaType javaType, final IRegion region) {
     final Clazz clazz = classes.get(javaType);
@@ -523,7 +524,45 @@ public final class AnalysisLockModel {
     }
   }
 
+  
+  // XXX: Do we need this 
   public StateLock<?, ?> getLockForTarget(final IBinder binder, final Target target) {
     return getLockForRegion(target.getRelativeClass(binder), target.getRegion());
+  }
+  
+  public LockGenerator getLockGenerator(final IJavaType javaType, final IRegion region) {
+    return new LockGenerator(getLockForRegion(javaType, region));
+  }
+  
+  public LockGenerator getLockGenerator(final IBinder binder, final Target target) {
+    return new LockGenerator(getLockForTarget(binder, target));
+  }
+  
+  public NeededLock getNeededLock(final IJavaType javaType, final IRegion region,
+      final IRNode srcExpr, final IRNode objectExpr) {
+    return getLockGenerator(javaType, region).getLock(srcExpr, objectExpr);
+  }
+  
+  public NeededLock getNeededLock(final IBinder binder, final Target target,
+      final IRNode srcExpr, final IRNode objectExpr) {
+    return getLockGenerator(binder, target).getLock(srcExpr, objectExpr);
+  }
+  
+  public static final class LockGenerator {
+    private final StateLock<?, ?> rawLock;
+    
+    public LockGenerator(final StateLock<?, ?> rawLock) {
+      this.rawLock = rawLock;
+    }
+    
+    public NeededLock getLock(final IRNode source, final IRNode objectExpr) {
+      if (rawLock == null) {
+        return new NeedsNoLock(source);
+      } else if (rawLock.isStatic()) {
+        return new NeededStaticLock(rawLock, source);
+      } else { // instance lock
+        return new NeededInstanceLock(objectExpr, rawLock, source);
+      }
+    }
   }
 }

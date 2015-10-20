@@ -2,10 +2,10 @@ package com.surelogic.analysis.concurrency.model;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
-public final class NeededStaticLock extends AbstractNeededLock {
+public final class NeededStaticLock extends AbstractRealLock {
   public NeededStaticLock(
       final ModelLock<?, ?> modelLock, final IRNode source) {
-    super(modelLock, source);
+    super(source, modelLock);
   }
 
   @Override

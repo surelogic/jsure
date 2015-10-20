@@ -3,13 +3,13 @@ package com.surelogic.analysis.concurrency.model;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 
-public final class NeededInstanceLock extends AbstractNeededLock {
+public final class NeededInstanceLock extends AbstractRealLock {
   private final IRNode objectRefExpr;
   
   public NeededInstanceLock(
       final IRNode objectRefExpr, final ModelLock<?, ?> modelLock,
       final IRNode source) {
-    super(modelLock, source);
+    super(source, modelLock);
     this.objectRefExpr = objectRefExpr;
   }
 

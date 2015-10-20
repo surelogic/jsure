@@ -44,6 +44,14 @@ public final class EmptyEvidence implements TargetEvidence {
     link = n;
   }
   
+  public EmptyEvidence(final Reason r) {
+    this(r, null, null);
+  }
+  
+  public EmptyEvidence(final Reason r, final IRNode n) {
+    this(r, null, n);
+  }
+  
   @Override
   public IRNode getLink() {
     return link;
