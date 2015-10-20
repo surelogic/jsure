@@ -51,6 +51,7 @@ import edu.cmu.cs.fluid.ir.IRPersistent;
 import edu.cmu.cs.fluid.ir.IRType;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
@@ -299,7 +300,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
         lowerBounded.put(lower,res);
       }
     } else if (lower == null) {
-      if (SLUtility.JAVA_LANG_OBJECT.equals(upper.getName())) {
+      if (upper instanceof IJavaDeclaredType && SLUtility.JAVA_LANG_OBJECT.equals(upper.getName())) {
         return wildcardType; // HACK?
       }
       res = upperBounded.get(upper);
@@ -494,7 +495,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
   private static Map<JavaFunctionType,JavaFunctionType> functionTypes =
 	      new HashMap<JavaFunctionType,JavaFunctionType>();
   private static final IJavaTypeFormal[] emptyTypeFormals = new IJavaTypeFormal[0];
-  static final IJavaType[] emptyTypes = new IJavaType[0];
+  static final IJavaType[] emptyTypes = JavaGlobals.noTypes;
 	
 
   public static IJavaFunctionType getFunctionType(
@@ -1279,6 +1280,9 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
 	}
 	*/
     IJavaType rv = s.get(this);
+    if (rv == null) {
+    	return getExtendsBound(s.getTypeEnv());
+    }
     if (rv != this) {
     	return rv;
     }
@@ -1883,6 +1887,11 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
 	}	
 	IJavaType newLower = lowerBound == null ? null : lowerBound.subst(s);
 	IJavaType newUpper = upperBound == null ? null : upperBound.subst(s);
+	/*
+	if (newUpper instanceof IJavaCaptureType) {
+		System.out.println("Original before subst: "+this);
+	}
+	*/
     IJavaType newBase = wildcard.subst(s); // Either wildcard or capture
     if (newBase == wildcard && newLower == lowerBound && newUpper == upperBound) {
     	return this;
@@ -2096,10 +2105,15 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   // private final static Logger LOG = SLLogger.getLogger("FLUID.java.bind");
   final IRNode declaration;
   final List<IJavaType> parameters;
+  final boolean isRaw;
 
   JavaDeclaredType() { this(null); }
   JavaDeclaredType(IRNode n) { this(n, Collections.<IJavaType>emptyList()); }
-  JavaDeclaredType(IRNode n, /* @immutable */ List<IJavaType> l) { declaration = n; parameters = l; }
+  JavaDeclaredType(IRNode n, /* @immutable */ List<IJavaType> l) { 
+	declaration = n; 
+	parameters = l; 
+	isRaw = isRawType_private();
+  }
   
   public IRNode getDeclaration() { return declaration; }
 
@@ -2248,6 +2262,13 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   }
   
   public boolean isRawType(ITypeEnvironment tEnv) {
+	return isRaw;
+  }
+  
+  private boolean isRawType_private() {
+	  if (declaration == null) {
+		  return false;
+	  }
 	  if (parameters.isEmpty()) {
 		  final IRNode typeParams = TypeUtils.getParametersForType(declaration);
 		  if (typeParams != null) {
