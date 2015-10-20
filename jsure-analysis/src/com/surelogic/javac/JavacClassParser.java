@@ -821,8 +821,10 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
     asBinary.clear();
     // Import to the current project
     for (CodeInfo info : newCUs) {
-      System.out.println("Importing " + info.getFileName() + " to " + jp.getName());
-      jp.getTypeEnv().addCompUnit(info, true);
+      boolean changed = jp.getTypeEnv().addCompUnit(info, true);
+      if (changed) {
+    	System.out.println("Importing " + info.getFileName() + " to " + jp.getName());
+      }
     }
     return newCUs;
   }

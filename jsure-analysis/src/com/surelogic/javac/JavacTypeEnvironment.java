@@ -97,15 +97,17 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	@InRegion("JTEState")
 	private SLProgressMonitor monitor;
 	@InRegion("JTEState")
-	private JavacProject project;
+	private final JavacProject project;
 	private final ConcurrentMap<IRNode, List<IRNode>> subtypeMap = new ConcurrentHashMap<>();
 	private final ConcurrentMap<String, CodeInfo> infos = new ConcurrentHashMap<>();
+	private final int majorJavaVersion;
 	
 	@Unique("return")
 	public JavacTypeEnvironment(Projects projs, JavacProject p,
 			SLProgressMonitor monitor) {
 		binder = new Binder(this, p.processJava8());
 		project = p;
+		majorJavaVersion = getMajorJavaVersion_private(p);
 		//System.out.println("Creating "+this);
 		
 		this.monitor = monitor;
@@ -131,9 +133,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	// Only used by copy()
-	private JavacTypeEnvironment(boolean processJ8) {		
+	private JavacTypeEnvironment(JavacProject p) {		
+		project = p;
+		majorJavaVersion = getMajorJavaVersion_private(p);
 		//System.out.println("Making copy()");
-		binder = new Binder(this, processJ8);
+		binder = new Binder(this, p.processJava8());
 	}
 
 	@InRegion("JTEState")
@@ -159,8 +163,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 	
 	public synchronized JavacTypeEnvironment copy(JavacProject p) {
-		JavacTypeEnvironment copy = new JavacTypeEnvironment(p.processJava8());
-		copy.project = p;
+		JavacTypeEnvironment copy = new JavacTypeEnvironment(p);
 		copy.infos.putAll(this.infos);
 		copy.classes.copy(this.classes);
 		for (Map.Entry<IRNode, List<IRNode>> e : this.subtypeMap.entrySet()) {
@@ -206,7 +209,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	synchronized void setProject(JavacProject newProject) {
-		project = newProject;
+		//project = newProject;
+		throw new UnsupportedOperationException("No longer supported");
 	}
 
 	@Override
@@ -215,7 +219,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	@Override
-	public synchronized int getMajorJavaVersion() {
+	public int getMajorJavaVersion() {
+		return majorJavaVersion;
+	}
+	
+	private int getMajorJavaVersion_private(JavacProject project) {
 		if (project != null) {
 			int level = project.getConfig().getIntOption(Config.SOURCE_LEVEL);
 			if (level != 0) {
@@ -310,7 +318,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		}
 
 		@RequiresLock("JavacTypeEnvironment.this:JTELock")
-		void addOuterClass(String name, IRNode decl) {			
+		boolean addOuterClass(String name, IRNode decl) {			
 			/*
 			if (name.endsWith(SLUtility.JAVA_LANG_OBJECT)) {
 				System.out.println("Adding: "+name+" to "+JavacTypeEnvironment.this); 
@@ -337,12 +345,14 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 												 */) {
 				System.out.println("Warning: replacing " + name + " = " + decl
 						+ " in " + project.getName());
+				return true;
 			} else {
 				// System.out.println("Added to "+project.getName()+": "+name+" = "+decl);
 				/*
 				 * if (name.startsWith(SLUtility.COMMON_PLUGIN_ID)) {
 				 * System.out.println(); }
 				 */
+				return old == null;
 			}
 		}
 
@@ -460,8 +470,10 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			}
 			*/
 			classes.addOuterClass(qname, td);
-			infos.put(qname, info);
-			changed = true;
+			CodeInfo old = infos.put(qname, info);
+			if (old == null || old != info) {
+			  changed = true;
+			}
 		}
 		return changed;
 	}
