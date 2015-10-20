@@ -110,7 +110,7 @@ public class WholeModuleFXDrop extends Drop {
 
       final IJavaReferenceType jRefType = (IJavaReferenceType) jType;
       final Target t = new AnyInstanceTarget(jRefType, r, NoEvidence.INSTANCE);
-      final Effect e = Effect.write(null, t); // bogus src expression
+      final Effect e = Effect.write(null, t, Effect.NO_LOCKS); // bogus src expression
       interestingRegionWriteFX.add(e);
     }
     return interestingRegionWriteFX;

@@ -497,7 +497,7 @@ public final class Effects implements IBinderClient {
           isRead, target, new NeedsNoLock(src), elaboratedEffects);
       return Collections.unmodifiableSet(elaboratedEffects);
     } else {
-      return Collections.singleton(Effect.effect(src, isRead, target)); // XXX: add lock
+      return Collections.singleton(Effect.effect(src, isRead, target, Effect.NO_LOCKS));
     }
   }
   
@@ -963,7 +963,7 @@ public final class Effects implements IBinderClient {
       final IRNode outerType =
           thisExprBinder.getBinding(QualifiedThisExpression.getType(expr));
       IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
-      context.theEffects.add(Effect.read(expr, new LocalTarget(qr)));
+      context.theEffects.add(Effect.read(expr, new LocalTarget(qr), Effect.NO_LOCKS));
       return null;
     }
 
@@ -972,7 +972,8 @@ public final class Effects implements IBinderClient {
     @Override 
     public Void visitSuperExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
-      context.theEffects.add(Effect.read(expr, new LocalTarget(context.theReceiverNode)));
+      context.theEffects.add(
+          Effect.read(expr, new LocalTarget(context.theReceiverNode), Effect.NO_LOCKS));
       return null;
     }
 
@@ -981,7 +982,8 @@ public final class Effects implements IBinderClient {
     @Override 
     public Void visitThisExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
-      context.theEffects.add(Effect.read(expr, new LocalTarget(context.theReceiverNode)));
+      context.theEffects.add(
+          Effect.read(expr, new LocalTarget(context.theReceiverNode), Effect.NO_LOCKS));
       return null;
     }
     
@@ -999,7 +1001,8 @@ public final class Effects implements IBinderClient {
     public Void visitVariableUseExpression(final IRNode expr) {
       final boolean isRead = context.isRead();
       final IRNode id = thisExprBinder.getBinding(expr);
-      context.theEffects.add(Effect.effect(expr, isRead, new LocalTarget(id)));
+      context.theEffects.add(
+          Effect.effect(expr, isRead, new LocalTarget(id), Effect.NO_LOCKS));
       return null;
     }
 
@@ -1017,7 +1020,8 @@ public final class Effects implements IBinderClient {
           context.theEffects.add(Effect.write(varDecl, target, lock));
         } else {
           // First we read the receiver . . .
-          context.theEffects.add(Effect.read(varDecl, new LocalTarget(context.theReceiverNode)));
+          context.theEffects.add(
+              Effect.read(varDecl, new LocalTarget(context.theReceiverNode), Effect.NO_LOCKS));
           /* . . . then we write the field.  This never needs elaborating
            * because it is not a use expression or a field reference expression
            */
@@ -1044,7 +1048,8 @@ public final class Effects implements IBinderClient {
         /* LOCAL VARIABLE: 'varDecl' is already the declaration of the variable,
          * so we don't have to bind it.
          */
-        context.theEffects.add(Effect.write(varDecl, new LocalTarget(varDecl)));
+        context.theEffects.add(
+            Effect.write(varDecl, new LocalTarget(varDecl), Effect.NO_LOCKS));
       }
       doAcceptForChildren(varDecl);
     }

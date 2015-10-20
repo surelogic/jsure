@@ -447,7 +447,8 @@ public final class LockUtils {
       final Set<Effect> exprEffects = Collections.singleton(
           Effect.read(null,
               new InstanceTarget(thisExprBinder.bindThisExpression(array),
-                  RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE)));
+                  RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE),
+              Effect.NO_LOCKS));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
       return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
@@ -1454,7 +1455,8 @@ public final class LockUtils {
      */
     final Effect writesInstance = Effect.write(null,
         new InstanceTarget(
-            rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE));
+            rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE),
+        Effect.NO_LOCKS);
 
     final List<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
     /* Ultimately this is only used if the effects are declared and of
