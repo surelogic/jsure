@@ -470,7 +470,7 @@ public class Util implements AnalysisConstants {
       perf.markTimeFor("Rewriting");
     }
     if (!analyses.isEmpty()) {
-    	canonicalizeCUs(perf, env.getMonitor(), cus, projects);
+    	canonicalizeCUs(perf, env.getMonitor(), cus, projects, loader);
     }
     // Checking if we added type refs by canonicalizing implicit refs
     loader.checkReferences(cus.asList());
@@ -1471,7 +1471,7 @@ public class Util implements AnalysisConstants {
   };
 
   private static void canonicalizeCUs(JSurePerformance perf, IAnalysisMonitor mon, final ParallelArray<CodeInfo> cus,
-      final Projects projects) {
+      final Projects projects, final JavacClassParser loader) {
     final SLProgressMonitor monitor = projects.getMonitor();
     if (monitor.isCanceled()) {
       throw new CancellationException();
@@ -1489,15 +1489,15 @@ public class Util implements AnalysisConstants {
       for (CodeInfo i : cus.asList()) {
         temp.asList().add(i);
         if (temp.asList().size() > 100) {
-          bindingTime += doCanonicalize(monitor, temp, false);
+          bindingTime += doCanonicalize(monitor, temp, false, loader);
           temp.asList().clear();
         }
       }
       if (!temp.asList().isEmpty()) {
-        bindingTime += doCanonicalize(monitor, temp, false);
+        bindingTime += doCanonicalize(monitor, temp, false, loader);
       }
     } else {
-      bindingTime = doCanonicalize(monitor, cus, true);
+      bindingTime = doCanonicalize(monitor, cus, true, loader);
     }
     perf.setLongProperty("Binding.before.canon", bindingTime);
     System.out.println("Binding = " + bindingTime + " ms");
@@ -1510,7 +1510,7 @@ public class Util implements AnalysisConstants {
    * 
    * @return the time taken for binding
    */
-  private static long doCanonicalize(SLProgressMonitor mon, ParallelArray<CodeInfo> cus, boolean printBinderStats) {
+  private static long doCanonicalize(SLProgressMonitor mon, ParallelArray<CodeInfo> cus, boolean printBinderStats, JavacClassParser loader) {
     // Precompute all the bindings first
     final long start = System.currentTimeMillis();
     cus.apply(bindProc);
@@ -1525,6 +1525,13 @@ public class Util implements AnalysisConstants {
         System.out.println("Canonicalizing " + info.getFile().getRelativePath());
       }
       canonProc.op(info);
+      // Added to eliminate any dangling references
+      try {
+    	  loader.checkReferences(info);
+      } catch (Throwable t) {
+          LOG.log(Level.SEVERE, "Exception while processing " + info.getFileName(), t);
+      }
+      
       if (hasPath) {
         mon.worked(1);
       }
