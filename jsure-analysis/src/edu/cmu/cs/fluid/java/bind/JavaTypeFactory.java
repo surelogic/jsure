@@ -57,6 +57,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.ReboundedTypeFormal;
+import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
@@ -572,6 +573,15 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 		  }
 		  returnType = receiverType;
 		  throwsNode = ConstructorDeclaration.getExceptions(memDecl);
+	  } else if (AnnotationElement.prototype.includes(op)) {
+		  tformals = AnnotationElement.getTypes(memDecl);
+		  formals = AnnotationElement.getParams(memDecl);
+		  IRNode rtype = AnnotationElement.getType(memDecl);
+		  returnType = binder.getJavaType(rtype);
+		  if (receiverType != null) {
+			  paramTypes.add(receiverType);
+		  }
+		  throwsNode = AnnotationElement.getExceptions(memDecl);
 	  } else {
 		  throw new IllegalArgumentException("passed a node of wrong type: " + op);
 	  }
@@ -1080,7 +1090,7 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
 	  if (this instanceof IJavaDeclaredType && t2 instanceof IJavaDeclaredType) {
 		  IJavaDeclaredType dt = (IJavaDeclaredType) this;
 		  IJavaDeclaredType dt2 = (IJavaDeclaredType) t2;
-		  return AbstractTypeEnvironment.areEquivalent(dt, dt2);
+		  return AbstractTypeEnvironment.areEquivalent(env, dt, dt2);
 	  }
 	  if (t2 instanceof IJavaTypeFormal && this instanceof IJavaTypeFormal) {
 		  IJavaTypeFormal tf = (IJavaTypeFormal) t2;
