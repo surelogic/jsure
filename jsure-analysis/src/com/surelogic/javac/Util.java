@@ -472,8 +472,11 @@ public class Util implements AnalysisConstants {
     if (!analyses.isEmpty()) {
     	canonicalizeCUs(perf, env.getMonitor(), cus, projects, loader);
     }
+    /* Note: no longer necessary since dangling refs now get handled
+     * after each file is canonicalized
     // Checking if we added type refs by canonicalizing implicit refs
     loader.checkReferences(cus.asList());
+    */
     loader = null; // To free up memory
 
     perf.markTimeFor("Canonicalization");
