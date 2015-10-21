@@ -3187,7 +3187,15 @@ public class TypeInference8 {
               final int num = g_s_params.size();
               if (num > 0 && !g_t_params.isEmpty()) { // Both generic
                 for (int i = 0; i < num; i++) {
-                  reduceTypeArgumentEqualityConstraints(bounds, g_s_params.get(i), g_t_params.get(i));
+                  final IJavaType s_i =  g_s_params.get(i);
+                  final IJavaType t_i = g_t_params.get(i);
+                  if (s_i instanceof IJavaWildcardType || t_i instanceof IJavaWildcardType) {
+                	  continue;
+                  }
+                  if (s_i instanceof IJavaCaptureType || t_i instanceof IJavaCaptureType) {
+                	  continue; // treated as a wildcard
+                  }
+                  reduceTypeArgumentEqualityConstraints(bounds, s_i, t_i);
                 }
               }
             }
