@@ -1327,7 +1327,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		if (s instanceof IJavaDeclaredType && t instanceof IJavaDeclaredType) {
 			IJavaDeclaredType sd = ((IJavaDeclaredType)s);
 			IJavaDeclaredType td = ((IJavaDeclaredType)t);
-			if (sd.getDeclaration() == td.getDeclaration() || areEquivalent(sd, td)) {
+			if (sd.getDeclaration() == td.getDeclaration() || areEquivalent(sd.getDeclaration(), td.getDeclaration())) {
 				if (ignoreGenerics) {
 					return result = true;
 				}
@@ -1393,8 +1393,25 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
    * Added to deal with the fact that Eclipse seems to allow classes from different JREs
    * to be considered the same
    */
-  public static boolean areEquivalent(IJavaDeclaredType sd, IJavaDeclaredType td) {
-	  return areEquivalent(sd.getDeclaration(), td.getDeclaration());
+  public static boolean areEquivalent(ITypeEnvironment env, IJavaDeclaredType sd, IJavaDeclaredType td) {
+	  if (areEquivalent(sd.getDeclaration(), td.getDeclaration())) {
+		  List<IJavaType> sp = sd.getTypeParameters();
+		  List<IJavaType> tp = td.getTypeParameters();
+		  if (sp.size() == tp.size()) {
+			  for(int i=0; i<sp.size(); i++) {
+				  IJavaType s = sp.get(i);
+				  IJavaType t = tp.get(i);
+				  if (s == null) {
+					  if (t != null) {
+						  return false;
+					  }
+				  } else if (!s.isEqualTo(env, t)) {
+					  return false;
+				  }				  
+			  }
+		  }
+	  }
+	  return false;
   }
   
   public static boolean areEquivalent(IRNode sd, IRNode td) {
