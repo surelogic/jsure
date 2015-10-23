@@ -1465,6 +1465,32 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
      */
     if (ss.isEqualTo(this, tt)) return true; // (3)
     
+    // Check for nested declared types
+	if (ss instanceof IJavaDeclaredType && tt instanceof IJavaDeclaredType) {
+		IJavaDeclaredType sd = ((IJavaDeclaredType)ss);
+		IJavaDeclaredType td = ((IJavaDeclaredType)tt);
+		if (sd.getDeclaration() == td.getDeclaration() || areEquivalent(sd.getDeclaration(), td.getDeclaration())) {
+			if (ignoreGenerics) {
+				return true;
+			}
+			// we will return true or false.
+			List<IJavaType> sl = sd.getTypeParameters();
+			List<IJavaType> tl = td.getTypeParameters();
+			//if (tl.isEmpty()) return true; // raw types (from JLS 4.10.2)
+			if (tl.isEmpty()) return false; // NOT the same
+			if (sl.isEmpty()) return false; 
+			Iterator<IJavaType> sli = sl.iterator();
+			Iterator<IJavaType> tli = tl.iterator();
+			// if we find any non-matches, we fail
+			while (sli.hasNext() && tli.hasNext()) {
+				IJavaType s = sli.next();
+				IJavaType t = tli.next();
+				if (!typeArgumentContained(s,t,ignoreGenerics)) return false;
+			}
+			return true;
+		}
+	}
+    
     // Hack to deal with capture types as if they're type variables
     if (ss instanceof IJavaCaptureType) {
     	IJavaCaptureType cs = (IJavaCaptureType) ss;
@@ -1474,7 +1500,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
     }
     if (tt instanceof IJavaCaptureType) {
     	IJavaCaptureType ct = (IJavaCaptureType) tt;
-    	if (isSubType(ss, ct.getLowerBound(), ignoreGenerics) && typeArgumentContained(ss, ct.getUpperBound(), ignoreGenerics)) {
+    	if (isSubType(ct.getLowerBound(), ss, ignoreGenerics) && isSubType(ss, ct.getUpperBound(), ignoreGenerics)) {
     		return true;
     	}
     }        
