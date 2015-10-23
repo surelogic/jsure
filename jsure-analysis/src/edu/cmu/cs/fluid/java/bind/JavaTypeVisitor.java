@@ -1385,6 +1385,15 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 			  }
 		  }
 	  }
+	  else if (ty instanceof IJavaArrayType) {
+		  final IJavaArrayType at = (IJavaArrayType) ty;
+		  final IJavaType oldBase = at.getBaseType();
+		  final IJavaType captured = captureWildcards(binder, oldBase);
+		  if (captured != oldBase) {
+			  return JavaTypeFactory.getArrayType(captured, at.getDimensions());
+		  }
+	  }	  
+	  // TODO deal with other types?
 	  return ty;
   }
   
