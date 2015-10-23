@@ -561,6 +561,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 		  formals = MethodDeclaration.getParams(memDecl);
 		  IRNode rtype = MethodDeclaration.getReturnType(memDecl);
 		  returnType = binder.getJavaType(rtype);
+		  if (true) {
+			  returnType = JavaTypeVisitor.captureWildcards(binder, returnType);
+		  }
 		  if (receiverType != null) {
 			  paramTypes.add(receiverType);
 		  }
@@ -642,7 +645,15 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     	  }
     	  */
     	  //return b.convertType(convertNodeTypeToIJavaType(decl, binder));
-    	  return b.convertType(binder, getMyThisType(decl, true, !isRelatedTo(binder.getTypeEnvironment(), nodeType, decl)));
+    	  final ITypeEnvironment tEnv = binder.getTypeEnvironment();
+    	  boolean outerIsRaw = false;
+    	  if (b.getContextType() != null) {
+    		  outerIsRaw = b.getContextType().isRawType(tEnv);
+    	  }
+    	  if (!outerIsRaw) {
+    		  outerIsRaw = !isRelatedTo(tEnv, nodeType, decl);
+    	  }
+    	  return b.convertType(binder, getMyThisType(decl, true, outerIsRaw));
       }  
     } else if (op instanceof TypeRef) {
       IJavaType outer = convertNodeTypeToIJavaType(TypeRef.getBase(nodeType),binder);
@@ -876,7 +887,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
    * @param tdecl type declaration node
    * @return type of "this" within this class/interface.
    */
-  public static IJavaSourceRefType getMyThisType(IRNode tdecl, boolean raw, boolean isUnrelated) {
+  public static IJavaSourceRefType getMyThisType(IRNode tdecl, boolean raw, boolean outerShouldBeRaw) {
     TypeDeclInterface op = (TypeDeclInterface)JJNode.tree.getOperator(tdecl);    
     if (op instanceof TypeFormal) {
       return JavaTypeFactory.getTypeFormal(tdecl); 
@@ -885,7 +896,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       return JavaTypeFactory.getAnonType(tdecl);
     }
     IJavaDeclaredType outer = (IJavaDeclaredType) getThisType(tdecl);
-    if (outer != null && !outer.getTypeParameters().isEmpty() && (isUnrelated || TypeUtil.isStatic(tdecl))) {
+    if (outer != null && !outer.getTypeParameters().isEmpty() && (outerShouldBeRaw || TypeUtil.isStatic(tdecl))) {
     	outer = computeRawType(outer);
     }
     IRNode typeFormals = null;
@@ -1291,7 +1302,8 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
 	*/
     IJavaType rv = s.get(this);
     if (rv == null) {
-    	return getExtendsBound(s.getTypeEnv());
+    	//return getExtendsBound(s.getTypeEnv());
+    	return null;
     }
     if (rv != this) {
     	return rv;
@@ -2340,13 +2352,25 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
         //System.out.println("null subst");
         return this;
       }
-      List<IJavaType> newParams = s.substTypes(this, parameters);
+      List<IJavaType> newParams = s.substTypes(this, parameters);     
+      if (allNull(newParams)) {
+    	  newParams = Collections.emptyList();
+      }
       JavaDeclaredType newOuter = (JavaDeclaredType) getOuterType().subst(s);
       if (newParams == parameters && newOuter == getOuterType()) return this;
       return JavaTypeFactory.getDeclaredType(declaration,newParams,newOuter);
     }
     
-    @Override void writeValue(IROutput out) throws IOException {
+    private <T> boolean allNull(List<T> l) {
+    	for(T v : l) {
+    		if (v != null) {
+    			return false;
+    		}
+    	}
+		return true;
+	}
+
+	@Override void writeValue(IROutput out) throws IOException {
       out.writeByte('N');
       super.writeValueContents(out);
       JavaDeclaredType.this.writeValue(out);
@@ -2729,12 +2753,7 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 			}
 		}
 		IJavaType rt = getReturnType();
-		IJavaType rt_subst = rt.subst(s);
-		if (rt_subst == null && rt instanceof IJavaTypeFormal) {
-			// Handle raw types
-			IJavaTypeFormal f = (IJavaTypeFormal) rt;
-			rt_subst = f.getExtendsBound(s.getTypeEnv());
-		}
+		IJavaType rt_subst = IBinding.Util.subst(rt, s);
 		return JavaTypeFactory.getFunctionType(
 				newFormals,
 				rt_subst, 
@@ -2747,17 +2766,7 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		T[] result = ts;
 		for (int i=0; i < ts.length; ++i) {
 			@SuppressWarnings("unchecked")
-			T piece = (T)ts[i].subst(s);
-			if (piece == null) {
-				// Deal with raw type
-				if (ts[i] instanceof IJavaTypeFormal) {
-					IJavaTypeFormal f = (IJavaTypeFormal) ts[i];
-					piece = (T) f.getExtendsBound(s.getTypeEnv());
-				}
-				if (piece == null) {
-					throw new NullPointerException();
-				}
-			}
+			T piece = (T) IBinding.Util.subst(ts[i], s);
 			if (piece != ts[i]) {
 				if (ts == result) result = ts.clone();
 				result[i] = piece;

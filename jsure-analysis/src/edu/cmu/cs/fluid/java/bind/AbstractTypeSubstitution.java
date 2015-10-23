@@ -182,7 +182,8 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 			IJavaType rv = me.get(jtf);
 			if (rv == null) {
 				// Handle the raw case 
-				rv = jtf.getExtendsBound(binder.getTypeEnvironment()); // TODO is this right?
+				//rv = jtf.getExtendsBound(binder.getTypeEnvironment()); 
+				return null;
 			}
 			return rv.subst(other);
 		}
@@ -202,5 +203,26 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 			return me.involves(formals) || other.involves(formals);
 		}
 	  };
+  }
+  
+  /**
+   * See IBinding.Util.subst() if only using one substitution
+   */
+  public static IJavaType applySubst(final IJavaType t, IJavaTypeSubstitution... subst) {
+	  if (subst.length <= 0) {
+		  return t;
+	  }
+	  IJavaType rv = t;
+	  for(IJavaTypeSubstitution s : subst) {
+		  rv = rv.subst(s);
+	  }
+	  if (rv != null) {
+		  return rv;
+	  }
+	  if (t instanceof IJavaTypeFormal) {
+		  IJavaTypeFormal f = (IJavaTypeFormal) t;
+		  return f.getExtendsBound(subst[0].getTypeEnv());
+	  }
+	  throw new IllegalStateException("Got null subst on "+t);
   }
 }

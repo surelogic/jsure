@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.ir.IROutput;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinding.Util;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.ICallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
@@ -414,9 +415,9 @@ public class TypeInference8 {
 
       if (!v.formals.isEmpty()) {
         hack = constructInitialSet(v.formals, IJavaTypeSubstitution.NULL);
-        call = new CallState((CallState) call, call.getReceiverType().subst(hack.getInitialVarSubst()));
+        call = new CallState((CallState) call, Util.subst(call.getReceiverType(), hack.getInitialVarSubst()));
 
-        IBinding b = IBinding.Util.makeMethodBinding(m.bind, m.getContextType().subst(hack.getInitialVarSubst()), null, // TODO
+        IBinding b = IBinding.Util.makeMethodBinding(m.bind, (IJavaDeclaredType) Util.subst(m.getContextType(), hack.getInitialVarSubst()), null, // TODO
                                                                                                                         // what
                                                                                                                         // should
                                                                                                                         // this
@@ -508,7 +509,7 @@ public class TypeInference8 {
             return null;
           }
         }
-        IJavaType formal_subst = formalTypes[i].subst(theta);
+        IJavaType formal_subst = Util.subst(formalTypes[i], theta);
         if (e_i == null) {
           reduceTypeCompatibilityConstraints(b_2, call.getArgType(i), formal_subst);
         } else {
@@ -567,7 +568,7 @@ public class TypeInference8 {
 	  final TypeFormalCollector c = new TypeFormalCollector();
       t.visit(c);
       if (!c.formals.isEmpty()) {
-    	  IJavaType temp = t.subst(c.getSubst(tEnv));
+    	  IJavaType temp = Util.subst(t, c.getSubst(tEnv));
     	  return temp;
       }
       return t;
@@ -778,7 +779,7 @@ public class TypeInference8 {
      * reduced and incorporated, along with the bound G< Î² 1 , ..., Î² n > =
      * capture( G<A 1 , ..., A n > ), with B 2 .
      */
-    final IJavaType r_subst = r.subst(theta);
+    final IJavaType r_subst = Util.subst(r, theta);
     final IJavaDeclaredType g = isWildcardParameterizedType(r_subst);
     if (g != null) {
       final int n = g.getTypeParameters().size();
@@ -995,7 +996,7 @@ public class TypeInference8 {
         m.getInvocationKind() == InvocationKind.VARARGS, false);
     for (int i = 0; i < call.numArgs(); i++) {
       final IRNode e_i = call.getArgOrNull(i);
-      final IJavaType f_subst = formalTypes[i].subst(theta);
+      final IJavaType f_subst = Util.subst(formalTypes[i], theta);
       if (!mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
         rv.add(new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, f_subst));
       }
@@ -1693,7 +1694,7 @@ public class TypeInference8 {
                                                                                          // right?
     final IJavaTypeSubstitution theta = b.getInitialVarSubst();
     for (int i = 0; i < k; i++) {
-      t[i] = t[i].subst(theta);
+      t[i] = Util.subst(t[i], theta);
     }
     final BoundSet b_prime = b;
     for (int i = 0; i < k; i++) {
@@ -1927,9 +1928,9 @@ public class TypeInference8 {
 
     ConstraintFormula subst(IJavaTypeSubstitution subst) {
       if (expr != null) {
-        return new ConstraintFormula(expr, constraint, type.subst(subst));
+        return new ConstraintFormula(expr, constraint, Util.subst(type, subst));
       }
-      return new ConstraintFormula(stype.subst(subst), constraint, type.subst(subst));
+      return new ConstraintFormula(Util.subst(stype, subst), constraint, Util.subst(type, subst));
     }
 
     @Override
@@ -2098,7 +2099,7 @@ public class TypeInference8 {
 
     @Override
     EqualityBound subst(IJavaTypeSubstitution subst) {
-      return newEqualityBound(s.subst(subst), t.subst(subst));
+      return newEqualityBound(Util.subst(s, subst), Util.subst(t, subst));
     }
 
     public boolean isTrivial() {
@@ -2154,7 +2155,7 @@ public class TypeInference8 {
 
     @Override
     SubtypeBound subst(IJavaTypeSubstitution subst) {
-      return new SubtypeBound((IJavaReferenceType) s.subst(subst), (IJavaReferenceType) t.subst(subst));
+      return new SubtypeBound((IJavaReferenceType) Util.subst(s, subst), (IJavaReferenceType) Util.subst(t, subst));
     }
   }
 
@@ -2179,7 +2180,7 @@ public class TypeInference8 {
 
     @Override
     CaptureBound subst(IJavaTypeSubstitution subst) {
-      return new CaptureBound((IJavaDeclaredType) s.subst(subst), (IJavaDeclaredType) t.subst(subst));
+      return new CaptureBound((IJavaDeclaredType) Util.subst(s, subst), (IJavaDeclaredType) Util.subst(t, subst));
     }
   }
 
@@ -2221,9 +2222,9 @@ public class TypeInference8 {
       boolean gotProperBound = false;
       for (IRNode bound : MoreBounds.getBoundIterator(bounds)) {
         final IJavaType t = tEnv.getBinder().getJavaType(bound);
-        final IJavaType t_subst = t.subst(theta).subst(boundSubst);
+        final IJavaType t_subst = AbstractTypeSubstitution.applySubst(t, theta, boundSubst);
         if (t_subst == null) {
-        	t.subst(theta).subst(boundSubst);
+        	AbstractTypeSubstitution.applySubst(t, theta, boundSubst);
         }
         noBounds = false;
         set.addSubtypeBound(vars[i], t_subst);
@@ -3078,7 +3079,7 @@ public class TypeInference8 {
           if (!e.vars().isEmpty()) {
             InferenceVariable beta = e.getRep(); // No subst to do
             for (IJavaType t : copy(e.values())) {
-              IJavaType t_subst = t.subst(subst);
+              IJavaType t_subst = Util.subst(t, subst);
               if (t_subst != t) {
             	System.out.println("EB: "+beta+" == "+t_subst);
                 reduceTypeEqualityConstraints(bounds, beta, t_subst);
@@ -3090,8 +3091,8 @@ public class TypeInference8 {
               if (s1 == t) {
             	  continue; // No need to check against itself
               }
-              IJavaType s_subst = s1.subst(subst);
-              IJavaType t_subst = t.subst(subst);
+              IJavaType s_subst = Util.subst(s1, subst);
+              IJavaType t_subst = Util.subst(t, subst);
               if (s_subst != s1 || t_subst != t) {
                 reduceTypeEqualityConstraints(bounds, s_subst, t_subst);
               }
@@ -3111,8 +3112,8 @@ public class TypeInference8 {
         }
         // case 6: α = U and S <: T imply ‹S[α:=U] <: T[α:=U]›
         if (subst != null) {
-          IJavaType b_s_subst = b.s.subst(subst);
-          IJavaType b_t_subst = b.t.subst(subst);
+          IJavaType b_s_subst = Util.subst(b.s, subst);
+          IJavaType b_t_subst = Util.subst(b.t, subst);
           if (b_s_subst != b.s || b_t_subst != b.t) {
             reduceSubtypingConstraints(bounds, b_s_subst, b_t_subst);
           }
@@ -3232,8 +3233,8 @@ public class TypeInference8 {
               map.put(alpha, u);
             }
             final IJavaTypeSubstitution s = new TypeSubstitution(tEnv.getBinder(), map);
-            IJavaType sb_s_subst = sb.s.subst(s);
-            IJavaType sb_t_subst = sb.t.subst(s);
+            IJavaType sb_s_subst = Util.subst(sb.s, s);
+            IJavaType sb_t_subst = Util.subst(sb.t, s);
             if (sb_s_subst != sb.s || sb_t_subst != sb.t) {
               reduceSubtypingConstraints(bounds, sb_s_subst, sb_s_subst);
             }
@@ -3345,7 +3346,7 @@ public class TypeInference8 {
                   reduceSubtypingConstraints(bounds, t, r);
                 }
                 if (t == tEnv.getObjectType()) {
-                  reduceSubtypingConstraints(bounds, b_i.subst(theta), r);
+                  reduceSubtypingConstraints(bounds, Util.subst(b_i, theta), r);
                 }
               }
               if (alpha_i == sb.t && !(sb.s instanceof InferenceVariable)) {
@@ -3360,7 +3361,7 @@ public class TypeInference8 {
              */
             for (SubtypeBound sb : subtypeBounds) {
               if (alpha_i == sb.s && !(sb.t instanceof InferenceVariable)) {
-                reduceSubtypingConstraints(bounds, b_i.subst(theta), sb.t);
+                reduceSubtypingConstraints(bounds, Util.subst(b_i, theta), sb.t);
               } else if (alpha_i == sb.t && !(sb.s instanceof InferenceVariable)) {
                 reduceSubtypingConstraints(bounds, sb.s, wt.getLowerBound());
               }
@@ -3373,7 +3374,7 @@ public class TypeInference8 {
              */
             for (SubtypeBound sb : subtypeBounds) {
               if (alpha_i == sb.s && !(sb.t instanceof InferenceVariable)) {
-                reduceSubtypingConstraints(bounds, b_i.subst(theta), sb.t);
+                reduceSubtypingConstraints(bounds, Util.subst(b_i, theta), sb.t);
               } else if (alpha_i == sb.t && !(sb.s instanceof InferenceVariable)) {
                 bounds.addFalse();
               }
