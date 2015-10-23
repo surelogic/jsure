@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinding.Util;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.MethodInfo.Kind;
@@ -1310,7 +1311,7 @@ declared return type, Object .
 					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
 						IJavaType u_l = call.getTypeArg(i);
 						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(tEnv);
-						IJavaType b_subst = m.convertType(binder, b_l).subst(methodTypeSubst);
+						IJavaType b_subst = Util.subst(m.convertType(binder, b_l), methodTypeSubst);
 						if (!tEnv.isSubType(u_l, b_subst)) {
 							return null;
 						}
@@ -1358,7 +1359,7 @@ declared return type, Object .
 				continue; // Ignore this one
 			}
 			//IJavaType pType = binder.getJavaType(ParameterDeclaration.getType(param));
-			final IJavaType substType = pType.subst(substForParams);
+			final IJavaType substType = Util.subst(pType, substForParams);
 			// Try to get the arg type if the arg is null
 			final IJavaType argType = arg != null ? null : call.getArgType(i);
 			if (!context.isCompatible(null, substType, arg, argType)) {
@@ -1689,7 +1690,7 @@ declared return type, Object .
 			// TODO Need to use the right subst!
 			if (!withSubst) {			
 				// Using alternate substitution?
-				return t.subst(contextSubst);
+				return Util.subst(t, contextSubst);
 			}
 			return t;
 		}
@@ -2079,7 +2080,7 @@ declared return type, Object .
 			 */
 			if (call.getNumTypeArgs() == 0) {
 				System.out.println("Inferring invocation type for "+call);
-				if (call.toString().equals("ss.collect(<implicit>.toList)")) {//"Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)")) {
+				if (false && call.toString().equals("ss.collect(<implicit>.toList)")) {//"Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)")) {
 					System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
 					BoundSet temp = TypeInference8.resolve(b_2, null, true);
 					temp.getFinalTypeSubst(eliminateTypeVars, false); 
@@ -2164,6 +2165,7 @@ declared return type, Object .
 		// The subst below should convert the receiver to the right type
 		IJavaType receiver = TypeUtil.isStatic(m.bind.getNode()) ? null : 
 							 m.mkind == Kind.CONSTRUCTOR ? m.bind.getContextType() :
+							 m.getReceiverType() != null ? m.getReceiverType() : // TODO is this right?
 					         JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
 		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), receiver, tEnv.getBinder());
 		//return t;
@@ -2180,7 +2182,7 @@ declared return type, Object .
 		if (subst != null) {
 			paramTypes = new ArrayList<IJavaType>();
 			for(IJavaType pt : orig.getParameterTypes()) {
-				paramTypes.add(pt.subst(subst));
+				paramTypes.add(Util.subst(pt, subst));
 			}
 		} else {
 			paramTypes = orig.getParameterTypes();
