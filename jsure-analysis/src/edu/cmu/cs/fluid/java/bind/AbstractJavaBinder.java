@@ -2153,8 +2153,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IRNode args = call.get_Args(node);
       IRNode targs = call.get_TypeArgs(node);
       final String name = MethodCall.getMethod(node);
-      /*
-      if (name.equals("asList")) {
+      /*      
+      if (name.equals("getValue") && "token.getValue".equals(DebugUnparser.toString(node))) {
     	  System.out.println("Trying to bind "+DebugUnparser.toString(node));
       }
       */
@@ -2340,7 +2340,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
             while (params.hasNext()) {
               IJavaType ty = getJavaType(params.next());
               if (ty != null) {
-                ty = ty.subst(subst);
+            	ty = IBinding.Util.subst(ty, subst);
               }
               IJavaType oty = match.next();
               if (ty != oty) {
