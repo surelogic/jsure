@@ -4,6 +4,7 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.bind.IBinding.Util;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -642,7 +643,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitParameterDeclaration(IRNode node) {
-    return binder.getTypeEnvironment().convertNodeTypeToIJavaType( ParameterDeclaration.getType( node ) );
+    IJavaType rv = binder.getTypeEnvironment().convertNodeTypeToIJavaType( ParameterDeclaration.getType( node ) );
+    return rv;//Not for formals --- captureWildcards(binder, rv);
   }
   
   @Override
@@ -819,7 +821,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	    		IRNode params = MethodDeclaration.getParams(m);
 	    		IRNode param = Parameters.getFormal(params, pIndex);
 	    		IJavaType type = visitParameterDeclaration(param);
-	    		return type.subst(subst);
+	    		return Util.subst(type, subst);
 	    	}
 		}
 	}
@@ -1370,7 +1372,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 			  for(final IRNode formal : TypeFormals.getTypeIterator(formals)) {
 				  final IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(formal);
 				  final IJavaType old = oldTypes.get(i);
-				  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, old, IJavaTypeSubstitution.NULL); // TODO	what should it use?	   
+				  final IJavaType captured = captureWildcards(binder, old);
+				  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, captured, IJavaTypeSubstitution.NULL); // TODO what should it use?
 				  newTypes.add(t);
 				  i++;
 				  if (old != t) {
