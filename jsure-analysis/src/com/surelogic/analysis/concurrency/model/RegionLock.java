@@ -4,7 +4,7 @@ import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
-import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.JavaNames;
 
 public final class RegionLock
 extends AbstractNamedLock<LockModel>
@@ -49,6 +49,6 @@ implements StateLock<LockModel, NamedLockImplementation> {
   public String toString() {
     return "@RegionLock(" + lockImpl + " protects " + 
         protectedRegion.getName() + ") on class " +
-        ClassDeclaration.getId(declaredInClass.getDeclaration());
+        JavaNames.getQualifiedTypeName(declaredInClass.getDeclaration());
   }
 }

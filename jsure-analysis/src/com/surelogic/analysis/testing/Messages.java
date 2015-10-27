@@ -10,7 +10,8 @@ final class Messages {
   public static final int DSC_LOCAL_VARIABLES = 520;
   public static final int DSC_NON_NULL = 530;
   public static final int DSC_TEST_ALIAS = 540;
-
+  public static final int DSC_EFFECTS = 550;
+      
   public static final int BINDS_TO = 500;
 
   public static final int CALLS = 510;
@@ -29,4 +30,5 @@ final class Messages {
   
   public static final int ALIASED_PARAMETERS = 540;
 
+  public static final int EFFECT = 550;
 }

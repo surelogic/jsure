@@ -2,7 +2,7 @@ package com.surelogic.analysis.concurrency.model;
 
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
-import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.JavaNames;
 
 public final class PolicyLock extends AbstractNamedLock<LockModel>{
   public PolicyLock(
@@ -29,6 +29,6 @@ public final class PolicyLock extends AbstractNamedLock<LockModel>{
   @Override
   public String toString() {
     return "@PolicyLock(" + lockImpl + ") on class " +
-        ClassDeclaration.getId(declaredInClass.getDeclaration());
+        JavaNames.getQualifiedTypeName(declaredInClass.getDeclaration());
   }
 }

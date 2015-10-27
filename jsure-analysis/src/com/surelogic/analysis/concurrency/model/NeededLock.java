@@ -22,4 +22,9 @@ public interface NeededLock {
    * the lock.
    */
   public IRNode getSource();
+  
+  /**
+   * Is a write lock needed?
+   */
+  public boolean needsWrite();
 }

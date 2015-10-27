@@ -143,7 +143,7 @@ public abstract class Effect {
     
     @Override
     public String toString() {
-      return "nothing";
+      return "nothing " + neededLocks.toString();
     }
     
     @Override
@@ -272,6 +272,8 @@ public abstract class Effect {
     public String toString() {
       final StringBuilder sb = new StringBuilder("reads ");
       target.toString(sb);
+      sb.append(' ');
+      sb.append(neededLocks.toString());
       return sb.toString();
     }
     
@@ -360,6 +362,8 @@ public abstract class Effect {
     public String toString() {
       final StringBuilder sb = new StringBuilder("writes ");
       target.toString(sb);
+      sb.append(' ');
+      sb.append(neededLocks.toString());
       return sb.toString();
     }
     

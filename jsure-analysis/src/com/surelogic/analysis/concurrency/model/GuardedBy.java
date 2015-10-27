@@ -4,7 +4,7 @@ import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 
-import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
@@ -55,6 +55,7 @@ implements StateLock<GuardedByPromiseDrop, UnnamedLockImplementation>{
   public String toString() {
     return "@GuardedBy(" + lockImpl + ") on field " + 
         VariableDeclarator.getId(sourceDrop.getNode()) + " of class " +
-        ClassDeclaration.getId(declaredInClass.getDeclaration());
+        JavaNames.getQualifiedTypeName(declaredInClass.getDeclaration());
+
   }
 }

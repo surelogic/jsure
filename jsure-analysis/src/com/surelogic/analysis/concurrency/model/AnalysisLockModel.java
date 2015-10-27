@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import com.surelogic.aast.java.ClassExpressionNode;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.FieldRefNode;
 import com.surelogic.aast.java.MethodCallNode;
@@ -28,6 +29,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -258,7 +260,7 @@ public final class AnalysisLockModel {
     public Clazz getParent() {
       return parent;
     }
-    
+   
     public void dumpClazz(final PrintWriter pw) {
       pw.println(classDecl.getName());
       for (final ModelLock<?, ?> lock : declaredLocks) {
@@ -279,7 +281,9 @@ public final class AnalysisLockModel {
     }
     
     public final T apply(final ExpressionNode exprNode) {
-      if (exprNode instanceof ClassLockExpressionNode) {
+      if (exprNode instanceof ClassExpressionNode) {
+        return caseClassExpression((ClassExpressionNode) exprNode);
+      } else if (exprNode instanceof ClassLockExpressionNode) { // XXX: Is this obsolete?
         return caseClassLockExpression((ClassLockExpressionNode) exprNode);
       } else if (exprNode instanceof FieldRefNode) {
         return caseFieldRef((FieldRefNode) exprNode);
@@ -296,6 +300,7 @@ public final class AnalysisLockModel {
       return null;
     }
     
+    protected abstract T caseClassExpression(ClassExpressionNode exprNode);
     protected abstract T caseClassLockExpression(ClassLockExpressionNode exprNode);
     protected abstract T caseFieldRef(FieldRefNode exprNode);
     protected abstract T caseItself(ItselfNode exprNode);
@@ -310,11 +315,17 @@ public final class AnalysisLockModel {
     }
     
     @Override
+    protected UnnamedLockImplementation caseClassExpression(final ClassExpressionNode exprNode) {
+      return new ClassImplementation(
+          (IJavaDeclaredType) exprNode.getType().resolveType().getJavaType());
+    }
+    
+    @Override
     protected UnnamedLockImplementation caseClassLockExpression(final ClassLockExpressionNode exprNode) {
       return new ClassImplementation(
           (IJavaDeclaredType) exprNode.resolveType().getJavaType());
     }
-  
+
     @Override
     protected UnnamedLockImplementation caseFieldRef(final FieldRefNode exprNode) {
       return new FieldImplementation(
@@ -342,6 +353,12 @@ public final class AnalysisLockModel {
   extends SimpleExpressionNodeSwitch<Member> {
     private ExpressionToMemberSwitch(final IRNode annotatedItem) {
       super(annotatedItem);
+    }
+    
+    @Override
+    protected Member caseClassExpression(final ClassExpressionNode exprNode) {
+      return new ClassObject(
+          ((IJavaDeclaredType) exprNode.getType().resolveType().getJavaType()).getDeclaration());
     }
     
     @Override
@@ -428,11 +445,12 @@ public final class AnalysisLockModel {
   
   // ----------------------------------------------------------------------
 
-  private void insertLockIntoModel(final Member member, final ModelLock<?, ?> lock) {
+  private void insertLockIntoModel(final IRNode lockDeclaredInClassDecl,
+      final Member memberUsedAsLock, final ModelLock<?, ?> lock) {
     synchronized (membersToLocks) {
-      membersToLocks.put(member, lock);
+      membersToLocks.put(memberUsedAsLock, lock);
     }
-    final Clazz clazz = getClazzFor(member.getDeclaredInClass());
+    final Clazz clazz = getClazzFor(JavaTypeFactory.getMyThisType(lockDeclaredInClassDecl));
     clazz.addLock(lock);
   }
   
@@ -445,11 +463,11 @@ public final class AnalysisLockModel {
     if (baseLockImpl != null) {
       final NamedLockImplementation namedLockImpl =
           new NamedLockImplementation(aastNode.getId(), baseLockImpl);
-      final Member member = getMember(promisedFor, lockField);      
+      final Member member = getMember(promisedFor, lockField);
       if (aastNode instanceof LockDeclarationNode) {
-        insertLockIntoModel(member, new RegionLock(lockDeclDrop, namedLockImpl));
+        insertLockIntoModel(promisedFor, member, new RegionLock(lockDeclDrop, namedLockImpl));
       } else { // PolicyLockDeclarationNode
-        insertLockIntoModel(member, new PolicyLock(lockDeclDrop, namedLockImpl));
+        insertLockIntoModel(promisedFor, member, new PolicyLock(lockDeclDrop, namedLockImpl));
       }
     }
   }
@@ -461,7 +479,8 @@ public final class AnalysisLockModel {
         getLockImplementation(promisedFor, lockField);
     if (lockImpl != null) {
       final Member member = getMember(promisedFor, lockField);
-      insertLockIntoModel(member, new GuardedBy(guardedByDrop, lockImpl));
+      insertLockIntoModel(VisitUtil.getEnclosingType(promisedFor),
+          member, new GuardedBy(guardedByDrop, lockImpl));
     }
   }
   
@@ -502,30 +521,35 @@ public final class AnalysisLockModel {
    *         which may in fact be associated with a super region.
    *         <code>null</code> if the region is unprotected.
    */
-  // XXX: Do we need this 
   public StateLock<?, ?> getLockForRegion(
       final IJavaType javaType, final IRegion region) {
-    final Clazz clazz = classes.get(javaType);
-    if (clazz == null) {
-      throw new IllegalArgumentException("Class " + javaType.getName() + " not found in the lock model");
-    } else {
-      for (final ModelLock<?, ?> lock : clazz.getDeclaredLocks()) {
+    Clazz currentClazz = getClazzFor(javaType);
+    while (currentClazz != null) {
+      for (final ModelLock<?, ?> lock : currentClazz.getDeclaredLocks()) {
         if (lock instanceof StateLock<?, ?>) {
           /* This only works because sanity checking already makes sure each 
            * region is protected by at most 1 lock.
            */
           final StateLock<?, ?> stateLock = (StateLock<?, ?>) lock;
           if (stateLock.protects(region)) {
-            return stateLock;
+            /* If the lock is instance then we need to make sure the lock is
+             * declared in a class that is an ancestor of the one that declares
+             * the region.
+             */
+            final boolean isStatic = stateLock.isStatic();
+            final boolean isSubtype = javaType.isSubtype(binder.getTypeEnvironment(), stateLock.getDeclaredInClass());
+            if (isStatic || isSubtype) {
+              return stateLock;
+            }
           }
         }
       }
-      return null;
+      currentClazz = currentClazz.getParent();
     }
+    return null;
   }
 
   
-  // XXX: Do we need this 
   public StateLock<?, ?> getLockForTarget(final IBinder binder, final Target target) {
     return getLockForRegion(target.getRelativeClass(binder), target.getRegion());
   }
@@ -539,13 +563,13 @@ public final class AnalysisLockModel {
   }
   
   public NeededLock getNeededLock(final IJavaType javaType, final IRegion region,
-      final IRNode srcExpr, final IRNode objectExpr) {
-    return getLockGenerator(javaType, region).getLock(srcExpr, objectExpr);
+      final IRNode srcExpr, final boolean needsWrite, final IRNode objectExpr) {
+    return getLockGenerator(javaType, region).getLock(srcExpr, needsWrite, objectExpr);
   }
   
   public NeededLock getNeededLock(final IBinder binder, final Target target,
-      final IRNode srcExpr, final IRNode objectExpr) {
-    return getLockGenerator(binder, target).getLock(srcExpr, objectExpr);
+      final IRNode srcExpr, final boolean needsWrite, final IRNode objectExpr) {
+    return getLockGenerator(binder, target).getLock(srcExpr, needsWrite, objectExpr);
   }
   
   public static final class LockGenerator {
@@ -555,13 +579,14 @@ public final class AnalysisLockModel {
       this.rawLock = rawLock;
     }
     
-    public NeededLock getLock(final IRNode source, final IRNode objectExpr) {
+    public NeededLock getLock(
+        final IRNode source, final boolean needsWrite, final IRNode objectExpr) {
       if (rawLock == null) {
         return new NeedsNoLock(source);
       } else if (rawLock.isStatic()) {
-        return new NeededStaticLock(rawLock, source);
+        return new NeededStaticLock(rawLock, source, needsWrite);
       } else { // instance lock
-        return new NeededInstanceLock(objectExpr, rawLock, source);
+        return new NeededInstanceLock(objectExpr, rawLock, source, needsWrite);
       }
     }
   }

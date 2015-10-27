@@ -73,6 +73,9 @@ public class LockAnalysis
 
 	private final AtomicReference<GlobalLockModel> lockModelHandle =
 	    new AtomicReference<GlobalLockModel>(null);
+
+  private static final AtomicReference<AnalysisLockModel> newLockModelHandle =
+      new AtomicReference<AnalysisLockModel>(null);
 	
 	private final AtomicReference<ConcurrentStateMetrics> metrics = 
 		new AtomicReference<ConcurrentStateMetrics>(null);
@@ -98,6 +101,10 @@ public class LockAnalysis
 				}
 			});
 		}
+	}
+	
+	public static AtomicReference<AnalysisLockModel> getLockModel() {
+	  return newLockModelHandle;
 	}
 	
 	private final void actuallyAnalyzeClassBody(
@@ -193,17 +200,18 @@ public class LockAnalysis
       }
     }		
 
-//    try {
-//      final PrintWriter pw = new PrintWriter("/Users/aarong/model.txt");
-//      newLockModel.dumpModel(pw);
-//      pw.close();
-//    } catch (IOException e) {
-//      // eat it
-//    }
+    try {
+      final PrintWriter pw = new PrintWriter("/Users/aarong/model.txt");
+      newLockModel.dumpModel(pw);
+      pw.close();
+    } catch (IOException e) {
+      // eat it
+    }
     
 		// Share the new global lock model with the lock visitor, and other
 		// helpers
 		lockModelHandle.set(globalLockModel);
+		newLockModelHandle.set(newLockModel);
 	}
 
 	@Override
@@ -216,7 +224,7 @@ public class LockAnalysis
 		if (binder == null || binder.getTypeEnvironment() == null) {
 			return null;
 		}
-		return new LockVisitor(binder, new Effects(binder),
+		return new LockVisitor(binder, new Effects(binder, newLockModelHandle),
 				new TypeBasedMayAlias(binder), getSharedAnalysis(),
 				lockModelHandle);
 	}
@@ -290,6 +298,7 @@ public class LockAnalysis
 		 * case.
 		 */
 		lockModelHandle.set(null);
+//		newLockModelHandle.set(null);
 	}
 
 	private final class ClassProcessor extends

@@ -4,8 +4,9 @@ import edu.cmu.cs.fluid.ir.IRNode;
 
 public final class NeededStaticLock extends AbstractRealLock {
   public NeededStaticLock(
-      final ModelLock<?, ?> modelLock, final IRNode source) {
-    super(source, modelLock);
+      final ModelLock<?, ?> modelLock, final IRNode source,
+      final boolean needsWrite) {
+    super(source, needsWrite, modelLock);
   }
 
   @Override
@@ -31,7 +32,8 @@ public final class NeededStaticLock extends AbstractRealLock {
   
   @Override
   public String toString() {
-    return modelLock.getImplementation().getClassName() + 
-        modelLock.getImplementation().getPostfixId();
+    return "<" + modelLock.getImplementation().getClassName() + 
+        modelLock.getImplementation().getPostfixId() + ">." + 
+        (needsWrite ? "write" : "read");
   }
 }

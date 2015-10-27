@@ -8,8 +8,8 @@ public final class NeededInstanceLock extends AbstractRealLock {
   
   public NeededInstanceLock(
       final IRNode objectRefExpr, final ModelLock<?, ?> modelLock,
-      final IRNode source) {
-    super(source, modelLock);
+      final IRNode source, final boolean needsWrite) {
+    super(source, needsWrite, modelLock);
     this.objectRefExpr = objectRefExpr;
   }
 
@@ -38,6 +38,8 @@ public final class NeededInstanceLock extends AbstractRealLock {
   
   @Override
   public String toString() {
-    return DebugUnparser.toString(objectRefExpr) + modelLock.getImplementation().getPostfixId();
+    return "<" + DebugUnparser.toString(objectRefExpr) +
+        modelLock.getImplementation().getPostfixId() + ">." + 
+        (needsWrite ? "write" : "read");
   }
 }

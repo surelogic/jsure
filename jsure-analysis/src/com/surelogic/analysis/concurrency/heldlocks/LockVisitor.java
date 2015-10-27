@@ -745,7 +745,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	public LockVisitor(final IBinder b, final Effects e,
 			final IMayAlias ma, final BindingContextAnalysis bca,
 			final AtomicReference<GlobalLockModel> glmRef) {
-		effects = new Effects(b);
+		effects = e;
 		bindingContextAnalysis = bca;
 		definiteAssignment = new DefiniteAssignment(b);
 		mayAlias = ma;

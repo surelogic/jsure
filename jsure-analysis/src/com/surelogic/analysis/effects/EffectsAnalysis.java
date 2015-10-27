@@ -11,6 +11,7 @@ import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.concurrency.driver.LockAnalysis;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
@@ -99,7 +100,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected Effects constructIRAnalysis(final IBinder binder) {
 	  javaLangObject = binder.getTypeEnvironment().getObjectType();
-	  return new Effects(binder);
+	  return new Effects(binder, LockAnalysis.getLockModel());
 	}
 
 	@Override
