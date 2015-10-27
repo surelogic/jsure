@@ -1086,6 +1086,8 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
     } else if (op instanceof AnonClassExpression) {
       IRNode supertypenode = AnonClassExpression.getType(tdecl);
       IJavaType supertype = convertNodeTypeToIJavaType(supertypenode);
+      // WILDCARD
+      supertype = JavaTypeVisitor.captureWildcards(getBinder(), supertype);
       supertype = supertype.subst(subst);
       if (supertype instanceof IJavaDeclaredType) {
     	/*
