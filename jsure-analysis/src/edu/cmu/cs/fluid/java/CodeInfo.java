@@ -48,6 +48,11 @@ public final class CodeInfo {
     return new CodeInfo(null, null, n, null, name, null, Type.UNKNOWN);
   }
   
+  @Override
+  public String toString() {
+	return filename;
+  }
+  
   public ITypeEnvironment getTypeEnv() {
 	  return tEnv;
   }
