@@ -1353,7 +1353,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         needMethod = MethodCall.prototype.includes(callOp);
       }
 
-      lookupContext.use(name, state.call);
+      lookupContext.use(name, state.call, state.receiverType);
       BindingInfo bestMethod = methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
       /*
        * if (bestMethod != null && AnonClassExpression.prototype.includes(call))
