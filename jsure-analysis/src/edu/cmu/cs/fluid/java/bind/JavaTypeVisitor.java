@@ -133,8 +133,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     IRNode dimEs       = ArrayCreationExpression.getAllocated( node );
     int dims           = ArrayCreationExpression.getUnallocated(node) +
                          JJNode.tree.numChildren(dimEs);
-    // TODO capture conversion
-    return JavaTypeFactory.getArrayType( baseType, dims );
+    IJavaType capture = captureWildcards(binder, baseType);
+    return JavaTypeFactory.getArrayType( capture, dims );
   }
   
   @Override
@@ -1393,6 +1393,26 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 			  return JavaTypeFactory.getArrayType(captured, at.getDimensions());
 		  }
 	  }	  
+	  else if (ty instanceof IJavaIntersectionType) {
+		  final IJavaIntersectionType it = (IJavaIntersectionType) ty;
+		  final IJavaType old1 = it.getPrimarySupertype();
+		  final IJavaType old2 = it.getSecondarySupertype();
+		  final IJavaType capture1 = captureWildcards(binder, old1);
+		  final IJavaType capture2 = captureWildcards(binder, old2);
+		  if (capture1 != old1 || capture2 != old2) {
+			  return JavaTypeFactory.getIntersectionType((IJavaReferenceType) capture1, (IJavaReferenceType) capture2);
+		  }
+	  }
+	  else if (ty instanceof IJavaUnionType) {
+		  final IJavaUnionType it = (IJavaUnionType) ty;
+		  final IJavaType old1 = it.getFirstType();
+		  final IJavaType old2 = it.getAlternateType();
+		  final IJavaType capture1 = captureWildcards(binder, old1);
+		  final IJavaType capture2 = captureWildcards(binder, old2);
+		  if (capture1 != old1 || capture2 != old2) {
+			  return JavaTypeFactory.getUnionType((JavaReferenceType) capture1, (JavaReferenceType) capture2);
+		  }
+	  }
 	  // TODO deal with other types?
 	  return ty;
   }
