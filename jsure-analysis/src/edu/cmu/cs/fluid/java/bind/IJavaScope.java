@@ -87,6 +87,7 @@ public interface IJavaScope {
 	  public String name;
 	  //Selector selector;
 	  private IRNode enclosingType;
+	  private IJavaType receiverType;
 	  
 	  public IRNode foundNewType(IRNode t) {
 		IRNode last = enclosingType;
@@ -104,10 +105,20 @@ public interface IJavaScope {
 	   * Call before using
 	   */
 	  public LookupContext use(String name, IRNode node) {
+		  return use(name, node, null);
+	  }
+	  
+	  public LookupContext use(String name, IRNode node, IJavaType recType) {
 		  this.name = name;
 		  useSite = node;
+		  receiverType = recType;
 		  return this;
 	  }
+	  
+	  public IJavaType getReceiverType() {
+		  return receiverType;
+	  }
+	  
 	  public IRNode getEnclosingType() {
 		  if (enclosingType == null) {
 			  enclosingType = VisitUtil.getEnclosingType(useSite);
@@ -783,7 +794,7 @@ public interface IJavaScope {
         IRNode node = binding.getNode();
         IRNode bdecl = VisitUtil.getEnclosingType(node);
         if (context.getDeclaration() == bdecl) {
-          IBinding newBinding = IBinding.Util.makeBinding(node, context, tEnv);
+          IBinding newBinding = IBinding.Util.makeBinding(node, context, tEnv, binding.getReceiverType());
           return newBinding;
         }
         //LOG.warning("substBinding didn't expect to get here...");
@@ -791,7 +802,7 @@ public interface IJavaScope {
         if (c == null) {
         	computeContextType(bdecl);
         }
-        return IBinding.Util.makeBinding(node,c, tEnv);
+        return IBinding.Util.makeBinding(node,c, tEnv, binding.getReceiverType());
       }
       if (context == bContext) {
     	  // No need to do substitution, since we're talking about a binding from the same type
@@ -800,7 +811,7 @@ public interface IJavaScope {
       if (subst == null) {
     	return binding;
       }      
-      return IBinding.Util.makeBinding(binding.getNode(),bContext.subst(subst), tEnv);
+      return IBinding.Util.makeBinding(binding.getNode(),bContext.subst(subst), tEnv, binding.getReceiverType());
     }
     
     private IJavaDeclaredType computeContextType(final IRNode bdecl) {

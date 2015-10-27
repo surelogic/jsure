@@ -159,7 +159,8 @@ public interface IBinding {
     	  // No need to create a new binding
     	  return mbind;
       }
-      if (recType != null && mbind.getReceiverType() != null && mbind.getContextType() != mbind.getReceiverType()) {    	  
+      if (recType != null && mbind.getReceiverType() != null && recType != mbind.getReceiverType() 
+    		              && mbind.getContextType() != mbind.getReceiverType()) {    	  
     	  System.out.println("Replacing "+mbind.getReceiverType()+" with "+recType);
       }
       return makeBinding(mbind.getNode(), 
@@ -214,10 +215,14 @@ public interface IBinding {
                                         IJavaReferenceType recType, final IJavaTypeSubstitution mSubst) {
       // we might wish to create node classes which satisfy IBinding with null substitution
       if (n instanceof IBinding && ty == null) return (IBinding)n;
+      /* 
+       * Note that this relationship may not be true due to a lack of substitutions
+       * 
       if (recType != null && !recType.isSubtype(tEnv, ty)) {
     	  System.err.println("Receiver type "+recType+" isn't a subtype of the context type "+ty);
     	  recType.isSubtype(tEnv, ty);
       }
+      */
       if (recType == null) {
     	  recType = ty;
       }
@@ -231,7 +236,12 @@ public interface IBinding {
 //      if (n == null) {
 //        System.out.println("Null");
 //      }
-
+      /*
+      final String unparse = DebugUnparser.toString(n);
+      if ("final native public binary java.lang.Class <?> getClass() <compiled>;".equals(unparse)) {
+    	System.out.println("Got getClass() with recType "+recType);  
+      }
+      */
       return new PartialBinding(n, ty, recType, tEnv) {
     	  @Override
     	  public IJavaType convertType(IBinder binder, IJavaType type) {
@@ -283,6 +293,14 @@ public interface IBinding {
 			return makeBinding(binding);
 		}
 		return makeBinding(binding, context, typeEnvironment, null, null);
+	}
+	
+	public static IBinding makeBinding(final IRNode binding, final IJavaDeclaredType context,
+            final ITypeEnvironment typeEnvironment, final IJavaType recType) {
+		if (recType == null) {
+			return makeBinding(binding, context, typeEnvironment);
+		}
+		return makeBinding(binding, context, typeEnvironment, (IJavaReferenceType) recType, null);
 	}
 	
 	public static IBinding makeBinding(final IRNode n) {

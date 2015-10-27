@@ -1353,7 +1353,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         needMethod = MethodCall.prototype.includes(callOp);
       }
 
-      lookupContext.use(name, state.call);
+      lookupContext.use(name, state.call, state.receiverType);
       BindingInfo bestMethod = methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
       /*
        * if (bestMethod != null && AnonClassExpression.prototype.includes(call))
@@ -2153,11 +2153,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IRNode args = call.get_Args(node);
       IRNode targs = call.get_TypeArgs(node);
       final String name = MethodCall.getMethod(node);
-      /*
-      if (name.equals("asList")) {
-    	  System.out.println("Trying to bind "+DebugUnparser.toString(node));
+           
+      if (name.equals("getClass") && "<implicit>.getClass".equals(DebugUnparser.toString(node))) {
+    	  IRNode parent = JJNode.tree.getParentOrNull(node);
+    	  String unparse = DebugUnparser.toString(parent);
+    	  if ("(name.getScheme, <implicit>.getClass)".equals(unparse)) {
+    		  System.out.println("Trying to bind "+DebugUnparser.toString(node));
+    	  }
       }
-      */
+      
       final IJavaType recType = computeReceiverType(receiver);
       final IJavaScope toUse = computeScope(recType);
       if (toUse != null) {
@@ -2340,7 +2344,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
             while (params.hasNext()) {
               IJavaType ty = getJavaType(params.next());
               if (ty != null) {
-                ty = ty.subst(subst);
+            	ty = IBinding.Util.subst(ty, subst);
               }
               IJavaType oty = match.next();
               if (ty != oty) {

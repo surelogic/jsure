@@ -1755,7 +1755,9 @@ public class TypeUtils {
       }
     } else if (Initialization.prototype.includes(op)) {
       IRNode gp = JJNode.tree.getParent(p);
-      return tEnv.getBinder().getJavaType(VariableDeclarator.getType(gp));
+      IJavaType t = tEnv.getBinder().getJavaType(VariableDeclarator.getType(gp));
+      t = JavaTypeVisitor.captureWildcards(tEnv.getBinder(), t);
+      return t;
     } else if (CastExpression.prototype.includes(op)) {
       return tEnv.getBinder().getJavaType(p);
     } else if (ConditionalExpression.prototype.includes(op)) {
