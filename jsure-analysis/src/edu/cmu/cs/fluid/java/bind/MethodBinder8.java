@@ -899,6 +899,9 @@ public class MethodBinder8 implements IMethodBinder {
     final ArgCompatibilityContext STRICT_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
     	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {    		 
     		argType = getArgTypeIfPossible(arg, argType);
+    		if (argType != null) {
+    			pType = JavaTypeVisitor.captureWildcards(binder, pType);
+    		}
      		return isCallCompatible(pType, arg, argType, false);
     	}
 	}; 
@@ -909,6 +912,9 @@ public class MethodBinder8 implements IMethodBinder {
     			return false;
     		}
     		argType = getArgTypeIfPossible(arg, argType);
+    		if (argType != null) {
+    			pType = JavaTypeVisitor.captureWildcards(binder, pType);
+    		}
     		
     		// TODO switch these two for efficiency?
     		if (isCallCompatible(pType, arg, argType, true)) {
@@ -1363,6 +1369,7 @@ declared return type, Object .
 			// Try to get the arg type if the arg is null
 			final IJavaType argType = arg != null ? null : call.getArgType(i);
 			if (!context.isCompatible(null, substType, arg, argType)) {
+				m.getParamTypes(binder, numArgs, varArity);
 				context.isCompatible(null, substType, arg, argType);
 				return false;										
 			}
@@ -1487,9 +1494,14 @@ declared return type, Object .
 	 * • Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
     private MethodBinding8 findMostSpecific(final ICallState call, Collection<MethodBinding> methods, ApplicableMethodFilter filter) {
+    	/*
     	if (call.getNode() != null && "of".equals(JJNode.getInfoOrNull(call.getNode()))) {
     		System.out.println("Trying to find method for allOf");
     	}
+    	if ("ugi.doAs(new # # { # public # # run# # # })".equals(call.toString())) {
+    		System.out.println("Found call to doAs()");
+    	}    	
+    	*/
     	if (call instanceof RefState && methods.size() == 1) {
     		// HACK
     		MethodBinding temp = methods.iterator().next();
