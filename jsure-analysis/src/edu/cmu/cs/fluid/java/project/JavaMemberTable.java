@@ -1024,7 +1024,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     }
     
     @Override
-    public Iteratable<IBinding> lookupAll(LookupContext context, final Selector selector) {
+    public Iteratable<IBinding> lookupAll(final LookupContext context, final Selector selector) {
       final String name = context.name;    	
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) {
@@ -1067,6 +1067,9 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         	  System.out.println("Found getCurrentKey");
           }
           */
+    	  final IJavaType recType = context.getReceiverType() == null ? 
+    			  JavaTypeFactory.getMyThisType(context.getEnclosingType()) : context.getReceiverType();
+    			  
     	  return new FilterIterator<IRNode, IBinding>(tempMembers.iterator()) {
     		  @Override
     		  public Object select(IRNode n) {
@@ -1074,7 +1077,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     				  if (debug) {
     					  LOG.finer("Selected node from " + Scope.this);
     				  }
-    				  return IBinding.Util.makeBinding(n, (IJavaDeclaredType) type, tEnv);
+    				  return IBinding.Util.makeBinding(n, (IJavaDeclaredType) type, tEnv, recType);
     			  }
     			  return IteratorUtil.noElement;
     		  }
