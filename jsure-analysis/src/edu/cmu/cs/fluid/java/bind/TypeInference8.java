@@ -4818,7 +4818,7 @@ public class TypeInference8 {
       else if (hasRawSuperTypeOf(s, t)) {
     	  bounds.useUncheckedConversion();
       } else {
-    	  System.out.println("Fcheck");
+    	  //System.out.println("F check");
     	  tEnv.isSubType(s, t);
     	  bounds.addFalse();
       }
