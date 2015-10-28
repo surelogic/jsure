@@ -68,8 +68,11 @@ public interface IJavaFunctionType {
 	 * are substituted away.
 	 * @param newFormals new formals to use in the function type.
 	 * @param s substitution of old type formals (and perhaps others too).
+	 * @param skipFirstParam (usually the receiver)
 	 * @return new type (that may be identical if there were no changes).
 	 */
+	public IJavaFunctionType instantiate(List<IJavaTypeFormal> newFormals, IJavaTypeSubstitution s, boolean skipFirstParam);
+	
 	public IJavaFunctionType instantiate(List<IJavaTypeFormal> newFormals, IJavaTypeSubstitution s);
 	
 	/**

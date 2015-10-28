@@ -2175,14 +2175,27 @@ declared return type, Object .
 		//IJavaType receiver = TypeUtil.isStatic(m.bind.getNode()) ? null : m.bind.getReceiverType();
 		//
 		// The subst below should convert the receiver to the right type
-		IJavaType receiver = TypeUtil.isStatic(m.bind.getNode()) ? null : 
-							 m.mkind == Kind.CONSTRUCTOR ? m.bind.getContextType() :
-							 m.getReceiverType() != null ? m.getReceiverType() : // TODO is this right?
-					         JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
+		boolean skipFirstParameter = false;
+		final IJavaType receiver;
+		if (TypeUtil.isStatic(m.bind.getNode())) {
+			receiver = null;
+		}
+		else if (m.mkind == Kind.CONSTRUCTOR) {
+			receiver = m.bind.getContextType();
+			//skipFirstParameter = true;
+		}
+		else if (m.getReceiverType() != null) {
+			// Note that the receiver used already has the substitution applied?
+			receiver = m.getReceiverType(); // TODO is this right?
+			skipFirstParameter = true;
+		}
+		else {
+			receiver = JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
+		}
 		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), receiver, tEnv.getBinder());
 		//return t;
 		//return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
-		return t.instantiate(t.getTypeFormals(), m.getSubst());
+		return t.instantiate(t.getTypeFormals(), m.getSubst(), skipFirstParameter);
 	}
 	
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
