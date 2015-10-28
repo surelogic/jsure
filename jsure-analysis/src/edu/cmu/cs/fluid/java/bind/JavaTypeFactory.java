@@ -493,8 +493,8 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
   }
   
   // each function type is mapped to itself, a special kind of set:
-  private static Map<JavaFunctionType,JavaFunctionType> functionTypes =
-	      new HashMap<JavaFunctionType,JavaFunctionType>();
+  private static ConcurrentMap<JavaFunctionType,JavaFunctionType> functionTypes =
+	      new ConcurrentHashMap<JavaFunctionType,JavaFunctionType>();
   private static final IJavaTypeFormal[] emptyTypeFormals = new IJavaTypeFormal[0];
   static final IJavaType[] emptyTypes = JavaGlobals.noTypes;
 	
@@ -514,12 +514,12 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 			  paramTypes.toArray(emptyTypes),
 			  isVariable,
 			  throwTypes.toArray(emptyTypes));
-	  JavaFunctionType result = functionTypes.get(ft);
+	  JavaFunctionType result = functionTypes.putIfAbsent(ft, ft);	  
 	  if (result == null) {
+		  // It's new, so use the one we just created
 		  result = ft;
-		  functionTypes.put(ft, ft);
 	  }
-	  return ft;
+	  return result;
   }
   
   static void clearCaches() {
