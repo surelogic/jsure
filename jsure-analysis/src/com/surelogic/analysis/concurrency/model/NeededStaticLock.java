@@ -4,15 +4,15 @@ import edu.cmu.cs.fluid.ir.IRNode;
 
 public final class NeededStaticLock extends AbstractRealLock {
   public NeededStaticLock(
-      final ModelLock<?, ?> modelLock, final IRNode source,
+      final LockImplementation lockImpl, final IRNode source,
       final boolean needsWrite) {
-    super(source, needsWrite, modelLock);
+    super(source, needsWrite, lockImpl);
   }
 
   @Override
   public int hashCode() {
     int result = 17;
-    result += 31 * modelLock.hashCode();
+    result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
     return result;
   }
@@ -23,7 +23,7 @@ public final class NeededStaticLock extends AbstractRealLock {
       return true;
     } else if (other instanceof NeededStaticLock) {
       final NeededStaticLock o = (NeededStaticLock) other;
-      return this.modelLock.equals(o.modelLock) &&
+      return this.lockImpl.equals(o.lockImpl) &&
           this.source.equals(o.source);
     } else {
       return false;
@@ -32,8 +32,8 @@ public final class NeededStaticLock extends AbstractRealLock {
   
   @Override
   public String toString() {
-    return "<" + modelLock.getImplementation().getClassName() + 
-        modelLock.getImplementation().getPostfixId() + ">." + 
+    return "<" + lockImpl.getClassName() + 
+        lockImpl.getPostfixId() + ">." + 
         (needsWrite ? "write" : "read");
   }
 }

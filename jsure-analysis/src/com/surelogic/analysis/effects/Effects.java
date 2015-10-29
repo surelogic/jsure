@@ -719,6 +719,12 @@ public final class Effects implements IBinderClient {
       context.theEffects.addAll(
           Effects.this.getMethodCallEffects(
               context.bcaQuery, thisExprBinder, call, getEnclosingDecl()));
+      
+      /* Need to get any method preconditions from @RequiresLock or
+       * @GuardedBy annotations on the method.  Attach this locks to 
+       * an empty effect. 
+       */
+      
     }
     
     //----------------------------------------------------------------------

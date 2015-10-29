@@ -7,16 +7,16 @@ public final class NeededInstanceLock extends AbstractRealLock {
   private final IRNode objectRefExpr;
   
   public NeededInstanceLock(
-      final IRNode objectRefExpr, final ModelLock<?, ?> modelLock,
+      final IRNode objectRefExpr, final LockImplementation lockImpl,
       final IRNode source, final boolean needsWrite) {
-    super(source, needsWrite, modelLock);
+    super(source, needsWrite, lockImpl);
     this.objectRefExpr = objectRefExpr;
   }
 
   @Override
   public int hashCode() {
     int result = 17;
-    result += 31 * modelLock.hashCode();
+    result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
     result += 31 * objectRefExpr.hashCode();
     return result;
@@ -28,7 +28,7 @@ public final class NeededInstanceLock extends AbstractRealLock {
       return true;
     } else if (other instanceof NeededInstanceLock) {
       final NeededInstanceLock o = (NeededInstanceLock) other;
-      return this.modelLock.equals(o.modelLock) && 
+      return this.lockImpl.equals(o.lockImpl) && 
           this.objectRefExpr.equals(o.objectRefExpr) &&
           this.source.equals(o.source);
     } else {
@@ -39,7 +39,7 @@ public final class NeededInstanceLock extends AbstractRealLock {
   @Override
   public String toString() {
     return "<" + DebugUnparser.toString(objectRefExpr) +
-        modelLock.getImplementation().getPostfixId() + ">." + 
+        lockImpl.getPostfixId() + ">." + 
         (needsWrite ? "write" : "read");
   }
 }

@@ -574,20 +574,20 @@ public final class AnalysisLockModel {
   }
   
   public static final class LockGenerator {
-    private final StateLock<?, ?> rawLock;
+    private final StateLock<?, ?> stateLock;
     
-    public LockGenerator(final StateLock<?, ?> rawLock) {
-      this.rawLock = rawLock;
+    public LockGenerator(final StateLock<?, ?> stateLock) {
+      this.stateLock = stateLock;
     }
     
     public NeededLock getLock(
         final IRNode source, final boolean needsWrite, final IRNode objectExpr) {
-      if (rawLock == null) {
+      if (stateLock == null) {
         return new NeedsNoLock(source);
-      } else if (rawLock.isStatic()) {
-        return new NeededStaticLock(rawLock, source, needsWrite);
+      } else if (stateLock.isStatic()) {
+        return new NeededStaticLock(stateLock.getImplementation(), source, needsWrite);
       } else { // instance lock
-        return new NeededInstanceLock(objectExpr, rawLock, source, needsWrite);
+        return new NeededInstanceLock(objectExpr, stateLock.getImplementation(), source, needsWrite);
       }
     }
   }
