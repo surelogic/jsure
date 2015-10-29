@@ -2783,10 +2783,12 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 			T piece;
 			if (skipFirstParam) {
 			  skipFirstParam = false;
-			  IJavaType before = IBinding.Util.subst(ts[i], s);
+			  /*
+			  IJavaType before = IBinding.Util.subst(ts[i], s);			  
 			  if (before != ts[i]) {
 				  System.out.println("Made a difference: \n\t"+before+" vs \n\t"+ts[i]);
 			  }
+			  */
 			  piece = ts[i];
 			} else {
 			  piece = (T) IBinding.Util.subst(ts[i], s);
