@@ -1466,6 +1466,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
      * T <= ? super T
      */
     if (ss.isEqualTo(this, tt)) return true; // (3)
+    if (tt.isEqualTo(this, ss)) return true;
     
     // Check for nested declared types
 	if (ss instanceof IJavaDeclaredType && tt instanceof IJavaDeclaredType) {

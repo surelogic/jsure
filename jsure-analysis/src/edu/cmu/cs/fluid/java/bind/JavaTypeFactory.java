@@ -493,8 +493,8 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
   }
   
   // each function type is mapped to itself, a special kind of set:
-  private static Map<JavaFunctionType,JavaFunctionType> functionTypes =
-	      new HashMap<JavaFunctionType,JavaFunctionType>();
+  private static ConcurrentMap<JavaFunctionType,JavaFunctionType> functionTypes =
+	      new ConcurrentHashMap<JavaFunctionType,JavaFunctionType>();
   private static final IJavaTypeFormal[] emptyTypeFormals = new IJavaTypeFormal[0];
   static final IJavaType[] emptyTypes = JavaGlobals.noTypes;
 	
@@ -514,12 +514,12 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 			  paramTypes.toArray(emptyTypes),
 			  isVariable,
 			  throwTypes.toArray(emptyTypes));
-	  JavaFunctionType result = functionTypes.get(ft);
+	  JavaFunctionType result = functionTypes.putIfAbsent(ft, ft);	  
 	  if (result == null) {
+		  // It's new, so use the one we just created
 		  result = ft;
-		  functionTypes.put(ft, ft);
 	  }
-	  return ft;
+	  return result;
   }
   
   static void clearCaches() {
@@ -1978,6 +1978,9 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   
   @Override
   public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+	  if (t2 == null) {
+		  return false;
+	  }
 	  if (super.isEqualTo(env, t2)) {
 		  return true;
 	  }
@@ -2002,10 +2005,12 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
 		  }
 		  return true;
 	  }	  
-	  //return false;
-	  if (t2 == null) {
-		  return false;
+	  // Handles the exceptional case that ? is matched up with a primitive type,
+	  // due to int.class and the like
+	  else if (t2 instanceof IJavaPrimitiveType) {
+		  return env.getObjectType() == upperBound;
 	  }
+	  //return false;
 	  return t2.isSubtype(env, upperBound); // TODO is this right?
   }
 
@@ -2747,6 +2752,11 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 
 	@Override
 	public IJavaFunctionType instantiate(List<IJavaTypeFormal> newFormals, IJavaTypeSubstitution s) {
+	  return instantiate(newFormals, s, false);
+	}
+	
+	@Override
+	public IJavaFunctionType instantiate(List<IJavaTypeFormal> newFormals, IJavaTypeSubstitution s, boolean skipFirstParam) {
 		for (IJavaTypeFormal f : typeFormals) {
 			if (s.get(f) == f && !newFormals.contains(f)) {
 				throw new IllegalArgumentException("instantiation didn't handle " + f);
@@ -2757,16 +2767,30 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		return JavaTypeFactory.getFunctionType(
 				newFormals,
 				rt_subst, 
-				Arrays.asList(subst(paramTypes.toArray(JavaTypeFactory.emptyTypes),s)), 
+				Arrays.asList(subst(paramTypes.toArray(JavaTypeFactory.emptyTypes),s,skipFirstParam)), 
 				isVariable, 
 				new HashSet<IJavaType>(Arrays.asList(subst(exceptions,s))));		
 	}
 	
 	private <T extends IJavaType> T[] subst(T[] ts, IJavaTypeSubstitution s) {
+	  return subst(ts, s, false);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <T extends IJavaType> T[] subst(T[] ts, IJavaTypeSubstitution s, boolean skipFirstParam) {
 		T[] result = ts;
 		for (int i=0; i < ts.length; ++i) {
-			@SuppressWarnings("unchecked")
-			T piece = (T) IBinding.Util.subst(ts[i], s);
+			T piece;
+			if (skipFirstParam) {
+			  skipFirstParam = false;
+			  IJavaType before = IBinding.Util.subst(ts[i], s);
+			  if (before != ts[i]) {
+				  System.out.println("Made a difference: \n\t"+before+" vs \n\t"+ts[i]);
+			  }
+			  piece = ts[i];
+			} else {
+			  piece = (T) IBinding.Util.subst(ts[i], s);
+			}
 			if (piece != ts[i]) {
 				if (ts == result) result = ts.clone();
 				result[i] = piece;
