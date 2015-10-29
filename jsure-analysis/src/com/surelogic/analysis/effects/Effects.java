@@ -1257,6 +1257,7 @@ public final class Effects implements IBinderClient {
 
         // Before we add the target to the elaboration list, we need find the locks we need
         final ImmutableSet.Builder<NeededLock> builder = ImmutableSet.<NeededLock>builder();
+        boolean addedSubRegion = false;
         for (final Map.Entry<IRegion, IRegion> mapping : aggregationMap.entrySet()) {
           if (R.ancestorOf(mapping.getKey())) {
             final IRegion T = mapping.getValue();
@@ -1270,7 +1271,12 @@ public final class Effects implements IBinderClient {
             }
             final LockGenerator lockGen = lockModel.getLockGenerator(thisExprBinder, t);
             builder.add(lockGen.getLock(srcExpr, needsWrite, FieldRef.getObject(expr)));
+            addedSubRegion = true;
           }
+        }
+        if (!addedSubRegion) {
+          final LockGenerator lockGen = lockModel.getLockGenerator(thisExprBinder, newTarget);
+          builder.add(lockGen.getLock(srcExpr, needsWrite, FieldRef.getObject(expr)));
         }
         
         // Elaborate

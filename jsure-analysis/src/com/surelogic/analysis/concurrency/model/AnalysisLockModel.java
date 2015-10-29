@@ -532,15 +532,16 @@ public final class AnalysisLockModel {
            */
           final StateLock<?, ?> stateLock = (StateLock<?, ?>) lock;
           if (stateLock.protects(region)) {
+            // XXX: Pretty sure I don't need this here.  Only when we go from MEMBER to possible locks
             /* If the lock is instance then we need to make sure the lock is
              * declared in a class that is an ancestor of the one that declares
              * the region.
              */
-            final boolean isStatic = stateLock.isStatic();
-            final boolean isSubtype = javaType.isSubtype(binder.getTypeEnvironment(), stateLock.getDeclaredInClass());
-            if (isStatic || isSubtype) {
+//            final boolean isStatic = stateLock.isStatic();
+//            final boolean isSubtype = javaType.isSubtype(binder.getTypeEnvironment(), stateLock.getDeclaredInClass());
+//            if (isStatic || isSubtype) {
               return stateLock;
-            }
+//            }
           }
         }
       }
