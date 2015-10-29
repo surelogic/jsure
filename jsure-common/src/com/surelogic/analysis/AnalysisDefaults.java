@@ -52,20 +52,23 @@ public final class AnalysisDefaults {
 		init("com.surelogic.analysis.singleton.SingletonAnalysis", "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
 
 		// Lock and EffectAssurance need to be declared together because they share use of BindingContextAnalysis
-    final AnalysisInfo lockAnalysis =
-        init("com.surelogic.analysis.concurrency.driver.LockAnalysis",
-            "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
-            annoBoundsChecking);
+		final AnalysisInfo lockBuilder =
+		    init("com.surelogic.analysis.concurrency.driver.LockModelBuilder",
+		        "com.surelogic.jsure.client.eclipse.LockModelBuilder", true,
+		        "Lock Model Builder");
+		init("com.surelogic.analysis.concurrency.driver.LockAnalysis",
+		    "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
+		    lockBuilder, annoBoundsChecking);
     init("com.surelogic.analysis.testing.EffectsAndLocksDumpModule",
         "com.surelogic.jsure.client.eclipse.EffectsAndLocks", false, "Effects and Locks Dump",
-        lockAnalysis);
+        lockBuilder);
 		init("com.surelogic.analysis.effects.EffectsAnalysis",
 				"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects",
-				lockAnalysis);
+				lockBuilder);
 
 		init("com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule",
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", true, "Uniqueness",
-				lockAnalysis);
+				lockBuilder);
 
 		//    init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)");
 		init("com.surelogic.analysis.testing.DefinitelyAssignedModule", "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned (for reg tests only)");

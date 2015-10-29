@@ -13,7 +13,7 @@ import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.concurrency.driver.LockAnalysis;
+import com.surelogic.analysis.concurrency.driver.LockModelBuilder;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.Target;
@@ -320,7 +320,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           new SubAnalysisFactory(cargo, fu, ma, timeOut, query), floor);
       mayAlias = ma;
       flowUnit = fu;
-      effects = new Effects(binder, LockAnalysis.getLockModel());
+      effects = new Effects(binder, LockModelBuilder.getLockModel());
       bcaQuery = query;
     } 
 

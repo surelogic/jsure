@@ -5,7 +5,7 @@ import java.util.Set;
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.concurrency.driver.LockAnalysis;
+import com.surelogic.analysis.concurrency.driver.LockModelBuilder;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
@@ -24,7 +24,7 @@ extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, Effects, CUDrop>
 
 	@Override
 	protected Effects constructIRAnalysis(IBinder binder) {
-    return new Effects(binder, LockAnalysis.getLockModel());
+    return new Effects(binder, LockModelBuilder.getLockModel());
 	}
 
 	@Override
