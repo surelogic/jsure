@@ -465,6 +465,18 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
         return;
       }
       try {
+    	  /*
+    	  final IRNode gr = unit;
+          final String name;
+          if (TypeDeclaration.prototype.includes(gr)) {
+        	name = JavaNames.getQualifiedTypeName(gr);
+          } else {
+        	name = DebugUnparser.toString(gr);
+          }
+          if (name.equals("testJSure.ClassAdapter")) {
+        	  System.out.println("Binding granule "+name+" in "+Thread.currentThread().getName()+" from "+DebugUnparser.toString(node));
+          }
+          */
     	  ensureDerived();
       } catch(DerivationException e) {    	  
     	  IRNode context = VisitUtil.getEnclosingStatement(node);

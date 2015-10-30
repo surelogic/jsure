@@ -800,14 +800,14 @@ public class MethodBinder8 implements IMethodBinder {
     	if (MethodCall.prototype.includes(op)) {
 			final IBinding mb = binder.getIBinding(e);
 			IRNode rtype = MethodDeclaration.getReturnType(mb.getNode());
-			return classifyType(binder.getJavaType(rtype));
+			return classifyType(rtype);
     	}
     	else if (ParenExpression.prototype.includes(op)) {
     		return classifyExpression(ParenExpression.getOp(e));
     	}
     	else if (NewExpression.prototype.includes(op)) {
     		IRNode t = NewExpression.getType(e);
-    		return classifyType(binder.getJavaType(t));
+    		return classifyType(t);
     	}
     	else if (ConditionalExpression.prototype.includes(op)) {
     		return classifyCondExpr(e);
@@ -818,6 +818,23 @@ public class MethodBinder8 implements IMethodBinder {
 		return ExpressionKind.REF;
 	}
 	   
+    private ExpressionKind classifyType(final IRNode t) {
+    	final Operator op = JJNode.tree.getOperator(t);
+    	if (BooleanType.prototype.includes(op)) {
+    		return ExpressionKind.BOOLEAN;
+    	}
+    	else if (NumericType.prototype.includes(op)) {
+    		return ExpressionKind.NUMERIC;
+    	}
+    	else if (ParameterizedType.prototype.includes(op)) {
+    		return ExpressionKind.REF;
+    	}
+    	else if (ArrayType.prototype.includes(op)) {
+    		return ExpressionKind.REF;
+    	}
+    	return classifyType(binder.getJavaType(t));    	
+    }
+    
     private ExpressionKind classifyType(final IJavaType t) {
     	if (t instanceof IJavaPrimitiveType) {
     		return (t == JavaTypeFactory.booleanType) ? ExpressionKind.BOOLEAN : ExpressionKind.NUMERIC;
@@ -875,6 +892,9 @@ public class MethodBinder8 implements IMethodBinder {
 		}
 		else if (pop instanceof ArithExpression) {
 			return ConversionContextKind.NUMERIC;
+		}
+		else if (ConditionalExpression.prototype.includes(pop)) {
+			return getConversionContext(parent);
 		}
 		// TODO what cases am I missing?
     	return ConversionContextKind.UNKNOWN;

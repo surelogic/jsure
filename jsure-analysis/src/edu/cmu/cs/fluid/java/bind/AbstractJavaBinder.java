@@ -574,13 +574,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         }
         // }
         if (t == null) {
-          final String name;
-          if (TypeDeclaration.prototype.includes(gr)) {
-        	name = JavaNames.getQualifiedTypeName(gr);
-          } else {
-        	name = DebugUnparser.toString(gr);
-          }
-          System.out.println("Binding granule "+name+" in "+Thread.currentThread().getName()+" from "+DebugUnparser.toString(node));
           bindings = deriveBindings(bindings, node);
         } else {
           t.setName("BT: " + Thread.currentThread().getName());
