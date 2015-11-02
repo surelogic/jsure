@@ -542,6 +542,10 @@ public class TypeUtils {
           continue;
         }
         for (IJavaReferenceType possibleSub : reduced) {
+          if (possibleSub instanceof JavaRefTypeProxy) {
+        	  // TODO hack to avoid stack overflow
+        	  continue;
+          }
           if (!bt.equals(possibleSub) && possibleSub.isSubtype(tEnv, bt)) {
             // Since this is a greatest lower bound, possibleSub subsumes bt
             reduced.remove(bt);
