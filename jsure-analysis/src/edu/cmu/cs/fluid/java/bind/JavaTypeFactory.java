@@ -1517,6 +1517,15 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
   }
   
   @Override
+  public boolean isSubtype(ITypeEnvironment env, IJavaType t2) {
+	return primaryBound.isSubtype(env, t2) && secondaryBound.isSubtype(env, t2);
+  }
+  
+  public boolean isAssignmentCompatible(ITypeEnvironment env, IJavaType t2, IRNode e2) {
+    return primaryBound.isAssignmentCompatible(env, t2, e2) && secondaryBound.isAssignmentCompatible(env, t2, e2);	  
+  }
+  
+  @Override
   public IJavaReferenceType getSuperclass(ITypeEnvironment env) {
     return getPrimarySupertype();
   }
