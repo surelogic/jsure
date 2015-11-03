@@ -25,4 +25,5 @@ public final class Messages {
   public static final int REASON_NEW_OBJECT = 167;
   public static final int REASON_UNIQUE_RETURN = 168;
   public static final int REASON_UNIQUE_PARAM = 170;
+  public static final int REASON_METHOD_CALL = 172;
 }

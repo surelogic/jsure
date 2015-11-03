@@ -2,11 +2,14 @@ package com.surelogic.analysis.concurrency.model;
 
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.surelogic.aast.java.ClassExpressionNode;
 import com.surelogic.aast.java.ExpressionNode;
@@ -14,17 +17,25 @@ import com.surelogic.aast.java.FieldRefNode;
 import com.surelogic.aast.java.MethodCallNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
+import com.surelogic.aast.java.VariableUseExpressionNode;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.aast.promise.ClassLockExpressionNode;
 import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.aast.promise.LockNameNode;
+import com.surelogic.aast.promise.LockSpecificationNode;
+import com.surelogic.aast.promise.LockType;
+import com.surelogic.aast.promise.QualifiedLockNameNode;
+import com.surelogic.aast.promise.SimpleLockNameNode;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
+import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -458,11 +469,9 @@ public final class AnalysisLockModel {
     final AbstractLockDeclarationNode aastNode = lockDeclDrop.getAAST();
     final ExpressionNode lockField = aastNode.getField();
     final IRNode promisedFor = lockDeclDrop.getPromisedFor();
-    final UnnamedLockImplementation baseLockImpl = getLockImplementation(
-            promisedFor, lockField);
-    if (baseLockImpl != null) {
-      final NamedLockImplementation namedLockImpl =
-          new NamedLockImplementation(aastNode.getId(), baseLockImpl);
+    final NamedLockImplementation namedLockImpl = 
+        getNamedLockImplementation(aastNode.getId(), promisedFor, lockField);
+    if (namedLockImpl != null) {
       final Member member = getMember(promisedFor, lockField);
       if (aastNode instanceof LockDeclarationNode) {
         insertLockIntoModel(promisedFor, member, new RegionLock(lockDeclDrop, namedLockImpl));
@@ -490,6 +499,17 @@ public final class AnalysisLockModel {
   private UnnamedLockImplementation getLockImplementation(
       final IRNode annotatedItem, final ExpressionNode exprNode) {
     return new ExpressionToLockImplSwitch(annotatedItem).apply(exprNode);
+  }
+  
+  private NamedLockImplementation getNamedLockImplementation(
+      final String id, final IRNode annotatedItem, final ExpressionNode exprNode) {
+    final UnnamedLockImplementation baseLockImpl =
+        getLockImplementation(annotatedItem, exprNode);
+    if (baseLockImpl != null) {
+      return new NamedLockImplementation(id, baseLockImpl);
+    } else {
+      return null;
+    }
   }
   
   // returns null if the expression cannot be turned into a lock implementation
@@ -589,6 +609,118 @@ public final class AnalysisLockModel {
       } else { // instance lock
         return new NeededInstanceLock(objectExpr, stateLock.getImplementation(), source, needsWrite);
       }
+    }
+  }
+
+  // ----------------------------------------------------------------------
+
+  // Convert lock preconditions to needed/held locks
+  
+  private abstract class LockPreconditionProcessor<T> {
+    public final T processLockSpecification(final IRNode mcall,
+        final IRNode mdecl, final LockSpecificationNode lockSpec,
+        final Map<IRNode, IRNode> formalToActualMap) {
+      final LockModel lockModel = lockSpec.resolveBinding().getModel();
+
+      final AbstractLockDeclarationNode aastNode = lockModel.getAAST();
+      final ExpressionNode lockField = aastNode.getField();
+      final IRNode promisedFor = lockModel.getPromisedFor();
+      final NamedLockImplementation lockImpl = 
+          getNamedLockImplementation(aastNode.getId(), promisedFor, lockField);
+      
+      final boolean needsWrite = lockSpec.getType() != LockType.READ_LOCK;
+      
+      if (lockModel.isLockStatic()) {
+        return createStaticLock(lockImpl, mcall, needsWrite);
+      } else {
+        final LockNameNode lockName = lockSpec.getLock();
+        final IRNode objExpr;
+        if (lockName instanceof SimpleLockNameNode) {
+          // XXX: What about unqualified static fields?
+          // Lock is "this.<LockName>"
+          objExpr = formalToActualMap.get(JavaPromise.getReceiverNodeOrNull(mdecl));
+        } else { // QualifiedLockNameNode
+          final ExpressionNode base = ((QualifiedLockNameNode) lockName).getBase();
+          if (base instanceof ThisExpressionNode) {
+            // Lock is "this.<LockName>"
+            objExpr = formalToActualMap.get(JavaPromise.getReceiverNodeOrNull(mdecl));
+          } else if (base instanceof QualifiedThisExpressionNode) {
+            // Lock is "Class.this.<LockName>"
+            final QualifiedThisExpressionNode qthis = (QualifiedThisExpressionNode) base;
+            final IRNode qrcvr = JavaPromise.getQualifiedReceiverNodeByName(mdecl, qthis.getType().resolveType().getNode());
+            objExpr = formalToActualMap.get(qrcvr);
+          } else {
+            VariableUseExpressionNode use = (VariableUseExpressionNode) base;
+            final IRNode node = use.resolveBinding().getNode();
+            if (VariableDeclarator.prototype.includes(node)) {
+              /* Lock is "<field>.<LockName>".  Need to make into a field 
+               * reference on the actual receiver.
+               */
+              // XXX: Ignore field ref locks for now
+              objExpr = null;
+//              return createFieldRefLock(
+//                  map.get(JavaPromise.getReceiverNodeOrNull(mdecl)),
+//                  node, lockModel, type);
+            } else { // operator is ParameterDeclaration, find the actual
+              // Lock is "<UseExpression>.<LockName>"
+              objExpr = formalToActualMap.get(node);
+            }
+          }
+        }
+        if (objExpr != null) {
+          return createInstanceLock(objExpr, lockImpl, mcall, needsWrite);
+        } else {
+          return null;
+        }
+      }
+    }
+    
+    protected abstract T createStaticLock(
+        LockImplementation lockImpl, IRNode source, boolean needsWrite);
+    
+    protected abstract T createInstanceLock(
+        IRNode objectRefExpr, LockImplementation lockImpl, IRNode source, boolean needsWrite);
+    
+//    protected abstract T createFieldRefLock(IRNode rcvr, IRNode fdecl, LockModel lock, boolean needsWrite);
+  }
+
+  private final class PreconditionProcessorNeededLocks extends LockPreconditionProcessor<NeededLock> {
+    @Override
+    protected NeededStaticLock createStaticLock(
+        final LockImplementation lockImpl, final IRNode source, boolean needsWrite) {
+      return new NeededStaticLock(lockImpl, source, needsWrite);
+    }
+    
+    @Override
+    protected NeededInstanceLock createInstanceLock(
+        final IRNode objectRefExpr, final LockImplementation lockImpl,
+        final IRNode source, final boolean needsWrite) {
+      return new NeededInstanceLock(objectRefExpr, lockImpl, source, needsWrite);
+    }
+  }
+  
+  public Set<NeededLock> getNeededLocksFromRequiresLock(
+      final IRNode mcall, final RequiresLockPromiseDrop requiresLock,
+      final Map<IRNode, IRNode> formalToActualMap,
+      final Set<LockSpecificationNode> badLocks) {
+    final ImmutableSet.Builder<NeededLock> result = ImmutableSet.builder();
+    final List<LockSpecificationNode> lockNames = requiresLock.getAAST().getLockList();
+    if (lockNames.isEmpty()) {
+      return Collections.emptySet();
+    } else {
+      final IRNode mdecl = binder.getBinding(mcall);
+      final PreconditionProcessorNeededLocks p = new PreconditionProcessorNeededLocks();
+      
+      // XXX: extract this part out later when we do held locks?
+      for(final LockSpecificationNode ln : lockNames) {
+        final NeededLock lock = p.processLockSpecification(mcall, mdecl, ln, formalToActualMap);
+        if (lock == null) {
+          badLocks.add(ln);
+        } else {
+          result.add(lock);
+        }
+      }
+      return result.build();
     }
   }
 }

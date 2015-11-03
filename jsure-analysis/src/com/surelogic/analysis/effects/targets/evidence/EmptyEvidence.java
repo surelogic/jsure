@@ -13,7 +13,8 @@ public final class EmptyEvidence implements TargetEvidence {
     NULL_REFERENCE(Messages.REASON_NULL_REFERENCE),
     NEW_OBJECT(Messages.REASON_NEW_OBJECT),
     UNIQUE_RETURN(Messages.REASON_UNIQUE_RETURN),
-    UNIQUE_PARAMETER(Messages.REASON_UNIQUE_PARAM);
+    UNIQUE_PARAMETER(Messages.REASON_UNIQUE_PARAM),
+    METHOD_CALL(Messages.REASON_METHOD_CALL);
     
     private int msg;
 

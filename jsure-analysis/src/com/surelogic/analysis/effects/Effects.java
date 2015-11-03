@@ -13,6 +13,7 @@ import com.surelogic.aast.promise.AnyInstanceExpressionNode;
 import com.surelogic.aast.promise.EffectSpecificationNode;
 import com.surelogic.aast.promise.EffectsSpecificationNode;
 import com.surelogic.aast.promise.ImplicitQualifierNode;
+import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRProject;
@@ -47,6 +48,7 @@ import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.dropsea.ir.drops.RegionModel;
+import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.javac.Projects;
 
@@ -724,7 +726,16 @@ public final class Effects implements IBinderClient {
        * @GuardedBy annotations on the method.  Attach this locks to 
        * an empty effect. 
        */
-      
+      final IRNode mdecl = thisExprBinder.getBinding(call);
+      final RequiresLockPromiseDrop requiresLock = LockRules.getRequiresLock(mdecl);
+      if (requiresLock != null) {
+        final Map<IRNode, IRNode> formalToActualMap =
+            MethodCallUtils.constructFormalToActualMap(thisExprBinder, call, mdecl, getEnclosingDecl());
+        final Set<NeededLock> requiredLocks = lockModel.get().getNeededLocksFromRequiresLock(
+                call, requiresLock, formalToActualMap, new HashSet<LockSpecificationNode>());
+        if (!requiredLocks.isEmpty()) context.theEffects.add(
+            Effect.empty(call, new EmptyEvidence(Reason.METHOD_CALL), requiredLocks));
+      }
     }
     
     //----------------------------------------------------------------------
