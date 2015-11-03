@@ -147,6 +147,7 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 	
 	@Override
 	public void visit(Visitor v) {
-		// Nothing to do, since it's cyclic
+		v.accept(this);
+		// Nothing more to do, since it's cyclic
 	}
 }
