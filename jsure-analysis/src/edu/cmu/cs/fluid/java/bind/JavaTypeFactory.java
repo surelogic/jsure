@@ -1517,6 +1517,15 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
   }
   
   @Override
+  public boolean isSubtype(ITypeEnvironment env, IJavaType t2) {
+	return primaryBound.isSubtype(env, t2) && secondaryBound.isSubtype(env, t2);
+  }
+  
+  public boolean isAssignmentCompatible(ITypeEnvironment env, IJavaType t2, IRNode e2) {
+    return primaryBound.isAssignmentCompatible(env, t2, e2) && secondaryBound.isAssignmentCompatible(env, t2, e2);	  
+  }
+  
+  @Override
   public IJavaReferenceType getSuperclass(ITypeEnvironment env) {
     return getPrimarySupertype();
   }
@@ -2783,10 +2792,12 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 			T piece;
 			if (skipFirstParam) {
 			  skipFirstParam = false;
-			  IJavaType before = IBinding.Util.subst(ts[i], s);
+			  /*
+			  IJavaType before = IBinding.Util.subst(ts[i], s);			  
 			  if (before != ts[i]) {
 				  System.out.println("Made a difference: \n\t"+before+" vs \n\t"+ts[i]);
 			  }
+			  */
 			  piece = ts[i];
 			} else {
 			  piece = (T) IBinding.Util.subst(ts[i], s);

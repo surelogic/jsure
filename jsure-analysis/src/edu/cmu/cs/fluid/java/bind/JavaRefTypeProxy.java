@@ -102,6 +102,10 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 
 	@Override
 	public boolean isSubtype(ITypeEnvironment env, IJavaType t2) {
+		System.out.println("Calling isSubtype("+this+", "+t2+")");
+		if (this.toString().equals("lub(testJSure.ThreadSafePromiseDrop, testJSure.ImmutablePromiseDrop)")) {
+			System.out.println("Foudn the one I want");
+		}
 		return type.isSubtype(env, t2);
 	}
 
@@ -143,6 +147,7 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 	
 	@Override
 	public void visit(Visitor v) {
-		// Nothing to do, since it's cyclic
+		v.accept(this);
+		// Nothing more to do, since it's cyclic
 	}
 }

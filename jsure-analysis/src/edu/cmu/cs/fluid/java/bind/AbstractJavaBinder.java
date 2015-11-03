@@ -563,7 +563,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         // "+size);
         // TODO this can cause a deadlock if the BindingsThread ends up waiting
         // for something locked by the original thread
-        if (size > 50) {
+        if (false && size > 50) {
           /*
            * System.out.println("Binding stack:"); for(BindingCall gb :
            * bindingStack.get()) { System.out.println("\t"+gb); }
@@ -640,6 +640,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
     } catch (StackOverflowError e) {
       System.out.println(Thread.currentThread() + " StackOverflow: " + DebugUnparser.toString(node) + " for " + this);
+      if (true) {
+    	  System.exit(-1);
+      }
       e.printStackTrace();
       throw e;
     }

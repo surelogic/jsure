@@ -20,6 +20,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
@@ -147,7 +148,20 @@ public class TypeUtils {
     }
     if (t instanceof IJavaSourceRefType) {
       st.add((IJavaSourceRefType) t);
-    } else {
+    }
+    else if (t instanceof JavaRefTypeProxy) {
+      final JavaRefTypeProxy p = (JavaRefTypeProxy) t;
+      getST(st, p.getResult());
+    }
+    /*
+    else if (t instanceof IJavaIntersectionType) {
+    	
+    }    
+    else if (t instanceof IJavaCaptureType) {
+      
+    }
+    */
+    else {
       System.out.println("Excluded from ST: "+t);
     }
 
@@ -502,7 +516,7 @@ public class TypeUtils {
 		   */
 		  try {
 			  IJavaReferenceType c = getCandidate(allSupers, t);
-			  if (result == null) {
+			  if (result == null || result == tEnv.getObjectType()) {
 				  result = c;
 			  } else {
 				  result = JavaTypeFactory.getIntersectionType(c, result);
@@ -529,19 +543,32 @@ public class TypeUtils {
       // No need to compare, since there's only one
       result = bounds[0];
     } else {
-      // Remove supertypes of other types in the set
+      
       final Set<IJavaReferenceType> reduced = new HashSet<IJavaReferenceType>(bounds.length);
+      // Eliminate nulls/Object
       for (IJavaReferenceType bt : bounds) {
         if (bt == null) {
           continue;
         }
+        // Skip Object if not empty
+        if (!reduced.isEmpty() && bt == tEnv.getObjectType()) {
+          continue;
+        }
         reduced.add(bt);
       }
+      // Remove supertypes of other types in the set
       for (IJavaReferenceType bt : bounds) {
         if (bt == null) {
           continue;
         }
         for (IJavaReferenceType possibleSub : reduced) {
+          if (possibleSub instanceof JavaRefTypeProxy) {
+        	  // TODO hack to avoid stack overflow
+        	  JavaRefTypeProxy p = (JavaRefTypeProxy) possibleSub;
+        	  if (!p.isComplete() || containsRefToType(p.getResult(), p)) {
+        		  continue;
+        	  }
+          }
           if (!bt.equals(possibleSub) && possibleSub.isSubtype(tEnv, bt)) {
             // Since this is a greatest lower bound, possibleSub subsumes bt
             reduced.remove(bt);
@@ -580,6 +607,24 @@ public class TypeUtils {
     return result;
   }
 
+  /**
+   * Check if t contains any references to p
+   */
+  private boolean containsRefToType(IJavaReferenceType t, final IJavaType p) {	
+	BooleanVisitor v = new BooleanVisitor() {
+		@Override
+		public boolean accept(IJavaType t) {
+			if (t == p) {
+				result = true;				
+			}
+			return !result;
+		}
+		
+	};
+	t.visit(v);
+	return v.result;
+  }
+  
   public Constraints getEmptyConstraints(CallState call, IBinding method, Map<IJavaType, IJavaType> substMap, boolean allowBoxing,
       boolean allowVarargs) {
     return new Constraints(call, method, substMap, allowBoxing, allowVarargs);
