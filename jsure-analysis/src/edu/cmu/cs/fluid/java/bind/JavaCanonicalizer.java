@@ -1553,10 +1553,25 @@ public class JavaCanonicalizer {
 		return true;
 	}
 
+    /*
+    @Override
+    public Boolean visitMethodCall(IRNode node) {
+      final String unparse = DebugUnparser.toString(node);
+      if (unparse.startsWith("annoType.getMethod(")) {
+    	  System.out.println("Found annoType.getMethod(");
+      }
+      return super.visitMethodCall(node);
+    }
+    
 	@Override
     public Boolean visitMethodDeclaration(IRNode node) {
+	  final String name = JavaNames.genQualifiedMethodConstructorName(node);
+	  if (name.contains("getValue(Attribute")) {
+		  System.out.println("Canonicalizing "+name);
+	  }
       return super.visitMethodDeclaration(node);
     }
+	*/
 	
     @Override
     public Boolean visitMethodReference(IRNode node) {
