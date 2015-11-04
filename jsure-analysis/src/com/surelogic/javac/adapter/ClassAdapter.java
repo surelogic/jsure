@@ -190,6 +190,7 @@ public class ClassAdapter extends AbstractAdapter {
   }
   
   public static boolean compareHash(String qname, IRNode sd, IRNode td) {
+	  final String msg;
 	  if (sd.valueExists(hashSI)) {
 		  if (td.valueExists(hashSI)) {
 			  byte[] sHash = (byte[]) sd.getSlotValue(hashSI);
@@ -205,11 +206,17 @@ public class ClassAdapter extends AbstractAdapter {
 			  }
 			  // Eclipse only cares about the name
 			  return true;
+		  } else {
+			  msg = "No hash for "+JavaNames.getFullTypeName(td);
 		  }
 		  //return false;
+	  } else {
+		  msg = "No hash for "+JavaNames.getFullTypeName(sd);
 	  }
 	  //return !td.valueExists(hashSI);
-	  throw new IllegalStateException("No hash for "+JavaNames.getFullTypeName(sd));
+	  // throw new IllegalStateException(msg);
+	  SLLogger.getLogger().warning(msg);
+	  return true;
   }
   
   public static SeaConsistencyProofHook generateWarningsHook() {
@@ -244,6 +251,7 @@ public class ClassAdapter extends AbstractAdapter {
        */
       if (root != null) {
     	if (generateMD5Hash) {
+    	  System.out.println("Generating hash for "+className);
     	  root.setSlotValue(hashSI, computeMD5Hash());
     	}
     	/*
