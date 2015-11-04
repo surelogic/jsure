@@ -251,7 +251,7 @@ public class ClassAdapter extends AbstractAdapter {
        */
       if (root != null) {
     	if (generateMD5Hash) {
-    	  System.out.println("Generating hash for "+className);
+    	  //System.out.println("Generating hash for "+className);
     	  root.setSlotValue(hashSI, computeMD5Hash());
     	}
     	/*

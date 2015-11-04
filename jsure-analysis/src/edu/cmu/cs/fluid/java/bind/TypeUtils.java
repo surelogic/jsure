@@ -2001,6 +2001,7 @@ public class TypeUtils {
         MethodBinder8 mb = new MethodBinder8((IPrivateBinder) tEnv.getBinder(), false);
         CallState state = mb.getCallState(call, bi);
         IJavaFunctionType ftype = mb.computeInvocationType(state, bi, eliminateTypeVars);
+        /*
         IJavaFunctionType temp = ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());
         //WORKING
         String ts = temp.toString();
@@ -2010,6 +2011,7 @@ public class TypeUtils {
         	mb.computeInvocationType(state, bi, eliminateTypeVars);
         	ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());
         }
+        */
         return ftype; 
         //return temp;
         
