@@ -1910,11 +1910,12 @@ declared return type, Object .
     			return false;
     		}    		
     		IRNode body = LambdaExpression.getBody(arg);
-    		if (Expression.prototype.includes(body)) {
-    			return isPertinentToApplicability(m, callHasTypeArgs, body); 
-    		} else {
-    			throw new NotImplemented(); // TODO check return exprs
+    		for(IRNode expr : TypeInference8.findResultExprs(body)) {
+    			if (!isPertinentToApplicability(m, callHasTypeArgs, expr)) {
+    				return false;
+    			}
     		}
+    		return true;
     	}
     	else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
     		return isExactMethodReference(arg) && (!m.isGeneric() || callHasTypeArgs || !m.hasTypeParameterAsReturnType(binder));
