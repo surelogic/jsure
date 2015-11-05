@@ -739,6 +739,9 @@ public class TypeInference8 {
     }
     Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
     final BoundSet b_4 = computeB_4(b_3, c);
+    if (b_4 == null) {
+    	computeB_4(b_3, c);
+    }
     final IJavaFunctionType origType = mb.computeMethodType(m);
     final BoundSet result = resolve(b_4, null, false);
     if (result == null) {
@@ -5655,6 +5658,7 @@ public class TypeInference8 {
     }
     final IJavaFunctionType invocationType = computeInvocationTypeForRef(targetFuncType, ref);
     if (invocationType == null) {
+      computeInvocationTypeForRef(targetFuncType, ref);
       bounds.addFalse();
       return;
     }
