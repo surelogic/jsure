@@ -732,7 +732,7 @@ public final class Effects implements IBinderClient {
         final Map<IRNode, IRNode> formalToActualMap =
             MethodCallUtils.constructFormalToActualMap(thisExprBinder, call, mdecl, getEnclosingDecl());
         final Set<NeededLock> requiredLocks = lockModel.get().getNeededLocksFromRequiresLock(
-                call, requiresLock, formalToActualMap, new HashSet<LockSpecificationNode>());
+            requiresLock, call, formalToActualMap, new HashSet<LockSpecificationNode>());
         if (!requiredLocks.isEmpty()) context.theEffects.add(
             Effect.empty(call, new EmptyEvidence(Reason.METHOD_CALL), requiredLocks));
       }

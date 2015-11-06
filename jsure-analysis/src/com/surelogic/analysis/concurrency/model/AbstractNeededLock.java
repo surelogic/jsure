@@ -2,21 +2,16 @@ package com.surelogic.analysis.concurrency.model;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
-public abstract class AbstractNeededLock implements NeededLock {
-  protected final IRNode source;
-  
+public abstract class AbstractNeededLock
+extends AbstractInstantiatedLock
+implements NeededLock {
   protected final boolean needsWrite;
   
   
   
   protected AbstractNeededLock(final IRNode source, final boolean needsWrite) {
-    this.source = source;
+    super(source);
     this.needsWrite = needsWrite;
-  }
-  
-  @Override
-  public final IRNode getSource() {
-    return source;
   }
   
   @Override

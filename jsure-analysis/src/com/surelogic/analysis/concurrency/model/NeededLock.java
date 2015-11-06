@@ -16,11 +16,12 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * <p>As these arise from actual region accesses in the code, they are associated
  * with a parse tree node that gives rise to the region access.
  */
-public interface NeededLock {
+public interface NeededLock extends InstantiatedLock {
   /**
    * Get the parse tree node of the region access that causes the need for 
    * the lock.
    */
+  @Override
   public IRNode getSource();
   
   /**
