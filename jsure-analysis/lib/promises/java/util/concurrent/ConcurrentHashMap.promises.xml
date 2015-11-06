@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="4">
+<package name="java.util.concurrent" release="5">
     <class name="ConcurrentHashMap">
         <AnnotationBounds referenceObject="K,V" threadSafe="K,V"/>
-        <Containable allowReferenceObject="true"/>
         <ThreadSafe/>
         <constructor>
             <RegionEffects>none</RegionEffects>
