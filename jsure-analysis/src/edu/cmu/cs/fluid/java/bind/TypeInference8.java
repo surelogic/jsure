@@ -3084,7 +3084,7 @@ public class TypeInference8 {
             for (IJavaType t : copy(e.values())) {
               IJavaType t_subst = Util.subst(t, subst);
               if (t_subst != t) {
-            	System.out.println("EB: "+beta+" == "+t_subst);
+            	//System.out.println("EB: "+beta+" == "+t_subst);
                 reduceTypeEqualityConstraints(bounds, beta, t_subst);
               }
             }
@@ -3859,7 +3859,7 @@ public class TypeInference8 {
         return fresh;
       }
       // Otherwise, try below
-      System.out.println("Couldn't resolve from bounds");
+      //System.out.println("Couldn't resolve from bounds");
     }
     BoundSet fresh = bounds.instantiateViaFreshVars(subset);
     // return resolve(fresh);

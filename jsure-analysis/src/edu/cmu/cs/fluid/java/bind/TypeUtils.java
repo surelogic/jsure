@@ -162,7 +162,7 @@ public class TypeUtils {
     }
     */
     else {
-      System.out.println("Excluded from ST: "+t);
+      //System.out.println("Excluded from ST: "+t);
     }
 
     for (IJavaType s : t.getSupertypes(tEnv)) {
