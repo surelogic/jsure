@@ -228,6 +228,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       body = EnumConstantClassDeclaration.getBody(typeDeclaration);
     } else if (op instanceof AnnotationDeclaration) {
       body = AnnotationDeclaration.getBody(typeDeclaration);
+    } else if (op instanceof LambdaExpression) {
+      body = null; // TODO
     } else {
       LOG.severe("Not sure what sort of type declaration this is: " + op);
       body = null;

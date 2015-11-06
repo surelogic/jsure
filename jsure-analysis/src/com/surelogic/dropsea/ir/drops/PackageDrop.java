@@ -66,9 +66,11 @@ public final class PackageDrop extends CUDrop {
     other = o;
     project = tEnv.getProject();
 
+    /*
     if (pkgName.equals("org.apache.hadoop.yarn.util")) {
     	System.out.println("Creating pkg: "+pkgName);
     }
+    */
     // Look for XML annotations
     final String xmlName = PackageAccessor.computeXMLPath(pkgName);
     try {

@@ -1361,10 +1361,12 @@ declared return type, Object .
 			} else {
 				subst = IJavaTypeSubstitution.NULL;
 			}
+			/*
 			// WORKING
 			if (subst != IJavaTypeSubstitution.NULL) {
 				System.out.println("Using nonnull subst");
 			}
+			*/
 			final boolean usesVarargs = usesVarargs();
 			if (isApplicableAndCompatible(call, m, subst, context, usesVarargs)) {
 				return MethodBinding8.create(call, m, tEnv, subst, getKind());
@@ -1908,11 +1910,12 @@ declared return type, Object .
     			return false;
     		}    		
     		IRNode body = LambdaExpression.getBody(arg);
-    		if (Expression.prototype.includes(body)) {
-    			return isPertinentToApplicability(m, callHasTypeArgs, body); 
-    		} else {
-    			throw new NotImplemented(); // TODO check return exprs
+    		for(IRNode expr : TypeInference8.findResultExprs(body)) {
+    			if (!isPertinentToApplicability(m, callHasTypeArgs, expr)) {
+    				return false;
+    			}
     		}
+    		return true;
     	}
     	else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
     		return isExactMethodReference(arg) && (!m.isGeneric() || callHasTypeArgs || !m.hasTypeParameterAsReturnType(binder));
@@ -2111,7 +2114,7 @@ declared return type, Object .
 			 *   explicit type arguments, the invocation type is inferred as specified in §18.5.2.
 			 */
 			if (call.getNumTypeArgs() == 0) {
-				System.out.println("Inferring invocation type for "+call);
+				//System.out.println("Inferring invocation type for "+call);
 				if (false && call.toString().equals("ss.collect(<implicit>.toList)")) {//"Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)")) {
 					System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
 					BoundSet temp = TypeInference8.resolve(b_2, null, true);

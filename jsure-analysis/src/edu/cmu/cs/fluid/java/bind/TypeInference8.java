@@ -739,6 +739,9 @@ public class TypeInference8 {
     }
     Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
     final BoundSet b_4 = computeB_4(b_3, c);
+    if (b_4 == null) {
+    	computeB_4(b_3, c);
+    }
     final IJavaFunctionType origType = mb.computeMethodType(m);
     final BoundSet result = resolve(b_4, null, false);
     if (result == null) {
@@ -4881,6 +4884,13 @@ public class TypeInference8 {
     else if (s instanceof TypeVariable || t instanceof TypeVariable) {
       // the other type is not a proper type, since that case is handled above
       // so ignore for now until we handle the rest of the substitution
+    }
+    // HACK to deal w/ capture types
+    else if (t instanceof IJavaCaptureType && s instanceof IJavaCaptureType) {
+      final IJavaCaptureType sc = (IJavaCaptureType) s;
+      final IJavaCaptureType tc = (IJavaCaptureType) t;
+      reduceSubtypingConstraints(bounds, sc.getUpperBound(), tc.getUpperBound());
+      reduceSubtypingConstraints(bounds, tc.getLowerBound(), sc.getLowerBound());
     } else if (t instanceof IJavaTypeVariable) {
       final IJavaTypeVariable tv = (IJavaTypeVariable) t;
       IntersectionOperator hasT = new IntersectionOperator() {
@@ -5648,6 +5658,7 @@ public class TypeInference8 {
     }
     final IJavaFunctionType invocationType = computeInvocationTypeForRef(targetFuncType, ref);
     if (invocationType == null) {
+      computeInvocationTypeForRef(targetFuncType, ref);
       bounds.addFalse();
       return;
     }
