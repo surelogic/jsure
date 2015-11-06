@@ -544,8 +544,16 @@
 				<findTests property="project.list" basedir="${sandbox.suites.dir}${fs}@{suite}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testResults file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}@{project}.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
-					</sequential>
+					    <if>
+					        <equals arg1="@{project}" arg2="promises" />
+					        <then>
+								<echo message="No log results for project @{project}"/>					            
+					        </then>
+					        <else>
+					            <testResults file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}${fs}@{project}.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />	
+					        </else>
+					    </if>
+				    </sequential>
 				</for>
 			</sequential>
 		</for>

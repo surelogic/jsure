@@ -720,9 +720,11 @@ public class JavaCanonicalizer {
             baseType = CogenUtil.createNamedType(enclosingType);
             addBinding(baseType, IBinding.Util.makeBinding(enclosingType));
           } else {
+        	/*
         	if (enclosingT.toString().equals("java.util.Map<K extends java.lang.Object in testGuava.MapConstraints.ConstrainedMultimap,java.util.Collection<V extends java.lang.Object in testGuava.MapConstraints.ConstrainedMultimap>>")) {
         		System.out.println("Found offending Map");
         	}
+        	*/
         	final boolean needsTypeParams = isNonstaticNestedClass(tdecl) && (nameNode == null || JavaTypeFactory.isRelatedTo(tEnv, nameNode, tdecl));
             baseType = createDeclaredType(enclosingT, needsTypeParams ? TypeParamHandling.KEEP : TypeParamHandling.DISCARD);
           }
