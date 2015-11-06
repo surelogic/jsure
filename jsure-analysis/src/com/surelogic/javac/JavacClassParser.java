@@ -423,6 +423,16 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       // System.out.println("Done adapting "+info.getFileName());
       return info;
     }
+
+	void clearUnassociatedRefs() {
+	  refs.clearUnassociatedRefs();
+	}
+
+	void addUnassociatedRefs(Iterable<String> qnames) {
+	  if (qnames != null) {
+		refs.addAll(qnames);
+	  }
+	}
   }
 
   public void parse(final List<CodeInfo> results) throws IOException {
@@ -441,12 +451,18 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       }
     }
     final long parse = System.currentTimeMillis();
+    final Multimap<String, String> qnames = ArrayListMultimap.create();
+    if (loadAllLibraries) {
+      loadAllLibraries(qnames);
+    }
     for (JavacProject jp : projects) {
       final Collection<CodeInfo> info = infos.get(jp.getName());
       final BatchParser parser = parsers.get(jp.getName());
       final List<CodeInfo> temp = new ArrayList<>(info == null ? Collections.<CodeInfo> emptyList() : info);
 
+      parser.addUnassociatedRefs(qnames.get(jp.getName()));
       handleReferences(parser, temp);
+      parser.clearUnassociatedRefs();
       results.addAll(temp);
     }
     updateTypeEnvs(results);
@@ -490,20 +506,23 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
   }
 
   /**
+   * Load qnames with all the classes for each project
+   */
+  private void loadAllLibraries(final Multimap<String, String> qnames) {
+	for (Pair<String, String> key : getMapKeys()) {
+	  qnames.put(key.first(), key.second());
+	}	  
+  }
+  
+  /**
    * Refs are added to results
    */
   private void handleReferences(BatchParser parser, List<CodeInfo> results) throws IOException {
-    Util.startSubTask(parser.tEnv.getProgressMonitor(), "Handling references for " + parser.jp.getName());
+	final int initialSize = results.size();
+	if (initialSize != 1) {
+	  Util.startSubTask(parser.tEnv.getProgressMonitor(), "Handling references for " + parser.jp.getName());
+	}
     final References refs = parser.refs;
-    if (loadAllLibraries) {
-      for (Pair<String, String> keys : getMapKeys()) {
-        // Only look at ones from this project
-        if (parser.jp.getName().equals(keys.first())) {
-          // System.out.println("Force-loading: "+keys.second());
-          refs.add(keys.second());
-        }
-      }
-    }
     refs.add(SLUtility.JAVA_LANG_OBJECT);
     refs.add("java.lang.Class");
     refs.add("java.lang.String"); // For comparison purposes
@@ -564,7 +583,9 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
     results.addAll(newResults);
 
     refs.reorder(results);
-    Util.endSubTask(parser.tEnv.getProgressMonitor());
+	if (initialSize != 1) {
+	  Util.endSubTask(parser.tEnv.getProgressMonitor());
+	}
   }
 
   private Collection<CodeInfo> handleDanglingRefs(final JavacProject jp, Set<String> refs) throws IOException {
@@ -572,7 +593,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       throw new CancellationException();
     }
     if (refs.isEmpty()) {
-      System.out.println("No more dangling refs");
+      //System.out.println("No more dangling refs");
       return Collections.emptyList();
     }
     System.out.println("Handling " + refs.size() + " dangling refs for " + jp.getName());
@@ -986,7 +1007,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       jp = p;
     }
 
-    private Set<String> ensureInit() {
+	private Set<String> ensureInitUnassociated() {
       Set<String> r = refs.get(unassociated);
       if (r == null) {
         r = new HashSet<>();
@@ -1001,18 +1022,26 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       }
     }
 
+    /**
+     * Add qualified names not associated with a particular CU
+     */
     void add(String ref) {
-      Set<String> refs = ensureInit();
+      Set<String> refs = ensureInitUnassociated();
       add(refs, ref);
     }
 
     void addAll(Iterable<String> moreRefs) {
-      Set<String> refs = ensureInit();
+      Set<String> refs = ensureInitUnassociated();
       for (String ref : moreRefs) {
         add(refs, ref);
       }
     }
 
+    void clearUnassociatedRefs() {
+      Set<String> refs = ensureInitUnassociated();	
+      refs.clear();
+	}
+    
     Set<String> scanForReferencedTypes(IRNode cu, boolean debug) {
       Set<String> r = new HashSet<>();
       FASTScanner s = new FASTScanner(jp, r, debug);
