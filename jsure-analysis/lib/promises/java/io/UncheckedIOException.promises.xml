@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.io" release="1">
+    <class name="UncheckedIOException">
+        <method name="getCause">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>
