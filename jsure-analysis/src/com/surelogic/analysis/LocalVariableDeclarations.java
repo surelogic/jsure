@@ -276,15 +276,27 @@ public final class LocalVariableDeclarations {
     
     @Override
     public Void visitParameterDeclaration(final IRNode node) {
-      if (TypeUtil.isJSureFinal(node)) { // TODO: Really replace with isEffectivelyFinal()
+      /* Should use TypeUtil.isEffectivelyFinal() to filter the variables but
+       * that requires setting up an instance to a flow analysis that I'm not
+       * able to do right now.  So we just include all the variables.  Since
+       * this list is just used to build an index for flow-control lattices, 
+       * this is fine.  We just end up with a larger than necessary lattice.  
+       */
+//      if (TypeUtil.isJSureFinal(node)) { // TODO: Really replace with isEffectivelyFinal()
         declarations.add(node);
-      }
+//      }
       return null;
     }
     
     @Override
     public Void visitVariableDeclarator(final IRNode node) {
-      if (addDeclaration && TypeUtil.isJSureFinal(node)) { // TODO: Really replace with isEffectivelyFinal()
+      /* Should use TypeUtil.isEffectivelyFinal() to filter the variables but
+       * that requires setting up an instance to a flow analysis that I'm not
+       * able to do right now.  So we just include all the variables.  Since
+       * this list is just used to build an index for flow-control lattices, 
+       * this is fine.  We just end up with a larger than necessary lattice.  
+       */
+      if (addDeclaration) { // && TypeUtil.isJSureFinal(node)) { // TODO: Really replace with isEffectivelyFinal()
         declarations.add(node);
       }
       return null;
