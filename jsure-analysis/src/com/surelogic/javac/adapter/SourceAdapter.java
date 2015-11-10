@@ -81,6 +81,15 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     root = cut;
     lines = cut.getLineMap();
     //javadoc = cut.docComments;
+    
+    // Check for empty file
+    if (cut.getTypeDecls().isEmpty()) {
+    	final String pkg = cut.getPackageName().toString();
+    	if (pkg.equals("")) {
+    		return null;
+    	}
+    }
+    
     cuRef = new FileResource(projects, srcFile, getPackage(cut), jp.getName());
     if (!srcFile.qname.startsWith(cuRef.getPackage())) {
     	throw new IllegalStateException(srcFile.qname+" doesn't match "+cuRef.getPackage());
