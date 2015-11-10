@@ -54,6 +54,9 @@ public final class DiffHeuristicsComputation implements DiffHeuristics {
 	}
 
 	public static void computeDiffInfo(final Drop drop, final Pair<IJavaRef, IRNode> loc) {
+		if (!drop.includeInDiff()) {
+			return;
+		}
 		if (loc == null || loc.first() == null || loc.second() == null) {
 			if (!(drop instanceof ResultFolderDrop) &&
 					!(drop instanceof MetricDrop) &&

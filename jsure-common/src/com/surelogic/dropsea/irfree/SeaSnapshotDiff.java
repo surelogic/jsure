@@ -13,7 +13,6 @@ import java.util.*;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
@@ -218,7 +217,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       return pd.derivedFromSrc();
     }
     */
-	if (d instanceof IMetricDrop) {
+	if (!d.includeInDiff()) {
 	  // Ignore these
       return false;
 	}
