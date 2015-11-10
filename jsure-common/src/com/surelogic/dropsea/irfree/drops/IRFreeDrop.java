@@ -57,6 +57,10 @@ public abstract class IRFreeDrop implements IDrop {
     return false;
   }
 
+  public boolean includeInDiff() {
+	return true;
+  }
+  
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
       f_proposedPromises = new ArrayList<>(1);

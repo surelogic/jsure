@@ -49,6 +49,11 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
   }
 
   @Override
+  public final boolean includeInDiff() {
+	return INCLUDE_IN_DIFF;
+  }
+  
+  @Override
   @NonNull
   public Metric getMetric() {
     return f_metric;

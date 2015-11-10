@@ -100,6 +100,10 @@ public abstract class Drop implements IDrop {
     f_mySea.notify(this, DropEvent.Created);
   }
 
+  public boolean includeInDiff() {
+	return true;
+  }
+  
   //@Override
   @NonNull
   public Class<?> getIRDropSeaClass() {
