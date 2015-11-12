@@ -71,6 +71,7 @@ import edu.cmu.cs.fluid.java.operator.FloatType;
 import edu.cmu.cs.fluid.java.operator.IntType;
 import edu.cmu.cs.fluid.java.operator.IntegralType;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.LongType;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.MoreBounds;
@@ -894,6 +895,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     }
     if (op instanceof AnonClassExpression) {
       return JavaTypeFactory.getAnonType(tdecl);
+    }
+    if (op instanceof LambdaExpression) {
+      return getThisType(tdecl);
     }
     IJavaDeclaredType outer = (IJavaDeclaredType) getThisType(tdecl);
     if (outer != null && !outer.getTypeParameters().isEmpty() && (outerShouldBeRaw || TypeUtil.isStatic(tdecl))) {
