@@ -2438,8 +2438,8 @@ declared return type, Object .
 				return false;
 			}
 			final IJavaType p_1 = ptypes.get(0);
-			//if (p_1.isSubtype(tEnv, refType)) {
-			if (refType.isSubtype(tEnv, p_1)) { // HACK?
+			if (p_1.isSubtype(tEnv, refType)) {
+			//if (refType.isSubtype(tEnv, p_1)) { // HACK?
 				secondArgTypes = new IJavaType[ptypes.size()-1];
 				for(int i=1; i<ptypes.size(); i++) {
 					secondArgTypes[i-1] = ptypes.get(i);
