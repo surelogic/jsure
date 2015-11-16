@@ -414,7 +414,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitInterfaceDeclaration(IRNode node) {
     //return JavaTypeFactory.getDeclaredType( node, null, null );
-    return JavaTypeFactory.getMyThisType( node );
+    return JavaTypeFactory.getMyThisType( node, true, true );
   }
   
   /**
