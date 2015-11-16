@@ -2049,10 +2049,12 @@ declared return type, Object .
 	 */
 	public IJavaType computeGroundTargetType(IRNode lambda, IJavaType t) {
 		IJavaType rv = computeGroundTargetType(lambda, t, true);
+		/*
 		if (containsTypeVariables(rv)) {
 			System.out.println("Found type variable");
 			computeGroundTargetType(lambda, t, true);
 		}
+		*/
 		return rv;
 	}
 
