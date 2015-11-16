@@ -755,11 +755,15 @@ public class JavaCanonicalizer {
 
 	// What if I have wildcards and other sorts of types?
     private IRNode createType(IJavaType t) {
+      return createType(t, false);
+    }
+    
+    private IRNode createType(IJavaType t, boolean alwaysKeepTypeParams) {
       if (t == null) {
         return null;
       }
       if (t instanceof IJavaDeclaredType) {
-        return createDeclaredType((IJavaDeclaredType) t, TypeParamHandling.KEEP_IF_NOT_ALL_FORMALS);
+        return createDeclaredType((IJavaDeclaredType) t, alwaysKeepTypeParams ? TypeParamHandling.KEEP : TypeParamHandling.KEEP_IF_NOT_ALL_FORMALS);
       }
       if (t instanceof IJavaTypeFormal) {
         IJavaTypeFormal f = (IJavaTypeFormal) t;
@@ -770,11 +774,11 @@ public class JavaCanonicalizer {
       }
       if (t instanceof IJavaWildcardType) {
         IJavaWildcardType w = (IJavaWildcardType) t;
-        IRNode lower = createType(w.getUpperBound());
+        IRNode lower = createType(w.getUpperBound(), alwaysKeepTypeParams);
         if (lower != null) {
           return WildcardExtendsType.createNode(lower);
         }
-        IRNode upper = createType(w.getLowerBound());
+        IRNode upper = createType(w.getLowerBound(), alwaysKeepTypeParams);
         if (upper != null) {
           return WildcardSuperType.createNode(upper);
         }
@@ -782,7 +786,7 @@ public class JavaCanonicalizer {
       }
       if (t instanceof IJavaArrayType) {
         IJavaArrayType a = (IJavaArrayType) t;
-        IRNode base = createType(a.getBaseType());
+        IRNode base = createType(a.getBaseType(), alwaysKeepTypeParams);
         return ArrayType.createNode(base, a.getDimensions());
       }
       if (t instanceof IJavaPrimitiveType) {
@@ -792,7 +796,7 @@ public class JavaCanonicalizer {
       if (t instanceof IJavaCaptureType) {
         IJavaCaptureType c = (IJavaCaptureType) t;
         // TODO what to do about the capture bounds?
-        return createType(c.getWildcard());
+        return createType(c.getWildcard(), alwaysKeepTypeParams);
       }
       if (t instanceof IJavaVoidType) {
     	return VoidType.prototype.jjtCreate();
@@ -829,7 +833,7 @@ public class JavaCanonicalizer {
       
       IRNode[] args = new IRNode[dt.getTypeParameters().size()];
       for (int i = 0; i < args.length; i++) {
-        args[i] = createType(dt.getTypeParameters().get(i));
+        args[i] = createType(dt.getTypeParameters().get(i), typeParamHandling == TypeParamHandling.KEEP);
       }
       IRNode rv = ParameterizedType.createNode(result, TypeActuals.createNode(args));
       JavaNode.setModifiers(rv, JavaNode.IMPLICIT);
@@ -1456,6 +1460,12 @@ public class JavaCanonicalizer {
     
     @Override
 	public Boolean visitLambdaExpression(IRNode node) {
+    	/*
+    	final String unparse = DebugUnparser.toString(node);
+    	if (unparse.equals("(left, right) -> { #.addAll#; return #; }")) {
+    		System.out.println("Converting lambda: "+unparse+" : "+binder.getJavaType(node));
+    	}
+    	*/
     	//XXX: We assume already that "this" or "super" inside the L-E
     	// have been correctly bound / or will be correctly bound.
     	//XXX: What about marker interfaces in the interface type?
@@ -1505,7 +1515,7 @@ public class JavaCanonicalizer {
     	for (IRNode formal : JJNode.tree.children(LambdaExpression.getParams(node))) {
     		IRNode ftype = ParameterDeclaration.getType(formal);
     		if (JJNode.tree.getOperator(ftype) == Type.prototype) {
-    			IRNode ptype = createType(rqdit.next());
+    			IRNode ptype = createType(rqdit.next(), true);
     			IRNode annos = Annotations.createNode(none); 
     			IRNode newParam = ParameterDeclaration.createNode(annos, JavaNode.ALL_FALSE, ptype, JJNode.getInfo(formal));
     			newParamList.add(newParam);
@@ -1528,14 +1538,14 @@ public class JavaCanonicalizer {
     	IRNode annos = Annotations.createNode(none);
     	IRNode types = TypeFormals.createNode(none);
     	int modifiers = JavaNode.ALL_FALSE|JavaNode.PUBLIC;
-		IRNode rtype = createType(fty.getReturnType());
+		IRNode rtype = createType(fty.getReturnType(), true);
 		
 		IRNode mdecl = MethodDeclaration.createNode(annos,modifiers, types, rtype, methodName, newParams, 0, exceptions, newBody);
 		IRNode cbody = ClassBody.createNode(new IRNode[]{mdecl});
 		
 		List<IRNode> typeArgList = new ArrayList<IRNode>();
 		for (IJavaType t : base.getTypeParameters()) {
-			typeArgList.add(createType(t));
+			typeArgList.add(createType(t, true));
 		}
 		final IRNode classType = createNamedType(null, IBinding.Util.makeBinding(base.getDeclaration()));
 		final IRNode nexp;
