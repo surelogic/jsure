@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.java.operator.IOnlyAttachedToFunction;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
@@ -134,6 +135,12 @@ public final class JavaNames {
 			result = AnnotationDeclaration.getId(type);
 		} else if (AnonClassExpression.prototype.includes(op)) {
 			result = JJNode.getInfoOrNull(type);
+			
+			if (result.length() == 0) {
+				// TODO no ACE numbering?				
+				IRNode newE = AnonClassExpression.prototype.get_Alloc(type);
+				result = DebugUnparser.toString(NewExpression.getType(newE));
+			}
 		} else if (EnumConstantClassDeclaration.prototype.includes(op)) {
 			result = EnumConstantClassDeclaration.getId(type);
 		} else if (Type.prototype.includes(op)) {

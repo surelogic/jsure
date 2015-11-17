@@ -13,6 +13,7 @@ import java.util.Stack;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -436,8 +437,61 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     return null;
   }
 
+  private boolean requiresJava8(File project) {
+	final File settingsDir = new File(project, ".settings");
+	if (!settingsDir.isDirectory()) {
+	  return false;
+	}
+	final File prefs = new File(settingsDir, "org.eclipse.jdt.core.prefs");
+	if (!prefs.isFile()) {
+	  return false;
+	}
+	final Properties props = new Properties();
+	try {
+	  props.load(new FileInputStream(prefs));
+	  
+	  String source = props.getProperty("org.eclipse.jdt.core.compiler.source", "1.5");	  
+	  return source.compareTo("1.8") >= 0;
+	} catch (IOException e) {
+	  return false;
+	}
+  }
+  
+  boolean supportsJava8() {
+	// Check if the JRE is Java 8
+	if (!SystemUtils.IS_JAVA_1_8 && !SystemUtils.IS_JAVA_1_9) {
+		return false;
+	}
+	  
+	// Check if we support Java 8 source  
+	final String version = EclipseUtility.getEclipseVersion();
+	final int major = version.indexOf('.');
+	if (major > 0) {
+	  final int majorV = Integer.parseInt(version.substring(0, major));
+	  if (majorV < 4) {
+		return false;
+	  }
+	  if (majorV > 4) {
+		return true;
+	  }
+	  // Of the form 4.x
+	  final int minor = version.indexOf('.', major+1);
+	  if (minor > 0) {
+		final int minorV = Integer.parseInt(version.substring(major+1, minor));
+		return minorV > 3;
+	  }
+	}
+	return false;
+  }
+  
   private void runAnalysis(final File workspaceFile, final File project,
 			IProject[] projects) throws Throwable {
+		// Check if it's a Java 8 project
+		if (requiresJava8(project) && !supportsJava8()) {			
+		  // Skip this project
+		  return;
+		}
+	  
 		final String projectPath = project.getAbsolutePath();
 		start("Start logging to a file & refresh");
 		final String logName = EclipseLogHandler.startFileLog(project.getName()

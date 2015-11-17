@@ -159,10 +159,12 @@ public interface IBinding {
     	  // No need to create a new binding
     	  return mbind;
       }
+      /*
       if (recType != null && mbind.getReceiverType() != null && recType != mbind.getReceiverType() 
     		              && mbind.getContextType() != mbind.getReceiverType()) {    	  
     	  System.out.println("Replacing "+mbind.getReceiverType()+" with "+recType);
       }
+      */
       return makeBinding(mbind.getNode(), 
     		             context == null ? mbind.getContextType() : context, 
     		             tEnv,
