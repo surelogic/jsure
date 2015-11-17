@@ -73,6 +73,10 @@ public class JavaNode extends JJNode {
   protected JavaNode(SyntaxTreeInterface tree, Operator operator) {
     super(tree, operator);
   }
+  
+  protected JavaNode(SyntaxTreeInterface tree, Operator operator, int min) {
+	super(tree, operator, min);
+  }
 
   /** Constructor for bottom-up tree creation. */
   protected JavaNode(SyntaxTreeInterface tree, Operator operator, IRNode[] children) {
