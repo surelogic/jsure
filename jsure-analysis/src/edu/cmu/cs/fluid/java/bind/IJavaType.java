@@ -90,7 +90,8 @@ public interface IJavaType extends IType {
 		  this(false);
 	  }
 	  
-	  public void finish(IJavaType t) {
+	  @Override
+    public void finish(IJavaType t) {
 		  // do nothing
 	  }
   }

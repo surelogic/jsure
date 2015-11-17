@@ -253,6 +253,17 @@ public class LockRules extends AnnotationRules {
     return rv;
 	}
 
+  /**
+   * Get the lock annotation from the returns node of a method.
+   * 
+   * @param mdecl
+   *          A MethodDeclaration node
+   */
+  public static ReturnsLockPromiseDrop getReturnedLock(final IRNode mdecl) {
+    final IRNode returnNode = JavaPromise.getReturnNodeOrNull(mdecl);
+    return (returnNode == null) ? null : LockRules.getReturnsLock(returnNode);
+  }
+	
 	public static AnnotationBoundsPromiseDrop getAnnotationBounds(final IRNode tDecl) {
 	  return getBooleanDrop(annoBoundsRule.getStorage(), tDecl);
 	}

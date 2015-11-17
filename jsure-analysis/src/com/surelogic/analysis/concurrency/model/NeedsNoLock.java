@@ -1,9 +1,9 @@
 package com.surelogic.analysis.concurrency.model;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public final class NeedsNoLock extends AbstractNeededLock {
-
   public NeedsNoLock(final IRNode source) {
     super(source, false);
   }
@@ -30,5 +30,20 @@ public final class NeedsNoLock extends AbstractNeededLock {
   @Override
   public String toString() {
     return "<none>";
+  }
+  
+  @Override
+  public final boolean isIntrinsic(final IBinder binder) {
+    return false;
+  }
+  
+  @Override
+  public final boolean isJUC(final IBinder binder) {
+    return false;
+  }
+  
+  @Override
+  public final boolean isReadWrite(final IBinder binder) {
+    return false;
   }
 }

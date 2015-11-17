@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.time.temporal" release="1">
+    <class name="ChronoUnit">
+        <method name="toString">
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+    </class>
+</package>

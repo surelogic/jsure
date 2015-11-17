@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="org.eclipse.swt.custom" release="1">
+    <class name="StyleRange">
+        <method name="clone">
+            <NonNull/>
+            <RegionEffects>reads All</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>

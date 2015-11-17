@@ -442,7 +442,7 @@ public class JavaCanonicalizer {
 
     private boolean isStatic(IRNode context, IRNode bodyDecl) {
       if (bodyDecl == null) {
-        throw new IllegalArgumentException("No enclosing body decl: " + context);
+        throw new IllegalArgumentException("No enclosing body decl: " + DebugUnparser.toString(context));
       }
       Operator op = JJNode.tree.getOperator(bodyDecl);
       if (MethodDeclaration.prototype.includes(op)) {
@@ -455,12 +455,14 @@ public class JavaCanonicalizer {
         return JavaNode.getModifier(bodyDecl, JavaNode.STATIC);
       } else if (VariableDeclarator.prototype.includes(op)) {
         return JavaNode.getModifier(VariableDeclarator.getMods(bodyDecl), JavaNode.STATIC);
+      } else if (LambdaExpression.prototype.includes(op)) {
+    	return false;
       } else if (AnonClassExpression.prototype.includes(op)) {
         return false;
       } else if (EnumConstantDeclaration.prototype.includes(op)) {
         return true;
       }
-      throw new IllegalArgumentException("Unexpected body decl: " + context);
+      throw new IllegalArgumentException("Unexpected body decl: " + DebugUnparser.toString(bodyDecl));
     }
 
     /**
@@ -471,7 +473,8 @@ public class JavaCanonicalizer {
      *          location in tree where expression will live
      * @param type
      *          required type of this expression
-     * @param
+     * @param to
+     * 			A binding that we're creating a receiver for
      * @return new node for ThisExpression or QualifiedThisExpression or
      *         TypeExpression (if static)
      */
@@ -720,9 +723,11 @@ public class JavaCanonicalizer {
             baseType = CogenUtil.createNamedType(enclosingType);
             addBinding(baseType, IBinding.Util.makeBinding(enclosingType));
           } else {
+        	/*
         	if (enclosingT.toString().equals("java.util.Map<K extends java.lang.Object in testGuava.MapConstraints.ConstrainedMultimap,java.util.Collection<V extends java.lang.Object in testGuava.MapConstraints.ConstrainedMultimap>>")) {
         		System.out.println("Found offending Map");
         	}
+        	*/
         	final boolean needsTypeParams = isNonstaticNestedClass(tdecl) && (nameNode == null || JavaTypeFactory.isRelatedTo(tEnv, nameNode, tdecl));
             baseType = createDeclaredType(enclosingT, needsTypeParams ? TypeParamHandling.KEEP : TypeParamHandling.DISCARD);
           }
@@ -1695,6 +1700,31 @@ public class JavaCanonicalizer {
       return changed;
     }
 
+    @Override
+    public Boolean visitThisExpression(final IRNode node) {
+      final IRNode enclosing = VisitUtil.getEnclosingType(node);
+      IRNode type = enclosing;
+      // Look for the first enclosing type that's not a lambda
+      while (LambdaExpression.prototype.includes(type)) {
+    	  type = VisitUtil.getEnclosingType(type);
+      }
+      if (type != enclosing) {
+    	  //System.out.println("Looking at "+DebugUnparser.toString(JJNode.tree.getParentOrNull(node)));
+    	  /* 
+    	   * This will just create another ThisExpression
+    	   *     	   
+    	  IJavaDeclaredType dt = (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(type);
+    	  IRNode replacement = createThisExpression(node, dt, null);
+    	  */
+    	  IRNode nt = createNamedType(node, IBinding.Util.makeBinding(type));
+    	  IRNode qte = QualifiedThisExpression.createNode(nt);
+    	  JJNode.tree.replaceSubtree(node, qte);
+    	  //System.out.println("Created "+DebugUnparser.toString(qte));
+    	  return Boolean.TRUE;
+      }
+      return Boolean.FALSE;
+    }
+    
     @Override
     public Boolean visitTypeDeclaration(IRNode node) {
       // Reordered to process names before modifying 'extends' or 'implements'

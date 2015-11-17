@@ -3,6 +3,7 @@ package com.surelogic.analysis.concurrency.model;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public abstract class AbstractHeldLock
 extends AbstractInstantiatedLock
@@ -38,5 +39,20 @@ implements HeldLock {
   @Override
   public final PromiseDrop<?> getSupportingDrop() {
     return supportingDrop;
+  }
+  
+  @Override
+  public final boolean isIntrinsic(final IBinder binder) {
+    return lockImpl.isIntrinsic(binder);
+  }
+  
+  @Override
+  public final boolean isJUC(final IBinder binder) {
+    return lockImpl.isJUC(binder);
+  }
+  
+  @Override
+  public final boolean isReadWrite(final IBinder binder) {
+    return lockImpl.isReadWrite(binder);
   }
 }

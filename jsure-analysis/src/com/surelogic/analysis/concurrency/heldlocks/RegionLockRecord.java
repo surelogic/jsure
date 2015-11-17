@@ -43,7 +43,7 @@ public final class RegionLockRecord extends AbstractLockRecord {
     } else {
       region = RegionModel.getInstanceRegion(ld.getNode());
     }
-    System.err.println("Created "+ld+" on "+cd);
+    //System.err.println("Created "+ld+" on "+cd);
   }
 
   /**

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javafx.scene.input" release="1">
+    <class name="ClipboardContent">
+        <Containable allowReferenceObject="true"/>
+        <NotThreadSafe/>
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+    </class>
+</package>

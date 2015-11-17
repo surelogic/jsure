@@ -805,17 +805,30 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   public IJavaType visitType(final IRNode here) {
 	// This should only appear in param decls for lambdas
 	final IRNode parent = JJNode.tree.getParent(here);
+	final Operator pop = JJNode.tree.getOperator(parent);
 	IRNode node = parent;
-	if (ParameterDeclaration.prototype.includes(parent)) {
+	if (ParameterDeclaration.prototype.includes(pop)) {
 		node = JJNode.tree.getParent(parent);
     	// Figure out which parameter this is
-		final int pIndex = JJNode.tree.childLocationIndex(node, JJNode.tree.getLocation(parent));
-		
+		final int pIndex = JJNode.tree.childLocationIndex(node, JJNode.tree.getLocation(parent));		
 		node = JJNode.tree.getParent(node);
-		if (LambdaExpression.prototype.includes(node)) {
+		
+		final Operator op = JJNode.tree.getOperator(node);
+		if (LambdaExpression.prototype.includes(op)) {
 			// Match up the param with the method in the interface
 			IJavaDeclaredType targetType = (IJavaDeclaredType) visitLambdaExpression(node);
 	    	IJavaTypeSubstitution subst = JavaTypeSubstitution.create(binder.getTypeEnvironment(), targetType);
+	    	IJavaFunctionType ftype = binder.getTypeEnvironment().isFunctionalType(targetType);
+	    	if (ftype == null) {
+	    	  throw new IllegalStateException("No function type for "+DebugUnparser.toString(node)); 
+	    	}
+	    	// TODO must have a receiver?
+	    	IJavaType type = ftype.getParameterTypes().get(pIndex);
+	    	return Util.subst(type, subst);
+	    	/*
+	    	// TODO where else do I need to know what the method is?
+	    	
+	    	// TODO could be in a supertype of the target type
 	    	for(IRNode m : VisitUtil.getClassMethodsOnly(targetType.getDeclaration())) {
 		    	// TODO filter out abstract methods originally from Object
 	    		IRNode params = MethodDeclaration.getParams(m);
@@ -823,6 +836,9 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	    		IJavaType type = visitParameterDeclaration(param);
 	    		return Util.subst(type, subst);
 	    	}
+	    	*/
+		} else {
+			System.out.println("Not a lambda");
 		}
 	}
 	throw new IllegalStateException("Type not in a lambda: "+DebugUnparser.toString(node));

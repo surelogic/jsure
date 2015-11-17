@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="3">
+<package name="java.util" release="4">
     <class name="LinkedHashMap">
         <Containable allowReferenceObject="true"/>
         <NotThreadSafe/>
@@ -52,6 +52,12 @@
             </parameter>
         </method>
 
+        <method name="entrySet">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
         <method name="get" params="java.lang.Object">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
@@ -59,6 +65,18 @@
             <parameter index="0">
                 <Borrowed/>
             </parameter>
+        </method>
+
+        <method name="keySet">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="values">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>

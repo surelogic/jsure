@@ -322,4 +322,9 @@ public interface IDrop {
    *         {@link IDecl}.
    */
   IDecl getDiffInfoAsDeclOrNull(String key);
+  
+  /**
+   * Returns whether we need to diff this drop
+   */
+  boolean includeInDiff();
 }

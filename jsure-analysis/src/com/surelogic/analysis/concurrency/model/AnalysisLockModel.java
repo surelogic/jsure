@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
 import com.surelogic.aast.java.ClassExpressionNode;
 import com.surelogic.aast.java.ExpressionNode;
@@ -28,21 +30,31 @@ import com.surelogic.aast.promise.SimpleLockNameNode;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
+import com.surelogic.common.util.AppendIterator;
+import com.surelogic.common.util.FilterIterator;
+import com.surelogic.common.util.Iteratable;
+import com.surelogic.common.util.IteratorUtil;
+import com.surelogic.common.util.SimpleIteratable;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /**
@@ -52,6 +64,14 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * locks by name or by implementing object reference.
  */
 public final class AnalysisLockModel {
+  /**
+   * Name of the wait-queue lock defined for <code>java.lang.Object</code>
+   * used by the {@link java.lang.Object#wait()}method, etc.
+   */
+  public static final String MUTEX_NAME = "MUTEX";
+  
+  
+  
   /*
    * Map from Members->locks is used to go from lock expressions to locks.
    * This doesn't need the class hierarchy, except for filtering...
@@ -205,6 +225,9 @@ public final class AnalysisLockModel {
   /**
    * Receiver used as a lock.  There is only one of these, because we pretend
    * it is a "field" declared in the root class.
+   * 
+   * N.B. cannot make this an enum because we cannot be static: needs the 
+   * binder reference from the lock model.
    */
   private final class Self implements Member {
     private Self() {
@@ -262,9 +285,30 @@ public final class AnalysisLockModel {
       declaredLocks.add(lock);
     }
     
-    // Should this be Iterable?
-    public Set<ModelLock<?, ?>> getDeclaredLocks() {
-      return declaredLocks;
+    public Iteratable<ModelLock<?, ?>> getDeclaredLocks() {
+      return new SimpleIteratable<>(declaredLocks.iterator());
+    }
+    
+    public Iteratable<ModelLock<?, ?>> getAllLocksInClass() {
+      if (parent == null) {
+        return getDeclaredLocks();
+      } else {
+        return new AppendIterator<>(getDeclaredLocks(), parent.getAllLocksInClass());
+      }
+    }
+    
+    public Iteratable<StateLock<?, ?>> getAllStateLocksInClass() {
+      return new FilterIterator<ModelLock<?, ?>, StateLock<?, ?>>(getAllLocksInClass()) {
+        @Override
+        protected Object select(final ModelLock<?, ?> lock) {
+          if (lock instanceof StateLock) {
+            return lock;
+          } else {
+            return IteratorUtil.noElement;
+          }
+          
+        }
+      };
     }
     
     public Clazz getParent() {
@@ -430,6 +474,10 @@ public final class AnalysisLockModel {
     this.binder = binder;
   }
 
+  private Clazz getClazzFor(final IRNode classDecl) {
+    return getClazzFor(JavaTypeFactory.getMyThisType(classDecl));
+  }
+  
   private Clazz getClazzFor(final IJavaType javaType) {
     /* Need to use type erasure because type parameters muck
      * up the hierarchy.  In particular a parameterized subtype is shows up
@@ -455,12 +503,72 @@ public final class AnalysisLockModel {
   
   // ----------------------------------------------------------------------
 
+  public Iterable<ModelLock<?, ?>> getLocksImplemetedByClass(final IRNode cdecl) {
+    synchronized(membersToLocks) {
+      return membersToLocks.get(new ClassObject(cdecl));
+    }
+  }
+
+  /**
+   * Filter out locks declared in classes that are not direct ancestors of
+   * the class of interest.  For example, assume we have field 'lock' declared in
+   * class C.  Class C does NOT use 'lock' as a lock for anything.
+   * Class D extends C and class E extends C.  In class D 'lock'
+   * is used as a lock for region R and in class E the field 'lock' is used as
+   * a lock for region Q.  If we have an expression "o.lock" and "lock" is the 
+   * field declared in C, how we convert the expression to a lock depends on 
+   * the static type of "o".  If "o" is C, then we the expression doesn't
+   * convert to any locks.  If "o" is D, then it is the lock for region R, and
+   * if "o" is E then it is the lock for region Q.  
+   * 
+   * @param classType The static type of the object expression.  Only locks
+   * declared in classes that are ancestors of this class are returned.
+   * 
+   * @param locks The list of locks to filter.
+   * 
+   * @return
+   */
+  private Iterable<ModelLock<?, ?>> filterOutNonAncestorLocks(
+      final IJavaType classType, final Set<ModelLock<?, ?>> locks) {
+    return Iterables.filter(locks, new Predicate<ModelLock<?, ?>>() {
+      @Override
+      public boolean apply(final ModelLock<?, ?> input) {
+        return classType.isSubtype(binder.getTypeEnvironment(), input.getDeclaredInClass());
+      }
+    });
+  }
+  
+  // cdecl is the class that contains the method whose method is being analyzed
+  public Iterable<ModelLock<?, ?>> getLocksImplementedByThis(final IJavaType classType) {
+    final Set<ModelLock<?, ?>> locks;
+    synchronized (membersToLocks) {
+      locks = membersToLocks.get(selfPrototype);
+    }
+    return filterOutNonAncestorLocks(classType, locks);
+  }
+      
+  public Iterable<ModelLock<?, ?>> getLocksImplementedByField(
+      final IJavaType objType, final IRNode fieldDecl) {
+    final Set<ModelLock<?, ?>> locks;
+    synchronized (membersToLocks) {
+      locks = membersToLocks.get(new Field(fieldDecl));
+    }
+    if (TypeUtil.isStatic(fieldDecl)) {
+      // Static locks don't use filtering
+      return locks;
+    } else {
+      return filterOutNonAncestorLocks(objType, locks);
+    }
+  }
+  
+  // ----------------------------------------------------------------------
+
   private void insertLockIntoModel(final IRNode lockDeclaredInClassDecl,
       final Member memberUsedAsLock, final ModelLock<?, ?> lock) {
     synchronized (membersToLocks) {
       membersToLocks.put(memberUsedAsLock, lock);
     }
-    final Clazz clazz = getClazzFor(JavaTypeFactory.getMyThisType(lockDeclaredInClassDecl));
+    final Clazz clazz = getClazzFor(lockDeclaredInClassDecl);
     clazz.addLock(lock);
   }
   
@@ -551,16 +659,7 @@ public final class AnalysisLockModel {
            */
           final StateLock<?, ?> stateLock = (StateLock<?, ?>) lock;
           if (stateLock.protects(region)) {
-            // XXX: Pretty sure I don't need this here.  Only when we go from MEMBER to possible locks
-            /* If the lock is instance then we need to make sure the lock is
-             * declared in a class that is an ancestor of the one that declares
-             * the region.
-             */
-//            final boolean isStatic = stateLock.isStatic();
-//            final boolean isSubtype = javaType.isSubtype(binder.getTypeEnvironment(), stateLock.getDeclaredInClass());
-//            if (isStatic || isSubtype) {
-              return stateLock;
-//            }
+            return stateLock;
           }
         }
       }
@@ -569,6 +668,10 @@ public final class AnalysisLockModel {
     return null;
   }
 
+  public StateLock<?, ?> getLockForFieldRef(final IRNode fieldRef) {
+    return getLockForRegion(binder.getJavaType(FieldRef.getObject(fieldRef)),
+        RegionModel.getInstance(binder.getBinding(fieldRef)));
+  }
   
   public StateLock<?, ?> getLockForTarget(final IBinder binder, final Target target) {
     return getLockForRegion(target.getRelativeClass(binder), target.getRegion());
@@ -613,28 +716,21 @@ public final class AnalysisLockModel {
 
   // ----------------------------------------------------------------------
 
-  // Convert lock preconditions to needed/held locks
-  
-  private abstract class LockPreconditionProcessor<T> {
+  // Convert lock specification nodes to needed/held locks
+
+  private abstract class LockSpecificationProcessor<T> {
     private final IRNode mdecl;
     private final IRNode source;
     
-    protected LockPreconditionProcessor(final IRNode mdecl, final IRNode source) {
+    
+    
+    protected LockSpecificationProcessor(
+        final IRNode mdecl, final IRNode source) {
       this.mdecl = mdecl;
       this.source = source;
     }
-
-    public final Set<T> processRequiresLock(final RequiresLockPromiseDrop requiresLock) {
-      final ImmutableSet.Builder<T> result = ImmutableSet.builder();
-      for(final LockSpecificationNode ln : requiresLock.getAAST().getLockList()) {
-        final T lock = processLockSpecification(ln);
-        if (lock == null) handleNullLock(ln);
-        else result.add(lock);
-      }
-      return result.build();
-    }
     
-    private final T processLockSpecification(final LockSpecificationNode lockSpec) {
+    protected final T processLockSpecification(final LockSpecificationNode lockSpec) {
       final LockModel lockModel = lockSpec.resolveBinding().getModel();
 
       final AbstractLockDeclarationNode aastNode = lockModel.getAAST();
@@ -642,7 +738,7 @@ public final class AnalysisLockModel {
       final NamedLockImplementation lockImpl = getNamedLockImplementation(
               aastNode.getId(), lockModel.getPromisedFor(), lockField);
       
-      final boolean needsWrite = lockSpec.getType() != LockType.READ_LOCK;
+      final boolean needsWrite = needsWrite(lockSpec);
       
       if (lockModel.isLockStatic()) {
         return createStaticLock(lockImpl, source, needsWrite);
@@ -688,8 +784,9 @@ public final class AnalysisLockModel {
       }
     }
     
-    protected void handleNullLock(final LockSpecificationNode lockNode) {
-      // do nothing
+    protected boolean needsWrite(final LockSpecificationNode lockSpec) {
+      final LockType lockType = lockSpec.getType();
+      return lockType != LockType.READ_LOCK;
     }
     
     protected abstract T createStaticLock(
@@ -700,24 +797,106 @@ public final class AnalysisLockModel {
     
 //    protected abstract T createFieldRefLock(IRNode rcvr, IRNode fdecl, LockModel lock, boolean needsWrite);
   }
+  
+  private final class ReturnsLockProcessorHeldLocks
+  extends LockSpecificationProcessor<HeldLock> {
+    private final Map<IRNode, IRNode> formalsToActuals;
+    private final HeldLockFactory heldLockFactory;
+    private final boolean isWrite;
+    
+    protected ReturnsLockProcessorHeldLocks(
+        final IRNode mdecl, final IRNode source, final boolean isWrite,
+        final HeldLockFactory heldLockFactory,
+        final Map<IRNode, IRNode> formalsToActuals) {
+      super(mdecl, source);
+      this.isWrite = isWrite;
+      this.heldLockFactory = heldLockFactory;
+      this.formalsToActuals = formalsToActuals;
+    }
+    
+    @Override
+    protected boolean needsWrite(final LockSpecificationNode lockSpec) {
+      /* Returns lock annotation cannot name the read or write component
+       * of the lock.  So when we convert a call to a lock method we get this 
+       * based on the lock expression the call is a part of, for example,
+       * "getLock().readLock()" where getLock() has the annotation.  So the
+       * read/write flag is passed into this processor object and used here.
+       */
+      return isWrite;
+    }
+    
+    public HeldLock processReturnedLock(final ReturnsLockPromiseDrop returnsLock) {
+      return processLockSpecification(returnsLock.getAAST().getLock());
+    }
+    
+    @Override
+    protected HeldLock createStaticLock(
+        final LockImplementation lockImpl, final IRNode source, final boolean needsWrite) {
+      // XXX: supporting information drop should be the @RetunrsLock???  Old version doesn't so this so not sure why not
+      return heldLockFactory.createStaticLock(lockImpl, source, needsWrite, null);
+    }
+    
+    @Override
+    protected HeldLock createInstanceLock(
+        final IRNode objectRefExpr, final LockImplementation lockImpl,
+        final IRNode source, final boolean needsWrite) {
+      // XXX: supporting information drop should be the @RetunrsLock???  Old version doesn't so this so not sure why not
+      return heldLockFactory.createInstanceLock(
+          formalsToActuals.get(objectRefExpr), lockImpl, source, needsWrite, null);
+    }
+  }
+  
+  private abstract class LockPreconditionProcessor<T> 
+  extends LockSpecificationProcessor<T> {
+    protected LockPreconditionProcessor(
+        final IRNode mdecl, final IRNode source) {
+      super(mdecl, source);
+    }
+
+    // Builders may be aliased to each other if only one set is being created
+    public final void processRequiresLock(final RequiresLockPromiseDrop requiresLock) {
+      for(final LockSpecificationNode ln : requiresLock.getAAST().getLockList()) {
+        final T lock = processLockSpecification(ln);
+        if (lock == null) {
+          handleNullRequiredLock(ln);
+        } else {
+          addRequiredLock(lock);
+        }
+      }
+    }
+    
+    protected void handleNullRequiredLock(final LockSpecificationNode lockNode) {
+      // do nothing
+    }
+    
+    protected abstract void addRequiredLock(T lock);
+  }
 
   private final class PreconditionProcessorNeededLocks
   extends LockPreconditionProcessor<NeededLock> {
-    final Set<LockSpecificationNode> badLocks;
-    final Map<IRNode, IRNode> formalToActualMap;
+    private final Set<LockSpecificationNode> badLocks;
+    private final Map<IRNode, IRNode> formalToActualMap;
+    private final ImmutableSet.Builder<NeededLock> builder;
     
     public PreconditionProcessorNeededLocks(
         final Set<LockSpecificationNode> badLocks,
-        final IRNode mdecl, final IRNode source, 
+        final IRNode mdecl, final IRNode source,
+        final ImmutableSet.Builder<NeededLock> builder,
         final Map<IRNode, IRNode> formalToActualMap) {
       super(mdecl, source);
       this.badLocks = badLocks;
       this.formalToActualMap = formalToActualMap;
+      this.builder = builder;
     }
     
     @Override
-    protected void handleNullLock(final LockSpecificationNode lockNode) {
+    protected void handleNullRequiredLock(final LockSpecificationNode lockNode) {
       badLocks.add(lockNode);
+    }
+    
+    @Override
+    protected void addRequiredLock(final NeededLock lock) {
+      builder.add(lock);
     }
     
     @Override
@@ -736,25 +915,42 @@ public final class AnalysisLockModel {
 
   private final class PreconditionProcessorHeldLocks
   extends LockPreconditionProcessor<HeldLock> {
+    private final HeldLockFactory heldLockFactory;
     private final PromiseDrop<?> supportingDrop;
+    private final ImmutableSet.Builder<HeldLock> intrinsicBuilder;
+    private final ImmutableSet.Builder<HeldLock> jucBuilder;
     
     public PreconditionProcessorHeldLocks(
-        final IRNode mdecl, final IRNode source, final PromiseDrop<?> supportingDrop) {
+        final IRNode mdecl, final IRNode source,
+        final ImmutableSet.Builder<HeldLock> intrinsicBuilder,
+        final ImmutableSet.Builder<HeldLock> jucBuilder,
+        final HeldLockFactory heldLockFactory,
+        final PromiseDrop<?> supportingDrop) {
       super(mdecl, source);
+      this.heldLockFactory = heldLockFactory;
       this.supportingDrop = supportingDrop;
+      this.intrinsicBuilder = intrinsicBuilder;
+      this.jucBuilder = jucBuilder;
     }
     
     @Override
-    protected HeldStaticLock createStaticLock(
+    protected void addRequiredLock(final HeldLock lock) {
+      (lock.isIntrinsic(binder) ? intrinsicBuilder : jucBuilder).add(lock);
+    }
+    
+    @Override
+    protected HeldLock createStaticLock(
         final LockImplementation lockImpl, final IRNode source, boolean needsWrite) {
-      return new HeldStaticLock(lockImpl, source, needsWrite, supportingDrop);
+      return heldLockFactory.createStaticLock(
+          lockImpl, source, needsWrite, supportingDrop);
     }
     
     @Override
-    protected HeldInstanceLock createInstanceLock(
+    protected HeldLock createInstanceLock(
         final IRNode objectRefExpr, final LockImplementation lockImpl,
         final IRNode source, final boolean needsWrite) {
-      return new HeldInstanceLock(objectRefExpr, lockImpl, source, needsWrite, supportingDrop);
+      return heldLockFactory.createInstanceLock(
+          objectRefExpr, lockImpl, source, needsWrite, supportingDrop);
     }
   }
   
@@ -765,20 +961,128 @@ public final class AnalysisLockModel {
       final RequiresLockPromiseDrop requiresLock, final IRNode mcall, 
       final Map<IRNode, IRNode> formalToActualMap,
       final Set<LockSpecificationNode> badLocks) {
-    final PreconditionProcessorNeededLocks p = 
-        new PreconditionProcessorNeededLocks(badLocks,
-            binder.getBinding(mcall), mcall, formalToActualMap);
-    return p.processRequiresLock(requiresLock);
+    if (requiresLock != null) {
+      final ImmutableSet.Builder<NeededLock> builder = ImmutableSet.builder();
+      final PreconditionProcessorNeededLocks p = 
+          new PreconditionProcessorNeededLocks(badLocks,
+              binder.getBinding(mcall), mcall, builder, formalToActualMap);
+      p.processRequiresLock(requiresLock);
+      return builder.build();
+    } else {
+      return ImmutableSet.of();
+    }
   }
   
   /**
    * Given a method, what are the locks assumed to be held inside the method.
    */
-  public Set<HeldLock> getHeldLocksFromRequiresLock(
-      final RequiresLockPromiseDrop requiresLock,
-      final IRNode mdecl, final PromiseDrop<?> supportingDrop) {
-    final PreconditionProcessorHeldLocks p =
-        new PreconditionProcessorHeldLocks(mdecl, mdecl, supportingDrop);
-    return p.processRequiresLock(requiresLock);
+  public void getHeldLocksFromRequiresLock(
+      final RequiresLockPromiseDrop requiresLock, final IRNode mdecl,
+      final ImmutableSet.Builder<HeldLock> intrinsicBuilder,
+      final ImmutableSet.Builder<HeldLock> jucBuilder,
+      final HeldLockFactory heldLockFactory) {
+    if (requiresLock != null) {
+      final PreconditionProcessorHeldLocks p = new PreconditionProcessorHeldLocks(
+              mdecl, mdecl, intrinsicBuilder, jucBuilder, heldLockFactory, requiresLock);
+      p.processRequiresLock(requiresLock);
+    }
   }
+  
+  /**
+   * Get all the locks assumed to be held by a constructor if it is single-threaded. 
+   * Assumes that it has already been determined if the constructor can be
+   * treated as single-threaded.
+   */
+  public void getHeldLocksFromSingleThreadedConstructor(
+      final IRNode cdecl,
+      final ImmutableSet.Builder<HeldLock> intrinsicBuilder,
+      final ImmutableSet.Builder<HeldLock> jucBuilder,
+      final HeldLockFactory heldLockFactory) {
+    final IRNode classDecl = VisitUtil.getEnclosingType(cdecl);
+    final Clazz clazz = getClazzFor(classDecl);
+    final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(cdecl);
+    /*
+     * Go through all the STATE locks in the class and pick out all the locks that
+     * protect instance regions. Caveat: We exclude the lock MUTEX for Object
+     * because we do not want to be able to verify wait() and notify() calls as
+     * result of the @synchronized annotation.
+     */
+    for (final StateLock<?, ?> lock : clazz.getAllStateLocksInClass()) {
+      if (!lock.isStatic()) { // Don't want static locks
+        // check if "MUTEX"
+        final LockImplementation lockImpl = lock.getImplementation();
+        if (!(lockImpl instanceof NamedLockImplementation) ||
+            ((NamedLockImplementation) lockImpl).getName().equals(MUTEX_NAME)) {
+          final HeldLock heldLock = heldLockFactory.createInstanceLock(
+              rcvr, lockImpl, cdecl, true, null);
+          (lock.isIntrinsic(binder) ? intrinsicBuilder : jucBuilder).add(heldLock);
+        }
+      }
+    }
+  }
+  
+  /**
+   * Get all the locks assumed to be held by a synchronized method.
+   * Only intrinsic locks can be acquired this way.  Checks whether the method
+   * is synchronized or not; contrast with {@link #getHeldLocksFromSingleThreadedConstructor)}.
+   */
+  public void getHeldLocksFromSynchronizedMethod(
+      final IRNode mdecl,
+      final ImmutableSet.Builder<HeldLock> intrinsicBuilder,
+      final HeldLockFactory heldLockFactory) {
+    // Is the method even synchronized?
+    if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
+      final IRNode classDecl = VisitUtil.getEnclosingType(mdecl);
+      if (TypeUtil.isStatic(mdecl)) {
+        for (final ModelLock<?, ?> lock : getLocksImplemetedByClass(classDecl)) {
+          intrinsicBuilder.add(heldLockFactory.createStaticLock(
+              lock.getImplementation(), mdecl, true, null));
+        }
+      } else {
+        for (final ModelLock<?, ?> lock : getLocksImplementedByThis(
+            JavaTypeFactory.getMyThisType(classDecl))) {
+          intrinsicBuilder.add(heldLockFactory.createInstanceLock(
+              JavaPromise.getReceiverNodeOrNull(mdecl), lock.getImplementation(), mdecl, true, null));
+        }
+      }
+    }
+  }
+      
+  /**
+   * Get all the locks held by a class initialization block.  These are all
+   * the static state locks declared in the class.
+   */
+  public void getHeldLocksFromClassInitialization(
+      final IRNode classInitDecl,
+      final ImmutableSet.Builder<HeldLock> intrinsicBuilder,
+      final ImmutableSet.Builder<HeldLock> jucBuilder,
+      final HeldLockFactory heldLockFactory) {
+    final Clazz clazz = getClazzFor(JavaPromise.getPromisedFor(classInitDecl));
+    for (final StateLock<?, ?> lock : clazz.getAllStateLocksInClass()) {
+      if (lock.isStatic()) { // Only want static locks
+        final HeldLock heldLock = heldLockFactory.createStaticLock(
+            lock.getImplementation(), classInitDecl, true, null);
+        (lock.isIntrinsic(binder) ? intrinsicBuilder : jucBuilder).add(heldLock);
+      }
+    }
+  }    
+  
+  /**
+   * Get the lock returned by a method with a ReturnsLock annotation as a 
+   * HeldLock.
+   */
+  public HeldLock getHeldLockFromReturnsLock(
+      final ReturnsLockPromiseDrop returnsLock, final IRNode methodDecl,
+      final boolean mustBeWrite,
+      final IRNode source, final Map<IRNode, IRNode> formalsToActuals,
+      final HeldLockFactory heldLockFactory) {
+    if (returnsLock == null) {
+      return null;
+    } else {
+      final ReturnsLockProcessorHeldLocks p = new ReturnsLockProcessorHeldLocks(
+          methodDecl, source, mustBeWrite, heldLockFactory, formalsToActuals);
+      return p.processReturnedLock(returnsLock);
+    }
+  }
+      
 }

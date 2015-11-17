@@ -5,7 +5,8 @@ import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 
 public interface IMetricDrop extends IDrop, ISnapshotDrop {
-
+  boolean INCLUDE_IN_DIFF = false;
+	  
   /**
    * The metrics supported by JSure.
    * <p>

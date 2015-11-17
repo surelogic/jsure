@@ -44,6 +44,11 @@ public final class MetricDrop extends Drop implements IMetricDrop {
   public final DropType getDropType() {
 	return DropType.METRIC;
   }
+
+  @Override
+  public final boolean includeInDiff() {
+	return INCLUDE_IN_DIFF;
+  }
   
   /**
    * Flags if this result indicates consistency with code.

@@ -424,8 +424,8 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       return info;
     }
 
-	void clearUnassociatedRefs() {
-	  refs.clearUnassociatedRefs();
+	void clearRefs() {
+	  refs.clearRefs();
 	}
 
 	void addUnassociatedRefs(Iterable<String> qnames) {
@@ -462,7 +462,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
 
       parser.addUnassociatedRefs(qnames.get(jp.getName()));
       handleReferences(parser, temp);
-      parser.clearUnassociatedRefs();
+      parser.clearRefs();
       results.addAll(temp);
     }
     updateTypeEnvs(results);
@@ -480,9 +480,11 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       for (JavacProject jp : projects) {
         int changed = 0;
         for (CodeInfo info : results) {
+          /*
           if (info.getFileName().endsWith("-info.java")) {
             System.out.println("Updating " + info.getFileName());
           }
+          */
           if (jp.getTypeEnv().addCompUnit(info, false)) {
             changed++;
           }
@@ -844,7 +846,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
     for (CodeInfo info : newCUs) {
       boolean changed = jp.getTypeEnv().addCompUnit(info, true);
       if (changed) {
-    	System.out.println("Importing " + info.getFileName() + " to " + jp.getName());
+    	System.out.println("Importing " + info.getFile().getRelativePath() + " to " + jp.getName());
       }
     }
     return newCUs;
@@ -1037,8 +1039,8 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       }
     }
 
-    void clearUnassociatedRefs() {
-      Set<String> refs = ensureInitUnassociated();	
+    void clearRefs() {
+      //Set<String> refs = ensureInitUnassociated();	
       refs.clear();
 	}
     
@@ -1345,6 +1347,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
 
   private void checkReferences(final List<CodeInfo> results, final String proj) throws IOException {
     final BatchParser parser = parsers.get(proj);
+    parser.clearRefs();
     handleReferences(parser, results);
   }
 

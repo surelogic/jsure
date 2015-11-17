@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javafx.collections" release="1">
+    <class name="ObservableListBase">
+        <Containable implementationOnly="true"/>
+        <Immutable implementationOnly="true"/>
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+    </class>
+</package>

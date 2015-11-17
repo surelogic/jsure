@@ -2156,7 +2156,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IRNode args = call.get_Args(node);
       IRNode targs = call.get_TypeArgs(node);
       final String name = MethodCall.getMethod(node);
-           
+      /*
       if (name.equals("getClass") && "<implicit>.getClass".equals(DebugUnparser.toString(node))) {
     	  IRNode parent = JJNode.tree.getParentOrNull(node);
     	  String unparse = DebugUnparser.toString(parent);
@@ -2164,7 +2164,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     		  System.out.println("Trying to bind "+DebugUnparser.toString(node));
     	  }
       }
-      
+      */
       final IJavaType recType = computeReceiverType(receiver);
       final IJavaScope toUse = computeScope(recType);
       if (toUse != null) {

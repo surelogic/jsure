@@ -269,6 +269,8 @@ public class VisitUtil implements JavaGlobals {
       return EnumConstantClassDeclaration.getBody(tree, decl);
     } else if (ArrayDeclaration.prototype.includes(op)) {
       return null;
+    } else if (LambdaExpression.prototype.includes(op)) {
+      return null;
     }
     throw new FluidError("Getting a class body on a " + op.name() + ": " + DebugUnparser.toString(decl));
   }

@@ -153,9 +153,11 @@ public class LockAnalysis
 		
 		// Run through the LockModel and add them to the GlobalLockModel
     for (LockModel lockDrop : Sea.getDefault().getDropsOfType(LockModel.class)) {
+			/*
 			if (lockDrop.getMessage().contains("MUTEX")) {
 				System.err.println("Looking at @"+lockDrop.getMessage());
 			}
+			*/
 			final IRNode classDecl = lockDrop.getNode();
 
 			if (classDecl == null) {
