@@ -835,6 +835,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     }
   }
 
+  private static final Selector isSpecialTypeDecl = new IJavaScope.AbstractSelector("special type decl") {
+	  @Override
+	  public boolean select(IRNode node) {
+		  Operator op = JJNode.tree.getOperator(node);
+		  return op instanceof TypeDeclInterface;
+	  }
+  };
+  
   /**
    * The actual work of binding and maintaining scopes. This code has extra
    * machinery in it to handle granules and incrementality.
@@ -2517,6 +2525,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     }
 
     @Override
+    public Void visitNamedSuperExpression(IRNode node) {
+      doAcceptForChildren(node);
+      // super is bound to the same thing as this
+      visitThisExpression(node);
+      return null;
+    }
+    
+    @Override
     public Void visitNameExpression(IRNode node) {
       if (isFullPass) {
         visit(node); // don't visit names in expressions yet.
@@ -3041,7 +3057,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       return null;
     }
-
+    
+    @Override
+    public Void visitSpecialTypeRef(IRNode node) {
+      return handleTypeRef(node, isSpecialTypeDecl);
+    }
+    
     @Override
     public Void visitStaticDemandName(IRNode node) {
       visit(node);
@@ -3159,6 +3180,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 
     @Override
     public Void visitTypeRef(IRNode node) {
+      return handleTypeRef(node, IJavaScope.Util.isTypeDecl);
+    }
+    
+    private Void handleTypeRef(final IRNode node, final Selector s) {
       if (isFullPass) {
         return null;
       }
@@ -3169,9 +3194,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       if (baseB != null) {
         IRNode baseDecl = baseB.getNode();
         IJavaScope tScope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(baseDecl));
-        boolean success = bind(node, tScope, IJavaScope.Util.isTypeDecl);
+        boolean success = bind(node, tScope, s);
         if (!success) {
-          bind(node, tScope, IJavaScope.Util.isTypeDecl);
+          bind(node, tScope, s);
         }
       } else {
         if (AbstractJavaBinder.isBinary(node)) {

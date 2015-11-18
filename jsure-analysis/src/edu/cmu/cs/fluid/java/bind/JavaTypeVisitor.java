@@ -584,6 +584,14 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitNamedSuperExpression(IRNode node) {
+    //IJavaSourceRefType dt = JavaTypeFactory.getThisType(node);
+    //return dt.getSuperclass(binder.getTypeEnvironment());
+	IRNode type = NamedSuperExpression.getType( node );
+	return doAccept( type );
+  }
+  
+  @Override
   public IJavaType visitNamedType(IRNode node) {
     /*
 	if (DebugUnparser.toString(node).contains("Context")) {

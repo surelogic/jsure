@@ -1,0 +1,28 @@
+/** 
+ * Similar in syntax to QualifiedSuperExpression, but with semantics closer to SuperExpression
+ * Used to resolve conflicts between default methods from interfaces
+ */
+public operator NamedSuperExpression extends SuperExpression
+    implements edu.cmu.cs.fluid.java.bind.IHasBinding
+{
+  syntax { type:ClassType <> "." <> "super" }
+  
+  public Operator getResultOp() {
+    return ReceiverDeclaration.prototype;
+  }
+  
+  /** Create the control-flow graph component for a qualified super 
+   * (e.g. <classname>.super).
+   *
+   *<p>
+   * This code is basically the same as QualifiedThisExpression.
+   * Please fix both or neither
+   */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlNode n = new ComponentFlow(comp,null);
+    ControlEdge.connect(comp.getEntryPort(),n);
+    ControlEdge.connect(n,comp.getNormalExitPort());
+    return comp;
+  }  
+}

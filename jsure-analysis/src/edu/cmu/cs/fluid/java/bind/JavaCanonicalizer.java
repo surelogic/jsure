@@ -69,6 +69,7 @@ import edu.cmu.cs.fluid.java.operator.IllegalCode;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.IntType;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
@@ -76,6 +77,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodReference;
 import edu.cmu.cs.fluid.java.operator.NameExpression;
 import edu.cmu.cs.fluid.java.operator.NameType;
+import edu.cmu.cs.fluid.java.operator.NamedSuperExpression;
 import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.NestedAnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
@@ -92,11 +94,13 @@ import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedName;
+import edu.cmu.cs.fluid.java.operator.QualifiedSuperExpression;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SimpleName;
 import edu.cmu.cs.fluid.java.operator.SingleElementAnnotation;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.java.operator.SpecialTypeRef;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
@@ -475,10 +479,11 @@ public class JavaCanonicalizer {
      *          required type of this expression
      * @param to
      * 			A binding that we're creating a receiver for
+     * @param qualifyThisE if true, create QualifiedThisExpressions instead of ThisExpression
      * @return new node for ThisExpression or QualifiedThisExpression or
      *         TypeExpression (if static)
      */
-    protected IRNode createThisExpression(IRNode context, IJavaDeclaredType type, IRNode to) {
+    protected IRNode createThisExpression(IRNode context, IJavaDeclaredType type, IRNode to, boolean qualifyThisE) {
       boolean isStatic = to == null ? isStatic(context, VisitUtil.getEnclosingClassBodyDecl(context)) : isStatic(to, to);
       if (isStatic) {
         if (tEnv.findNamedType(type.getName()) == null) {
@@ -498,6 +503,11 @@ public class JavaCanonicalizer {
         if (/* AnonClassExpression.prototype.includes(op) || */EnumConstantClassDeclaration.prototype.includes(op)) {
           // Even though it's a static field, these local types can only have
           // instance methods
+          if (qualifyThisE) {
+        	// TODO is this right?
+        	IRNode nt = CogenUtil.createNamedType(type.getDeclaration());
+        	return QualifiedThisExpression.createNode(nt);        	
+          }
           return ThisExpression.prototype.createNode();
         }
         IRNode nt = CogenUtil.createNamedType(type.getDeclaration());
@@ -507,7 +517,12 @@ public class JavaCanonicalizer {
       IRNode thisClass = VisitUtil.getEnclosingType(context);
       IJavaType thisClassType = JavaTypeFactory.getMyThisType(thisClass, true, false);
       if (tEnv.isRawSubType(thisClassType, type)) {
-        return ThisExpression.prototype.createNode();
+    	if (qualifyThisE) {
+    	  IJavaDeclaredType dt = (IJavaDeclaredType) thisClassType;
+    	  IRNode nt = CogenUtil.createNamedType(dt.getDeclaration());
+          return QualifiedThisExpression.createNode(nt);
+    	} 
+    	return ThisExpression.prototype.createNode();
       }
       IRNode qThis = thisClass;
       for (;;) {
@@ -555,7 +570,7 @@ public class JavaCanonicalizer {
         return false;
       }
       IJavaNestedType calleeNested = ((IJavaNestedType) calleeThis);
-      IRNode thisNode = createThisExpression(call, calleeNested.getOuterType(), null); // FIX
+      IRNode thisNode = createThisExpression(call, calleeNested.getOuterType(), null, false); // FIX
       if (pop instanceof AnonClassExpression) {
         call = p;
       }
@@ -570,11 +585,18 @@ public class JavaCanonicalizer {
       return true;
     }
 
+    /**
+     * @param from The context that the reference is in
+     * @param to The binding that the reference is to
+     * @return the appropriate receiver node to use
+     */
     protected IRNode getImplicitSource(IRNode from, IRNode to) {
       IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory.getThisType(to);
-      IRNode thisExpr = createThisExpression(from, type, to);
+      IRNode typeEnclosingLambda = findTypeEnclosingLambda(from);
+      IRNode thisExpr = createThisExpression(from, type, to, typeEnclosingLambda != null);
+      //thisExpr = createQualifiedThisE(from, typeEnclosingLambda);
       if (thisExpr == null) {
-        createThisExpression(from, type, to);
+        createThisExpression(from, type, to, typeEnclosingLambda != null);
       } else {
         JavaNode.setImplicit(thisExpr);
       }
@@ -681,6 +703,7 @@ public class JavaCanonicalizer {
       IRNode result = null;
       try {
         if (op instanceof AnonClassExpression) {
+          /*
           // Use base type
           IRNode base = AnonClassExpression.getType(tdecl);
           if (ParameterizedType.prototype.includes(base)) {
@@ -688,10 +711,12 @@ public class JavaCanonicalizer {
           }
           // FIX no bindings for subnodes
           return result = JJNode.copyTree(base);
+          */
+          // Use the internal name of the ACE
         }
         String name = JJNode.getInfo(tdecl);
-        if (op instanceof NestedTypeDeclInterface || op instanceof NestedEnumDeclaration
-            || op instanceof NestedAnnotationDeclaration) {
+        if (op instanceof NestedTypeDeclInterface || op instanceof NestedEnumDeclaration ||
+        	op instanceof EnumConstantClassDeclaration || op instanceof NestedAnnotationDeclaration) {
           // Check if a local class
           IRNode enclosing = VisitUtil.getEnclosingClassBodyDecl(tdecl);
           if (enclosing != null
@@ -730,6 +755,9 @@ public class JavaCanonicalizer {
         	*/
         	final boolean needsTypeParams = isNonstaticNestedClass(tdecl) && (nameNode == null || JavaTypeFactory.isRelatedTo(tEnv, nameNode, tdecl));
             baseType = createDeclaredType(enclosingT, needsTypeParams ? TypeParamHandling.KEEP : TypeParamHandling.DISCARD);
+          }
+          if (op instanceof EnumConstantClassDeclaration) {
+        	return result = SpecialTypeRef.createNode(baseType, name);
           }
           return result = TypeRef.createNode(baseType, name);
         }
@@ -1677,6 +1705,27 @@ public class JavaCanonicalizer {
     }
     
     @Override
+    public Boolean visitQualifiedSuperExpression(IRNode node) {      
+      IRNode type = QualifiedSuperExpression.getType(node);
+      IBinding b = binder.getIBinding(type);
+      boolean changed = doAccept(type);
+      
+      // Check if it's being used to select a default method to use
+      if (InterfaceDeclaration.prototype.includes(b.getNode())) {
+    	  if (changed) {
+    		  // In case it got changed
+    		  type = QualifiedSuperExpression.getType(node);
+    	  }
+    	  JJNode.tree.removeSubtree(type);
+    	  
+    	  IRNode nst = NamedSuperExpression.createNode(type);
+    	  JJNode.tree.replaceSubtree(node, nst);
+    	  changed = true;
+      }
+      return changed;
+    }
+    
+    @Override
     public Boolean visitStringConcat(IRNode node) {
       IRNode op1 = StringConcat.getOp1(node);
       IJavaType t1 = binder.getJavaType(op1);
@@ -1712,27 +1761,43 @@ public class JavaCanonicalizer {
 
     @Override
     public Boolean visitThisExpression(final IRNode node) {
-      final IRNode enclosing = VisitUtil.getEnclosingType(node);
-      IRNode type = enclosing;
-      // Look for the first enclosing type that's not a lambda
-      while (LambdaExpression.prototype.includes(type)) {
-    	  type = VisitUtil.getEnclosingType(type);
-      }
-      if (type != enclosing) {
-    	  //System.out.println("Looking at "+DebugUnparser.toString(JJNode.tree.getParentOrNull(node)));
-    	  /* 
-    	   * This will just create another ThisExpression
-    	   *     	   
-    	  IJavaDeclaredType dt = (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(type);
-    	  IRNode replacement = createThisExpression(node, dt, null);
-    	  */
-    	  IRNode nt = createNamedType(node, IBinding.Util.makeBinding(type));
-    	  IRNode qte = QualifiedThisExpression.createNode(nt);
+      final IRNode type = findTypeEnclosingLambda(node);
+      if (type != null) {
+    	  IRNode qte = createQualifiedThisE(node, type);
     	  JJNode.tree.replaceSubtree(node, qte);
     	  //System.out.println("Created "+DebugUnparser.toString(qte));
     	  return Boolean.TRUE;
       }
       return Boolean.FALSE;
+    }
+    
+    /**
+     * @return the type that 'this' would refer to if node is within a lambda, and null otherwise
+     */
+    private IRNode findTypeEnclosingLambda(final IRNode node) {
+      final IRNode enclosing = VisitUtil.getEnclosingType(node);
+      IRNode type = enclosing;
+      // Look for the first enclosing type that's not a lambda
+      while (LambdaExpression.prototype.includes(type)) {
+    	type = VisitUtil.getEnclosingType(type);
+      }
+      if (type != enclosing) {
+    	return type;
+      }
+      return null;
+    }
+    
+    private IRNode createQualifiedThisE(IRNode context, IRNode type) {
+  	  //System.out.println("Looking at "+DebugUnparser.toString(JJNode.tree.getParentOrNull(node)));
+  	  /* 
+  	   * This will just create another ThisExpression
+  	   *     	   
+  	  IJavaDeclaredType dt = (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(type);
+  	  IRNode replacement = createThisExpression(node, dt, null);
+  	  */
+  	  IRNode nt = createNamedType(context, IBinding.Util.makeBinding(type));
+  	  IRNode qte = QualifiedThisExpression.createNode(nt);
+  	  return qte;
     }
     
     @Override
