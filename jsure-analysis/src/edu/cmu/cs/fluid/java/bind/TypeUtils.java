@@ -1898,11 +1898,19 @@ public class TypeUtils {
     	if (loc.equals(AssignExpression.op2Location)) {
     		return tEnv.getBinder().getJavaType(OpAssignExpression.getOp1(p));
     	}
+    } else if (LambdaExpression.prototype.includes(op)) {
+    	// Has to be return value?
+    	IJavaType lambdaType = getPolyExpressionTargetType(p, eliminateTypeVars);
+    	IJavaFunctionType ft = tEnv.isFunctionalType(lambdaType);
+    	if (ft == null) {
+    		tEnv.isFunctionalType(lambdaType);
+    	}
+    	return ft.getReturnType();
     }
     
     // We make wish to make this a "fine" warning if all method call invocations
     // are treated as something that could learn from the target type.
-    // LOG.warning("poly expression has bad context: " + op);
+    SLLogger.getLogger().warning("poly expression "+DebugUnparser.toString(pe)+" has bad context: " + op);
     return null;
   }
 
