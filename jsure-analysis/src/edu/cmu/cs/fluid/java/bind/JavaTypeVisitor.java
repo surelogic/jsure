@@ -828,7 +828,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	    	IJavaTypeSubstitution subst = JavaTypeSubstitution.create(binder.getTypeEnvironment(), targetType);
 	    	IJavaFunctionType ftype = binder.getTypeEnvironment().isFunctionalType(targetType);
 	    	if (ftype == null) {
-	    	  throw new IllegalStateException("No function type for "+DebugUnparser.toString(node)); 
+	    	  binder.getTypeEnvironment().isFunctionalType(targetType);
+	    	  throw new IllegalStateException("No function type for "+DebugUnparser.toString(node)+" : "+targetType); 
 	    	}
 	    	// TODO must have a receiver?
 	    	IJavaType type = ftype.getParameterTypes().get(pIndex);
