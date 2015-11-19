@@ -88,6 +88,12 @@ public final class LockUtils {
   public static final String LOCK = CommonStrings.intern("lock");
 
   /**
+   * The name of the {@code lock} method of
+   * {@code java.util.concurrent.locks.Lock}.
+   */
+  public static final String TRYLOCK = CommonStrings.intern("tryLock");
+
+  /**
    * The name of the {@code lockInterruptibly} method of
    * {@code java.util.concurrent.locks.Lock}.
    */
@@ -164,20 +170,32 @@ public final class LockUtils {
         thisExprBinder.getTypeEnvironment().findNamedType(
             JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK), thisExprBinder);
   }
+  
+  
+  
+  // ========================================================================
+  // == Tests
+  // ========================================================================
 
+  /**
+   * Is the method declared to return a lock?
+   */
+  public boolean isLockGetterMethod(final IRNode mcall) {
+    final IRNode mdecl = thisExprBinder.getBinding(mcall);
+    final IRNode returnNode = JavaPromise.getReturnNodeOrNull(mdecl);
+    if (returnNode == null) {
+      return false;
+    } else {
+      return LockRules.getReturnsLock(returnNode) != null;
+    }
+  }
+  
   
   
   // ========================================================================
   // == Test for use of java.util.concurrent
   // ========================================================================
 
-//  public boolean isJUCRWMethod(final IRNode mcall) {
-//    final ReadWriteLockMethods rwLockMethod = 
-//      this.whichReadWriteLockMethod(mcall);
-//    return rwLockMethod == ReadWriteLockMethods.READLOCK
-//        || rwLockMethod == ReadWriteLockMethods.WRITELOCK;
-//  }
-  
   private boolean isMethodFrom(final IRNode mcall, final IJavaType testType) {
 	  IBinding b = thisExprBinder.getIBinding(mcall);
 	  if (b == null) {
@@ -192,6 +210,30 @@ public final class LockUtils {
 	  return thisExprBinder.getTypeEnvironment().isRawSubType(context, testType);
   }
   
+  public enum LockMethods {
+    LOCK,
+    LOCKINTERRUPTIBLY,
+    TRYLOCK,
+    UNLOCK,
+    NOT_A_LOCK_METHOD,
+    IDENTICALLY_NAMED_METHOD; 
+    
+    public static LockMethods whichLockMethod(final String mname) {
+      final String internedName = CommonStrings.intern(mname);
+      if (internedName == LockUtils.LOCK) {
+        return LockMethods.LOCK;
+      } else if (internedName == LockUtils.LOCKINTERRUPTIBLY) {
+        return LockMethods.LOCKINTERRUPTIBLY;
+      } else if (internedName == LockUtils.TRYLOCK) {
+        return LockMethods.TRYLOCK;
+      } else if (internedName == LockUtils.UNLOCK) {
+        return LockMethods.UNLOCK;
+      } else {
+        return LockMethods.NOT_A_LOCK_METHOD;
+      }
+    }
+  }
+
   /**
    * Test if the given method call node calls a method declared in 
    * interface {@code java.util.concurrent.locks.Lock}.
@@ -200,6 +242,15 @@ public final class LockUtils {
     final String internedName = CommonStrings.intern(MethodCall.getMethod(mcall));
     return (internedName == LOCK || internedName == UNLOCK || internedName == LOCKINTERRUPTIBLY) &&
         isMethodFrom(mcall, lockType);
+  }
+  
+  public LockMethods whichLockMethod(final IRNode mcall) {
+    final LockMethods which = LockMethods.whichLockMethod(MethodCall.getMethod(mcall));
+    if (isMethodFrom(mcall, lockType)) {
+      return which;
+    } else {
+      return which == LockMethods.NOT_A_LOCK_METHOD ? which : LockMethods.IDENTICALLY_NAMED_METHOD; 
+    }
   }
   
   public enum ReadWriteLockMethods {

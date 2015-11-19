@@ -1,8 +1,10 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
@@ -23,6 +25,45 @@ public final class BogusLock implements HeldLock {
   
   public BogusLock(final IRNode lockExpr) {
     this.lockExpr = lockExpr;
+  }
+  
+
+  @Override
+  public int hashCode() {
+    int result = 17;
+    result += 31 * lockExpr.hashCode();
+    return result;
+  }
+  
+  @Override
+  public boolean equals(final Object other) {
+    if (other == this) { 
+      return true;
+    } else if (other instanceof BogusLock) {
+      final BogusLock o = (BogusLock) other;
+      return this.lockExpr.equals(o.lockExpr);
+    } else {
+      return false;
+    }
+  }
+  
+  @Override
+  public String toString() {
+    return "<" + DebugUnparser.toString(lockExpr) + ">";
+  }
+
+  /**
+   * Check that the same lock is used, and then use syntactic equality of the
+   * object expressions.
+   */
+  @Override
+  public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb) {
+    if (lock instanceof BogusLock) {
+      final BogusLock o = (BogusLock) lock;
+      return SyntacticEquality.checkSyntacticEquality(lockExpr, o.lockExpr, teb);
+    } else {
+      return false;
+    }
   }
 
   @Override

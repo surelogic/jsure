@@ -95,7 +95,7 @@ abstract class AbstractILock implements ILock {
   /**
    * Used to implement hashCode() and equals()
    */
-  public Object getUniqueIdentifier() {
+  public final Object getUniqueIdentifier() {
     return lockPromise;
   }
   

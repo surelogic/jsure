@@ -1,5 +1,6 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -16,9 +17,25 @@ public final class HeldInstanceLock extends AbstractHeldLock {
     this.objectRefExpr = objectRefExpr;
   }
 
+  /**
+   * Check that the same lock is used, and then use syntactic equality of the
+   * object expressions.
+   */
+  @Override
+  public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb) {
+    if (lock instanceof HeldInstanceLock) {
+      final HeldInstanceLock o = (HeldInstanceLock) lock;
+      return (holdsWrite == o.holdsWrite) && lockImpl.equals(o.lockImpl) &&
+          SyntacticEquality.checkSyntacticEquality(objectRefExpr, o.objectRefExpr, teb);
+    } else {
+      return false;
+    }
+  }
+
   @Override
   public int hashCode() {
     int result = 17;
+    result += (holdsWrite ? 1 : 0);
     result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
     result += 31 * objectRefExpr.hashCode();
@@ -32,7 +49,8 @@ public final class HeldInstanceLock extends AbstractHeldLock {
       return true;
     } else if (other instanceof HeldInstanceLock) {
       final HeldInstanceLock o = (HeldInstanceLock) other;
-      return this.lockImpl.equals(o.lockImpl) && 
+      return this.holdsWrite == o.holdsWrite &&
+          this.lockImpl.equals(o.lockImpl) && 
           this.objectRefExpr.equals(o.objectRefExpr) &&
           this.source.equals(o.source) &&
           (this.supportingDrop == null ? o.supportingDrop == null : this.supportingDrop.equals(o.supportingDrop));

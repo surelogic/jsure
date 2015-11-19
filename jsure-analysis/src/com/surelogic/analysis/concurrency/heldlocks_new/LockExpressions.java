@@ -1,6 +1,5 @@
 package com.surelogic.analysis.concurrency.heldlocks_new;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -296,18 +295,18 @@ final class LockExpressions {
    * Get the map of lock expressions to JUC locks.
    */
   public Map<IRNode, Set<HeldLock>> getJUCLockExprsToLockSets() {
-    return Collections.unmodifiableMap(jucLockExprsToLockSets);
+    return jucLockExprsToLockSets;
   }
   
   public Map<IRNode, Set<HeldLock>> getSyncBlocks() {
-    return Collections.unmodifiableMap(syncBlocks);
+    return syncBlocks;
   }
   
   /**
    * Get the JUC locks that appear in lock preconditions.
    */
   public Set<HeldLock> getJUCRequiredLocks() {
-    return Collections.unmodifiableSet(jucRequiredLocks);
+    return jucRequiredLocks;
   }
   
   /**
@@ -315,7 +314,7 @@ final class LockExpressions {
    * flow unit.
    */
   public Set<HeldLock> getIntrinsicAssumedLocks() {
-    return Collections.unmodifiableSet(intrinsicAssumedLocks);
+    return intrinsicAssumedLocks;
   }
   
   /**
@@ -329,14 +328,14 @@ final class LockExpressions {
    * Get the JUC locks that are held because of being a singleThreaded constructor
    */
   public Set<HeldLock> getJUCSingleThreaded() {
-    return Collections.unmodifiableSet(jucSingleThreaded);
+    return jucSingleThreaded;
   }
   
   /**
    * Get the JUC locks that are held because we are inside a class initializer
    */
   public Set<HeldLock> getJUCClassInit() {
-    return Collections.unmodifiableSet(jucClassInit);
+    return jucClassInit;
   }
 
   
@@ -344,7 +343,6 @@ final class LockExpressions {
   /**
    * A tree visitor that we run over a method/constructor body to find all the
    * occurrences of syntactically unique final lock expressions. 
-   * @author Aaron Greenhouse
    */
   private static final class LockExpressionVisitor
   extends AbstractJavaAnalysisDriver<Pair<BindingContextAnalysis.Query, ProvablyUnassignedQuery>> {
