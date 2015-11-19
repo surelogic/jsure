@@ -835,6 +835,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     }
   }
 
+  private static final Selector isSpecialTypeDecl = new IJavaScope.AbstractSelector("special type decl") {
+	  @Override
+	  public boolean select(IRNode node) {
+		  Operator op = JJNode.tree.getOperator(node);
+		  return op instanceof TypeDeclInterface;
+	  }
+  };
+  
   /**
    * The actual work of binding and maintaining scopes. This code has extra
    * machinery in it to handle granules and incrementality.
@@ -2076,9 +2084,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 
     @Override
     public Void visitForEachStatement(IRNode node) {
+      // Need to bind the declaration without the declaration itself
+      final IRNode var = ForEachStatement.getVar(node);
+      doAcceptForChildren(var);
+      doAccept(ForEachStatement.getCollection(node));
+      
       IJavaScope.NestedScope foreachScope = new IJavaScope.NestedScope(scope);
-      foreachScope.add(ForEachStatement.getVar(node));
-      doAcceptForChildren(node, foreachScope);
+
+      foreachScope.add(var);
+      doAccept(ForEachStatement.getLoop(node), foreachScope);
       return null;
     }
 
@@ -2165,6 +2179,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     	  }
       }
       */
+      if (name.equals("values")) {
+    	  System.out.println("Calling "+DebugUnparser.toString(node));
+      }
       final IJavaType recType = computeReceiverType(receiver);
       final IJavaScope toUse = computeScope(recType);
       if (toUse != null) {
@@ -2516,6 +2533,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       bind(node, pkg);
     }
 
+    @Override
+    public Void visitNamedSuperExpression(IRNode node) {
+      doAcceptForChildren(node);
+      // super is bound to the same thing as this
+      visitThisExpression(node);
+      return null;
+    }
+    
     @Override
     public Void visitNameExpression(IRNode node) {
       if (isFullPass) {
@@ -3041,7 +3066,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       return null;
     }
-
+    
+    @Override
+    public Void visitSpecialTypeRef(IRNode node) {
+      return handleTypeRef(node, isSpecialTypeDecl);
+    }
+    
     @Override
     public Void visitStaticDemandName(IRNode node) {
       visit(node);
@@ -3159,6 +3189,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 
     @Override
     public Void visitTypeRef(IRNode node) {
+      return handleTypeRef(node, IJavaScope.Util.isTypeDecl);
+    }
+    
+    private Void handleTypeRef(final IRNode node, final Selector s) {
       if (isFullPass) {
         return null;
       }
@@ -3169,9 +3203,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       if (baseB != null) {
         IRNode baseDecl = baseB.getNode();
         IJavaScope tScope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(baseDecl));
-        boolean success = bind(node, tScope, IJavaScope.Util.isTypeDecl);
+        boolean success = bind(node, tScope, s);
         if (!success) {
-          bind(node, tScope, IJavaScope.Util.isTypeDecl);
+          bind(node, tScope, s);
         }
       } else {
         if (AbstractJavaBinder.isBinary(node)) {

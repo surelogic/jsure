@@ -39,7 +39,12 @@ public abstract class JJOperator extends Operator {
   public IRNode copyTree(SyntaxTreeInterface tree, IRNode node) {
     if (node == null) return null;
     int num = tree.numChildren(node);
-    IRNode newNode = new JJNode(tree.getOperator(node),num);
+    IRNode newNode;
+	if (JJNode.specializeForSyntaxTree && tree == tree()) {
+	  newNode = SyntaxTreeNode.create(tree.getOperator(node), num);
+	} else {
+	  newNode = new JJNode(tree.getOperator(node),num);
+	}
     if (num != 0) {
       IRLocation loc1 = tree.firstChildLocation(node),
 	loc2 = tree.firstChildLocation(newNode);

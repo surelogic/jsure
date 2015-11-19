@@ -584,6 +584,14 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitNamedSuperExpression(IRNode node) {
+    //IJavaSourceRefType dt = JavaTypeFactory.getThisType(node);
+    //return dt.getSuperclass(binder.getTypeEnvironment());
+	IRNode type = NamedSuperExpression.getType( node );
+	return doAccept( type );
+  }
+  
+  @Override
   public IJavaType visitNamedType(IRNode node) {
     /*
 	if (DebugUnparser.toString(node).contains("Context")) {
@@ -820,7 +828,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	    	IJavaTypeSubstitution subst = JavaTypeSubstitution.create(binder.getTypeEnvironment(), targetType);
 	    	IJavaFunctionType ftype = binder.getTypeEnvironment().isFunctionalType(targetType);
 	    	if (ftype == null) {
-	    	  throw new IllegalStateException("No function type for "+DebugUnparser.toString(node)); 
+	    	  binder.getTypeEnvironment().isFunctionalType(targetType);
+	    	  throw new IllegalStateException("No function type for "+DebugUnparser.toString(node)+" : "+targetType); 
 	    	}
 	    	// TODO must have a receiver?
 	    	IJavaType type = ftype.getParameterTypes().get(pIndex);

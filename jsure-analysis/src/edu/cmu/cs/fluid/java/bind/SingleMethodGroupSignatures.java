@@ -19,6 +19,11 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 	public int getArity();
 	public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other);
 	public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta);
+	/**
+	 * This only needs to match the name, since it eliminates this collection
+	 * whether it matches the arity/types or not
+	 */
+	public SingleMethodGroupSignatures eliminate(String implementedName);
 
 	public static class EmptyMethodGroupSignatures 
 	extends AbstractCollection<IJavaFunctionType> 
@@ -40,6 +45,11 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 		@Override
 		public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other) {
 			return other;
+		}
+		
+		@Override
+		public SingleMethodGroupSignatures eliminate(String implementedName) {
+			return this;
 		}
 		
 		@Override
@@ -77,6 +87,14 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 			return null;
 		}
 
+		@Override
+		public SingleMethodGroupSignatures eliminate(String implementedName) {
+			if (getName().equals(implementedName)) {
+				return EmptyMethodGroupSignatures.instance;
+			}
+			return this;
+		}
+		
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
@@ -134,6 +152,7 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 		}
 	}
 	
+	// Used if the name and arity match
 	static class JoinedMethodGroupSignatures
 	extends AbstractMethodGroupSignatures
 	{
@@ -182,6 +201,7 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 		
 	}
 	
+	// Used after doing a type substitution
 	static class ArrayMethodGroupSignatures
 	extends AbstractList<IJavaFunctionType>
 	implements SingleMethodGroupSignatures
@@ -217,6 +237,15 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 			return null;			
 		}
 
+		// Same as AbstractMethodGroupsSignatures
+		@Override
+		public SingleMethodGroupSignatures eliminate(String implementedName) {
+			if (getName().equals(implementedName)) {
+				return EmptyMethodGroupSignatures.instance;
+			}
+			return this;
+		}
+		
 		@Override
 		public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta) {
 			if (theta == IJavaTypeSubstitution.NULL) return this;

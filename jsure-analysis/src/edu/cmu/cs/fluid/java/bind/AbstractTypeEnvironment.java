@@ -794,10 +794,16 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 		  if (!MethodDeclaration.prototype.includes(JJNode.tree.getOperator(memNode))) continue;
 		  // ignore if default or static
 		  int mods = JavaNode.getModifiers(memNode);
-		  if ((mods & (JavaNode.DEFAULT|JavaNode.STATIC)) != 0) continue;
+		  if ((mods & JavaNode.STATIC) != 0) continue;
 		  
-		  String name = JJNode.getInfo(memNode);
-		  IJavaFunctionType sig = JavaTypeFactory.getMemberFunctionType(memNode, null, getBinder());
+		  final String name = JJNode.getInfo(memNode);
+		  if ((mods & JavaNode.DEFAULT) != 0) {
+			// This default method eliminates any SingletonMethodGroupSignature that matches the name
+			result = result.eliminate(name);
+			continue;
+		  }		  
+		  IJavaFunctionType sig = JavaTypeFactory.getMemberFunctionType(memNode, null, getBinder());	
+		  
 		  // ignore if a public method in Object
 		  if (javaPublicMethodNames.contains(name)) {
 			  IRNode odecl = this.findNamedType("java.lang.Object");

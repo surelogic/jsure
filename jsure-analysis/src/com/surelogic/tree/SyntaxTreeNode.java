@@ -33,6 +33,11 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
     initFields();
   }
   
+  public SyntaxTreeNode(Operator op, int min) {
+	super(tree, op, min);
+	initFields();
+  }
+  
   public SyntaxTreeNode(Operator op) {
     super(tree, op);
     initFields();
@@ -43,15 +48,20 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 	initFields();
   }
 
-  public static SyntaxTreeNode create(Operator op, IRNode[] children) {
-	  class IllegalNode extends SyntaxTreeNode {
-		  public IllegalNode(Operator op, IRNode[] children) {
-			  super(op, children);
-		  }			  
-		  public IllegalNode(Operator op) {
-			  super(op);	  
-		  }
+  @SuppressWarnings("serial")
+  static class IllegalNode extends SyntaxTreeNode {
+	  public IllegalNode(Operator op, int min) {
+		  super(op, min);
 	  }
+	  public IllegalNode(Operator op, IRNode[] children) {
+		  super(op, children);
+	  }			  
+	  public IllegalNode(Operator op) {
+		  super(op);	  
+	  }
+  }
+  
+  public static SyntaxTreeNode create(Operator op, IRNode[] children) {
 	  if (op instanceof IllegalCode) {
 		  if (children != null) {
 			  return new IllegalNode(op, children);
@@ -64,6 +74,14 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 	  } else {
 		  return new SyntaxTreeNode(op);
 	  }
+  }
+  
+  // Used for copying
+  public static IRNode create(Operator op, int min) {
+	if (op instanceof IllegalCode) {
+	  throw new IllegalArgumentException("Bad operator for new node: "+op);
+	}
+	return new SyntaxTreeNode(op, min);
   }
   
   private void initFields() {

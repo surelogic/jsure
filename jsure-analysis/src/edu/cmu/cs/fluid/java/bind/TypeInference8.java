@@ -734,9 +734,11 @@ public class TypeInference8 {
       }
     }
     final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
+    /*
     if (call.toString().endsWith(".flatMap(Grep:: <> getPathStream)")) {
       System.out.println("About to create constraints");
     }
+    */
     Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
     final BoundSet b_4 = computeB_4(b_3, c);
     if (b_4 == null) {
@@ -5692,9 +5694,11 @@ public class TypeInference8 {
 
   private IJavaFunctionType computeInvocationTypeForRef(IJavaFunctionType targetFuncType, IRNode ref) {
     final RefState state = mb.new RefState(targetFuncType, ref);
+    /*
     if (state.toString().startsWith("Grep:: <> getPathStream")) {
       System.out.println("Computing type for Grep:: <> getPathStream");
     }
+    */
     MethodBinding8 b = mb.findCompileTimeDeclForRef(targetFuncType, state);
     if (b == null) {
       state.reset();

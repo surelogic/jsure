@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.version.VersionedSlotFactory;
  * @see JJOperator
  * @see SyntaxTree
  */
+@SuppressWarnings("serial")
 public class JJNode extends PlainIRNode implements Node {
   /**
 	 * Whether or not versioning is turned on. Versioning is turned off sometimes

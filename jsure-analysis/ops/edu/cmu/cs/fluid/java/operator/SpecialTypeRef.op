@@ -1,0 +1,12 @@
+/**
+ * A reference to a SPECIAL nested type, e.g. a enum constant class decl
+ */
+public operator SpecialTypeRef extends TypeRef {
+  syntax { base:ClassType "." $id:Info }
+  properties {
+    bindsToType=SourceRefType 
+  }
+  public Operator getResultOp() {
+    return TypeDeclaration.prototype;
+  }  
+}
