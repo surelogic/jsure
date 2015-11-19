@@ -2084,9 +2084,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 
     @Override
     public Void visitForEachStatement(IRNode node) {
+      // Need to bind the declaration without the declaration itself
+      final IRNode var = ForEachStatement.getVar(node);
+      doAcceptForChildren(var);
+      doAccept(ForEachStatement.getCollection(node));
+      
       IJavaScope.NestedScope foreachScope = new IJavaScope.NestedScope(scope);
-      foreachScope.add(ForEachStatement.getVar(node));
-      doAcceptForChildren(node, foreachScope);
+
+      foreachScope.add(var);
+      doAccept(ForEachStatement.getLoop(node), foreachScope);
       return null;
     }
 
@@ -2173,6 +2179,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     	  }
       }
       */
+      if (name.equals("values")) {
+    	  System.out.println("Calling "+DebugUnparser.toString(node));
+      }
       final IJavaType recType = computeReceiverType(receiver);
       final IJavaScope toUse = computeScope(recType);
       if (toUse != null) {
