@@ -188,6 +188,9 @@ public class TypeUtils {
     final Set<IRNode> ec = new HashSet<IRNode>();
     boolean first = true;
     for (IJavaReferenceType t : types) {
+      if (t == null) {
+    	continue;
+      }
       if (first) {
         ec.addAll(getEST(t));
         first = false;
@@ -506,6 +509,12 @@ public class TypeUtils {
   }
 
   private IJavaReferenceType computeLowestUpperBound(IJavaReferenceType... types) {
+	  // Eliminate any instances of the any type
+	  for(int i=0; i<types.length; i++) {
+		  if (types[i] == JavaTypeFactory.anyType) {
+			  types[i] = null;
+		  }
+	  }
 	  Iterable<IJavaSourceRefType> allSupers = getST(types);
 	  IJavaReferenceType result = null;
 	  for (IJavaReferenceType t : getMEC(types)) {
