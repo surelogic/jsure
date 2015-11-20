@@ -523,7 +523,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     public void visitAnonClassEvidence(final AnonClassEvidence e) {
       final Effect originalEffect = e.getOriginalEffect();
       resultDrop.addInformationHint(
-          e.getLink(), Messages.ACE_EVIDENCE, originalEffect);
+          e.getLink(), Messages.ACE_EVIDENCE, originalEffect.unparseForMessage());
       accept(originalEffect.getTargetEvidence());
     }
     

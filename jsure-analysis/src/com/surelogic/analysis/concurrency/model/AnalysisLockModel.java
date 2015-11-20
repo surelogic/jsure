@@ -47,6 +47,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaNullType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -489,11 +490,15 @@ public final class AnalysisLockModel {
     synchronized (classes) {
       Clazz clazz = classes.get(erased);
       if (clazz == null) {
-        final IJavaType parent = javaType.getSuperclass(typeEnvironment);
-        if (parent instanceof IJavaDeclaredType) {
-          clazz = new Clazz(getClazzFor(parent),  erased);
-        } else { // Should only be for java.lang.Object
-          clazz = new Clazz(null, erased);
+        if (javaType instanceof IJavaNullType) { // getSuperclass doesn't work for this type
+          clazz = new Clazz(null, erased); // lock record for the NULL type.  will always be empty
+        } else {
+          final IJavaType parent = javaType.getSuperclass(typeEnvironment);
+          if (parent instanceof IJavaDeclaredType) {
+            clazz = new Clazz(getClazzFor(parent),  erased);
+          } else { // Should only be for java.lang.Object
+            clazz = new Clazz(null, erased);
+          }
         }
         classes.put(erased, clazz);
       }

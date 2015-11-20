@@ -452,7 +452,8 @@ public final class Effects implements IBinderClient {
           elaborateInstanceTarget(
               bcaQuery, thisExprBinder, lockModel.get(),
               call, eff.isRead(), newTarg,
-              lockModel.get().getNeededLock(thisExprBinder, newTarg, call, !eff.isRead(), objectExpr),
+              lockModel.get().getNeededLock(
+                  thisExprBinder, newTarg, call, !eff.isRead(), objectExpr),
               methodEffects);
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
