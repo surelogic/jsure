@@ -382,7 +382,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			 * affecting the Instance region of the receiver.
 			 */
 			if (eff.affectsReceiver(receiverNode)) {
-				constructResultDrop(constructor, declEffDrop, true, eff, Messages.CONSTRUCTOR_RULE, eff);
+				constructResultDrop(constructor, declEffDrop, true, eff,
+				    Messages.CONSTRUCTOR_RULE, eff.unparseForMessage());
 			} else {
         final ResultDrop r = 
           checkEffect(constructor, declEffDrop, eff, declFx, missing);
@@ -456,14 +457,14 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
   		if (implEff.isCheckedBy(getBinder(), eff2)) {
   			checked = true;
   			constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
-  					Messages.CHECKED_BY, implEff, eff2);
+  					Messages.CHECKED_BY, implEff.unparseForMessage(), eff2.unparseForMessage());
   		}
   	}
   	if (!checked) {
   	  missing.add(implEff);
   		return 
   		  constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
-  		      Messages.UNACCOUNTED_FOR, implEff);
+  		      Messages.UNACCOUNTED_FOR, implEff.unparseForMessage());
   	} else {
   	  return null;
   	}

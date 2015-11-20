@@ -1,7 +1,5 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +15,6 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 import com.surelogic.analysis.concurrency.heldlocks.LockVisitor;
-import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.threadsafe.ContainableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ImmutableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ThreadSafeProcessor;
@@ -31,7 +28,6 @@ import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
-import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutablePromiseDrop;
@@ -42,7 +38,6 @@ import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 
 public class LockAnalysis
 		extends
@@ -148,8 +143,6 @@ public class LockAnalysis
 		
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
-
-		final AnalysisLockModel newLockModel = new AnalysisLockModel(binder);
 		
 		// Run through the LockModel and add them to the GlobalLockModel
     for (LockModel lockDrop : Sea.getDefault().getDropsOfType(LockModel.class)) {
@@ -177,31 +170,13 @@ public class LockAnalysis
 					// between the LockModel and RegionModel (for UI purposes)
 					continue;
 				}
-				newLockModel.addLockDeclaration(lockDrop);
 				globalLockModel.addRegionLockDeclaration(binder, lockDrop,
 						(IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl));
 			} else {
-        newLockModel.addLockDeclaration(lockDrop);
 				globalLockModel.addPolicyLockDeclaration(binder, lockDrop,
 						(IJavaDeclaredType) JavaTypeFactory.getMyThisType(classDecl));
 			}
 		}
-
-		// Get all the GuardedBy annotations on fields
-    for (GuardedByPromiseDrop guardedByDrop : Sea.getDefault().getDropsOfType(GuardedByPromiseDrop.class)) {
-      final IRNode decl = guardedByDrop.getNode();
-      if (!SomeFunctionDeclaration.prototype.includes(decl)) { // Ignore method/constructor annotations
-        newLockModel.addGuardedByDelaration(guardedByDrop);
-      }
-    }		
-
-    try {
-      final PrintWriter pw = new PrintWriter("/Users/aarong/model.txt");
-      newLockModel.dumpModel(pw);
-      pw.close();
-    } catch (IOException e) {
-      // eat it
-    }
     
 		// Share the new global lock model with the lock visitor, and other
 		// helpers

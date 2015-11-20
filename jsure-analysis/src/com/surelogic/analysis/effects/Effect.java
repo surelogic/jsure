@@ -142,6 +142,11 @@ public abstract class Effect {
     }
     
     @Override
+    public String unparseForMessage() {
+      return "nothing";
+    }
+    
+    @Override
     public String toString() {
       return "nothing " + neededLocks.toString();
     }
@@ -269,6 +274,13 @@ public abstract class Effect {
     }
     
     @Override
+    public String unparseForMessage() {
+      final StringBuilder sb = new StringBuilder("reads ");
+      target.toString(sb);
+      return sb.toString();
+    }
+    
+    @Override
     public String toString() {
       final StringBuilder sb = new StringBuilder("reads ");
       target.toString(sb);
@@ -356,6 +368,13 @@ public abstract class Effect {
     @Override
     boolean checksWrite(final IBinder binder, final Effect implEffect) {
       return implEffect.getTarget().checkTarget(binder, this.getTarget());
+    }
+    
+    @Override
+    public String unparseForMessage() {
+      final StringBuilder sb = new StringBuilder("writes ");
+      target.toString(sb);
+      return sb.toString();
     }
     
     @Override
@@ -614,6 +633,11 @@ public abstract class Effect {
    * promise.   
    */
   public abstract String unparseForPromise();
+  
+  /**
+   * Convert the effect to a string that can be used in a DropSea message.
+   */
+  public abstract String unparseForMessage();
   
   /**
    * Convert the effect to a String. The string is of the form "<tt>read( </tt><I>target</I><tt> )</tt>"
