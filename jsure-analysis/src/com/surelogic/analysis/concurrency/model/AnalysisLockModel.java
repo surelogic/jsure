@@ -846,8 +846,13 @@ public final class AnalysisLockModel {
         final IRNode objectRefExpr, final LockImplementation lockImpl,
         final IRNode source, final boolean needsWrite) {
       // XXX: supporting information drop should be the @RetunrsLock???  Old version doesn't so this so not sure why not
-      return heldLockFactory.createInstanceLock(
-          formalsToActuals.get(objectRefExpr), lockImpl, source, needsWrite, null);
+      final IRNode mappedObjectExpr = formalsToActuals.get(objectRefExpr);
+      if (mappedObjectExpr == null) {
+        return null;
+      } else {
+        return heldLockFactory.createInstanceLock(
+            mappedObjectExpr, lockImpl, source, needsWrite, null);
+      }
     }
   }
   
@@ -914,7 +919,12 @@ public final class AnalysisLockModel {
     protected NeededInstanceLock createInstanceLock(
         final IRNode objectRefExpr, final LockImplementation lockImpl,
         final IRNode source, final boolean needsWrite) {
-      return new NeededInstanceLock(formalToActualMap.get(objectRefExpr), lockImpl, source, needsWrite);
+      final IRNode mappedObjectExpr = formalToActualMap.get(objectRefExpr);
+      if (mappedObjectExpr == null) {
+        return null;
+      } else {
+        return new NeededInstanceLock(mappedObjectExpr, lockImpl, source, needsWrite);
+      }
     }
   }
 

@@ -153,7 +153,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		      for (final Effect de : declared) {
 		        if (!de.isCheckedBy(getBinder(), readsAnything)) {
 		          good = false;
-		          result.addInformationHint(mdecl, WRITE_EFFECT_INFO, de.toString());
+		          result.addInformationHint(mdecl, WRITE_EFFECT_INFO, de.unparseForMessage());
 		        }
 		      }
 
@@ -167,7 +167,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 	                  Effect.NO_LOCKS);
 	          for (final Effect de : declared) {
 	            if (!de.isCheckedBy(getBinder(), readsThisInstance)) {
-	              result.addWarningHint(mdecl, READ_EFFECT_WARN, de.toString());
+	              result.addWarningHint(mdecl, READ_EFFECT_WARN, de.unparseForMessage());
 	            }
 	          }
 	        }
