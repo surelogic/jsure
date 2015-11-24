@@ -13,7 +13,7 @@ import com.surelogic.analysis.concurrency.model.HeldLock;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-final class LockExpressionManager {
+public final class LockExpressionManager {
   private final Map<IRNode, LockExpressions> lockExpressions = new HashMap<IRNode, LockExpressions>();
   private final LockUtils lockUtils;
   private final IBinder binder;

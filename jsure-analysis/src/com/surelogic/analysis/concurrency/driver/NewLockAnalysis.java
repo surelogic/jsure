@@ -1,4 +1,4 @@
-package com.surelogic.analysis.testing;
+package com.surelogic.analysis.concurrency.driver;
 
 import java.util.Set;
 
@@ -13,12 +13,13 @@ import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public final class EffectsAndLocksDumpModule
+public final class NewLockAnalysis
 extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, Effects, CUDrop> {
-	public EffectsAndLocksDumpModule() {
-		super(false, "EffectsAndLocksDumpModule", BindingContextAnalysis.factory);
+	public NewLockAnalysis() {
+		super(false, "New Lock Analysis", BindingContextAnalysis.factory);
 	}
 
 	@Override
@@ -52,8 +53,8 @@ extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, Effects, CUDrop>
 		      getAnalysis().getImplementationEffects(mdecl, getSharedAnalysis());
 		  for (final Effect e : effects) {
 		    final HintDrop drop = HintDrop.newInformation(e.getSource());
-		    drop.setCategorizingMessage(Messages.DSC_EFFECTS);
-		    drop.setMessage(Messages.EFFECT, e.toString());
+//		    drop.setCategorizingMessage(Messages.DSC_EFFECTS);
+//		    drop.setMessage(Messages.EFFECT, e.toString());
 		  }
 		}
 
@@ -70,8 +71,12 @@ extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, Effects, CUDrop>
 		}
 
 		@Override
-		protected void handleClassInitDeclaration(final IRNode classBody, final IRNode node) {
-		  reportEffects(node);
+		protected void handleNonAnnotationTypeDeclaration(final IRNode tdecl) {
+			final IRNode clinit = JavaPromise.getClassInitOrNull(tdecl);
+			if (clinit != null) {
+			  reportEffects(clinit);
+			}
+			super.handleNonAnnotationTypeDeclaration(tdecl);
 		}
 	}
 }
