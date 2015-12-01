@@ -286,7 +286,17 @@ public interface ITypeEnvironment {
 	IJavaType computeErasure(IJavaType t);
 
 	IJavaType convertNodeTypeToIJavaType(IRNode nodeType);
+	
+	/**
+	 * Return the "this" type for this declaration, what "this"
+	 * means inside this class.  The correct type actuals and
+	 * outer type are inferred from the structure.  This method doesn't care
+	 * about "static"; it's only interested in proper nesting and polymorphism. 
+	 * @param tdecl type declaration node
+	 * @return type of "this" within this class/interface.
+	 */
 	IJavaSourceRefType getMyThisType(IRNode typeDecl);
+	
 	void clearCaches(boolean clearAll);
 	
 	IIRProject getProject();

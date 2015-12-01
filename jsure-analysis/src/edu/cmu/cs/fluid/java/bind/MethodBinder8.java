@@ -1099,29 +1099,63 @@ public class MethodBinder8 implements IMethodBinder {
 			throw new IllegalStateException("No args");
 		}
 	}
+		
+	IJavaType getCompileTimeResultType(IRNode call, IBinding b, IJavaType targetType) {
+	  CallState state = getCallState(call, b);
+  	  IJavaFunctionType ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);
+  	  return ftype.getReturnType();
+	}
 	
 	/**
 	 * The compile-time parameter types and compile-time result are determined as
-follows:
-• If the compile-time declaration for the method invocation is not a signature
-polymorphic method, then the compile-time parameter types are the types of the
-formal parameters of the compile-time declaration, and the compile-time result
-is the result chosen for the compile-time declaration (§15.12.2.6).
-• If the compile-time declaration for the method invocation is a signature
-polymorphic method, then:
-– The compile-time parameter types are the static types of the actual argument
-expressions. An argument expression which is the null literal null (§3.10.7)
-is treated as having the static type Void .
-– The compile-time result is determined as follows:
-› If the method invocation expression is an expression statement, the compile-
-time result is void .
-› Otherwise, if the method invocation expression is the operand of a cast
-expression (§15.16), the compile-time result is the erasure of the type of the
-cast expression (§4.6).
-› Otherwise, the compile-time result is the signature polymorphic method's
-declared return type, Object .
+     * follows:
+     * 
+     * • If the compile-time declaration for the method invocation is not a signature
+     *   polymorphic method, then the compile-time parameter types are the types of the
+     *   formal parameters of the compile-time declaration, and the compile-time result
+     *   is the result chosen for the compile-time declaration (§15.12.2.6).
+     *   
+     * • If the compile-time declaration for the method invocation is a signature
+     *   polymorphic method, then:
+     *   – The compile-time parameter types are the static types of the actual argument
+     *     expressions. An argument expression which is the null literal null (§3.10.7)
+     *     is treated as having the static type Void .
+     *   – The compile-time result is determined as follows:
+     *     › If the method invocation expression is an expression statement, the compile-
+     *       time result is void .
+     *     › Otherwise, if the method invocation expression is the operand of a cast
+     *       expression (§15.16), the compile-time result is the erasure of the type of the
+     *       cast expression (§4.6).
+     *     › Otherwise, the compile-time result is the signature polymorphic method's
+     *       declared return type, Object .
 	 */
-
+	private IJavaFunctionType getCompileTimeFunctionType(ICallState call, MethodBinding8 mb, IJavaType targetType) {		
+		IJavaFunctionType ft = computeInvocationType(call, mb, false, targetType);
+		//JavaTypeFactory.getMemberFunctionType(mb.getNode(), call.getReceiverType(), binder);
+		if (!isSignaturePolymorphic(mb)) {
+			return ft;
+		}
+		IRNode callParent = JJNode.tree.getParent(call.getNode());
+		Operator pop = JJNode.tree.getOperator(callParent);
+		IJavaType resultType;
+		if (ExprStatement.prototype.includes(pop)) {
+			resultType = JavaTypeFactory.voidType;
+		}
+		else if (CastExpression.prototype.includes(pop)) {
+			IJavaType cast = binder.getJavaType(CastExpression.getType(callParent));
+			resultType = tEnv.computeErasure(cast);
+		}
+		else {
+			resultType = tEnv.getObjectType();
+		}
+		List<IJavaType> paramTypes = new ArrayList<>();
+		for(int i=0; i<call.numArgs(); i++) {
+			IJavaType t = call.getArgType(i);
+			paramTypes.add(t == JavaTypeFactory.nullType ? tEnv.findJavaTypeByName("java.lang.Void") : t);
+		}
+		return JavaTypeFactory.getFunctionType(ft.getTypeFormals(), resultType, paramTypes, ft.isVariable(), ft.getExceptions());
+	}
+	
 	/**
 	 * A method is signature polymorphic if all of the following are true:
 	 * 
@@ -2181,7 +2215,7 @@ declared return type, Object .
 			 *   
 			 *   – Otherwise, the invocation type is the same as the method's type.
 			 */
-			IJavaFunctionType mtype = computeMethodType(/*m*/b);
+			IJavaFunctionType mtype = computeMethodType(/*m*/b, call);
 			// TODO any other way to know unchecked conversion was used?
 			if (b_2 != null && b_2.usedUncheckedConversion()) {
 				return substParams_eraseReturn(mtype, null);
@@ -2197,10 +2231,15 @@ declared return type, Object .
 	}
 
 	IJavaFunctionType computeMethodType(MethodBinding m) {		
+		return computeMethodType(m, null);
+	}
+
+	IJavaFunctionType computeMethodType(MethodBinding m, ICallState call) {
 		//IJavaType receiver = TypeUtil.isStatic(m.bind.getNode()) ? null : m.bind.getReceiverType();
 		//
 		// The subst below should convert the receiver to the right type
 		boolean skipFirstParameter = false;
+		IJavaTypeSubstitution subst = m.getSubst();
 		final IJavaType receiver;
 		if (TypeUtil.isStatic(m.bind.getNode())) {
 			receiver = null;
@@ -2208,19 +2247,57 @@ declared return type, Object .
 		else if (m.mkind == Kind.CONSTRUCTOR) {
 			receiver = m.bind.getContextType();
 			//skipFirstParameter = true;
-		}
-		else if (m.getReceiverType() != null) {
-			// Note that the receiver used already has the substitution applied?
-			receiver = m.getReceiverType(); // TODO is this right?
-			skipFirstParameter = true;
-		}
-		else {
-			receiver = JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
+		}		
+		else { // A method!
+			if (call != null && MethodCall.prototype.includes(call.getNode())) {		
+				IRNode rec = MethodCall.getObject(call.getNode());
+				if (MethodCall.prototype.includes(rec)) {
+					IBinding b = binder.getIBinding(rec);
+					IJavaType targetType = call.getReceiverType();
+					if (targetType instanceof IJavaDeclaredType) {
+						final IJavaDeclaredType dt = (IJavaDeclaredType) targetType;
+						//targetType = tEnv.getMyThisType(dt.getDeclaration());
+						final int num = dt.getTypeParameters().size(); 
+						if (num > 0) {
+							// Replace any formals with wildcards?
+							List<IJavaType> types = new ArrayList<>(num);
+							for(int i=0; i<num; i++) {
+								IJavaType temp = dt.getTypeParameters().get(i);
+								if (temp instanceof IJavaTypeFormal) {
+									temp = JavaTypeFactory.wildcardType; // TODO is this right?
+								}
+								types.add(temp);
+							}
+							targetType = JavaTypeFactory.getDeclaredType(dt.getDeclaration(), types, ((IJavaDeclaredType) targetType).getOuterType());
+						}
+					}
+					receiver = getCompileTimeResultType(rec, b, targetType); // TODO is this right?
+					subst = JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) receiver).combine(subst);
+					skipFirstParameter = true;
+				}
+				// Same as below
+				else if (m.getReceiverType() != null) {
+					// Note that the receiver used already has the substitution applied?
+					receiver = m.getReceiverType(); // TODO is this right?
+					skipFirstParameter = true;
+				}
+				else {
+					receiver = JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
+				}
+			}
+			else if (m.getReceiverType() != null) {
+				// Note that the receiver used already has the substitution applied?
+				receiver = m.getReceiverType(); // TODO is this right?
+				skipFirstParameter = true;
+			}
+			else {
+				receiver = JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
+			}
 		}
 		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), receiver, tEnv.getBinder());
 		//return t;
 		//return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
-		return t.instantiate(t.getTypeFormals(), m.getSubst(), skipFirstParameter);
+		return t.instantiate(t.getTypeFormals(), subst, skipFirstParameter);
 	}
 	
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
