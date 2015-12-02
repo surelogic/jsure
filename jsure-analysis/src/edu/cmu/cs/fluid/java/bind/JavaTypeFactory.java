@@ -2771,7 +2771,8 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 	@Override
 	public IJavaFunctionType instantiate(List<IJavaTypeFormal> newFormals, IJavaTypeSubstitution s, boolean skipFirstParam) {
 		for (IJavaTypeFormal f : typeFormals) {
-			if (s.get(f) == f && !newFormals.contains(f)) {
+			IJavaType result = s.get(f);
+			if (result == f && !newFormals.contains(f)) {
 				throw new IllegalArgumentException("instantiation didn't handle " + f);
 			}
 		}
