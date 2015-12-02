@@ -6,6 +6,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -28,6 +29,7 @@ interface IMethodBinder {
 		IJavaType getTypeArg(int i);
 		IJavaType[] getTypeArgs();
 		
+		IRNode getReceiverOrNull();
 		IJavaType getReceiverType();
 		boolean needsVarArgs();
 		boolean needsExactInvocation();
@@ -47,16 +49,23 @@ interface IMethodBinder {
     	 * Derived from constructorType for constructors
     	 */
     	final IJavaType receiverType;
+    	final IRNode receiver; 
+    	
+    	static CallState create(IBinder b, IRNode call, IRNode targs, IRNode args, IJavaType recType) {
+    		final IRNode receiver = MethodCall.prototype.includes(call) ? MethodCall.getObject(call) : null;
+    		return new CallState(b, call, targs, args, recType, receiver);
+    	}
     	
     	/**
     	 * For methods
     	 */
-    	CallState(IBinder b, IRNode call, IRNode targs, IRNode args, IJavaType recType) {
+    	CallState(IBinder b, IRNode call, IRNode targs, IRNode args, IJavaType recType, IRNode rec) {
     		binder = b;
       		this.call = call;
       		this.targs = getNodes(targs);
       		this.args = getNodes(args);
       		receiverType = recType;
+      		receiver = rec;
       		constructorType = null;
     	}
     	
@@ -67,6 +76,7 @@ interface IMethodBinder {
 			this.args = getNodes(args);
 			constructorType = type;			
 	    	receiverType = type == null ? null : b.getTypeEnvironment().convertNodeTypeToIJavaType(type);
+	    	receiver = null;
     	}
     	
     	CallState(CallState o, IJavaType recType) {
@@ -75,6 +85,10 @@ interface IMethodBinder {
       		targs = o.targs;
       		args = o.args;
       		receiverType = recType;
+      		receiver = o.receiver;
+      		if (o.constructorType != null) {
+      			throw new IllegalStateException("Nonnull constructorType : "+o.constructorType);
+      		}
       		constructorType = null;
 		}
 
@@ -181,6 +195,10 @@ interface IMethodBinder {
 			return rv;
 		}
 
+		public IRNode getReceiverOrNull() {
+			return receiver;
+		}
+		
 		public IJavaType getReceiverType() {
 			return receiverType;
 		}
@@ -234,7 +252,7 @@ interface IMethodBinder {
         	return getReturnType(tEnv, true);
         }
         
-        IJavaType getReturnType(ITypeEnvironment tEnv, boolean withSubst) {
+        final IJavaType getReturnType(ITypeEnvironment tEnv, boolean withSubst) {
     		IJavaType base = JavaTypeVisitor.getJavaType(mdecl, tEnv.getBinder());
     		if (withSubst) {
     			return bind.convertType(tEnv.getBinder(), base);

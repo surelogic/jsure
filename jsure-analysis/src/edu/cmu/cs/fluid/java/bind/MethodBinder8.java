@@ -1094,7 +1094,7 @@ public class MethodBinder8 implements IMethodBinder {
 	CallState getCallState(IRNode call, IBinding b) {
 		final CallInterface op = (CallInterface) JJNode.tree.getOperator(call);
 		try {
-			return new CallState(binder, call, op.get_TypeArgs(call), op.get_Args(call), b.getReceiverType());
+			return CallState.create(binder, call, op.get_TypeArgs(call), op.get_Args(call), b.getReceiverType());
 		} catch (NoArgs e) {
 			throw new IllegalStateException("No args");
 		}
@@ -2272,7 +2272,9 @@ public class MethodBinder8 implements IMethodBinder {
 						}
 					}
 					receiver = getCompileTimeResultType(rec, b, targetType); // TODO is this right?
-					subst = JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) receiver).combine(subst);
+					if (receiver instanceof IJavaDeclaredType) {
+						subst = JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) receiver).combine(subst);
+					}
 					skipFirstParameter = true;
 				}
 				// Same as below
@@ -2489,6 +2491,10 @@ public class MethodBinder8 implements IMethodBinder {
 			return type.getTypeFormals().toArray(JavaGlobals.noTypes);
 		}
 
+		public IRNode getReceiverOrNull() {
+			return null; // TODO what else could I return?
+		}
+		
 		public IJavaType getReceiverType() {
 			if (doSecond) {
 				return secondReceiver;

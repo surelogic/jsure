@@ -1776,7 +1776,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         IRNode tdecl = ((IJavaDeclaredType) ty).getDeclaration();
         IRNode targs = call.get_TypeArgs(node);
         String tname = JJNode.getInfo(tdecl);
-        final CallState state = new CallState(AbstractJavaBinder.this, node, targs, call.get_Args(node), ty);
+        final CallState state = new CallState(AbstractJavaBinder.this, node, targs, call.get_Args(node), ty, object);
         boolean success = bindCall(state, tname, ty);
         if (!success) {
           bindCall(state, tname, ty);
@@ -2179,8 +2179,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     	  }
       }
       */
-      if (name.equals("values")) {
-    	  System.out.println("Calling "+DebugUnparser.toString(node));
+      if (false && name.equals("collect") && "strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(DebugUnparser.toString(node))) {
+      //if (name.equals("map") && "stream.map(Research:: <> create)".equals(DebugUnparser.toString(node))) {
+    	  System.out.println("Calling collect: "+DebugUnparser.toString(node));
       }
       final IJavaType recType = computeReceiverType(receiver);
       final IJavaScope toUse = computeScope(recType);
@@ -2196,7 +2197,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
             // Process as normal method call
           }
         }
-        final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType);
+        final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType, receiver);
         boolean success = bindCall(state, name, toUse);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type
@@ -3342,7 +3343,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
      * temp2 = new HashSet<IJavaType>(temp); if (temp.size() != temp2.size()) {
      * System.out.println("Found duplicates"); }
      */
-    final CallState call = new CallState(AbstractJavaBinder.this, null, null, null, t) {
+    final CallState call = new CallState(AbstractJavaBinder.this, null, null, null, t, null) {
       @Override
       public IJavaType[] getArgTypes() {
         return MethodBinder.getFormalTypes(binder, t, mth);
@@ -3418,6 +3419,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
            * null)); return JavaTypeFactory.getDeclaredType(classDecl, params,
            * null); }
            */
+          if (false) {
+        	  // This will cause an infinite loop, because it tries to compute the target type
+        	  System.out.println("Computing result type for "+DebugUnparser.toString(n));        	  
+        	  return mb.getCompileTimeResultType(n, b, null);
+          }
           IJavaType t = typeVisitor.getJavaType(b.getNode());
           return b.convertType(this, t);
         }
