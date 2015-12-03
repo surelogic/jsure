@@ -56,6 +56,9 @@ public final class AnalysisDefaults {
 		    init("com.surelogic.analysis.concurrency.driver.LockModelBuilder",
 		        "com.surelogic.jsure.client.eclipse.LockModelBuilder", true,
 		        "Lock Model Builder");
+    init("com.surelogic.analysis.concurrency.driver.NewLockAnalysis",
+        "com.surelogic.jsure.client.eclipse.LockAssurance4", false, "New Lock policy",
+        lockBuilder);
 		init("com.surelogic.analysis.concurrency.driver.LockAnalysis",
 		    "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
 		    lockBuilder, annoBoundsChecking);

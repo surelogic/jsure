@@ -1,8 +1,10 @@
 package com.surelogic.analysis.concurrency.driver;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.surelogic.analysis.AbstractThisExpressionBinder;
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
@@ -15,9 +17,11 @@ import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLocks;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
+import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
-import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
+import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
+import com.surelogic.dropsea.ir.HintDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -25,7 +29,12 @@ import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
-final class NewLockVisitor extends AbstractJavaAnalysisDriver<NewLockVisitor.Queries> {
+final class NewLockVisitor
+extends FlowUnitVisitor<NewLockVisitor.Queries>
+implements IBinderClient {
+  public static final int DSC_EFFECTS = 550;
+  public static final int EFFECT = 550;
+
   /**
    * The receiver declaration of the current instance method or constructor
    * being visited. If the current method is static or we are in the static
@@ -56,7 +65,7 @@ final class NewLockVisitor extends AbstractJavaAnalysisDriver<NewLockVisitor.Que
       final IBinder binder, final BindingContextAnalysis bca,
       final AtomicReference<AnalysisLockModel> analysisLockModel) {
     // Don't go inside nested types; skip annotation types
-    super(false, true);
+    super(true);
     
     this.thisExprBinder = new ThisExpressionBinder(binder);
     this.effects = new Effects(binder, analysisLockModel);
@@ -72,7 +81,7 @@ final class NewLockVisitor extends AbstractJavaAnalysisDriver<NewLockVisitor.Que
     this.mustHold = new MustHoldAnalysis(thisExprBinder, lockUtils, lockExprManager, simpleNonNull);
     this.mustRelease = new MustReleaseAnalysis(thisExprBinder, lockUtils, lockExprManager, simpleNonNull);
   }
-  
+
   
   
   // ======================================================================
@@ -109,9 +118,27 @@ final class NewLockVisitor extends AbstractJavaAnalysisDriver<NewLockVisitor.Que
       return new Queries(this, caller);
     }
   }
+
+  // ======================================================================
+  // == From IBinderClient
+  // ======================================================================
+
+  @Override
+  public IBinder getBinder() {
+    return thisExprBinder;
+  }
+
+  @Override
+  public void clearCaches() {
+    // Do nothing
+  }
   
   
-  
+
+  // ======================================================================
+  // == Query Management
+  // ======================================================================
+
   @Override
   protected Queries createNewQuery(final IRNode decl) {
     return new Queries(decl);
@@ -150,12 +177,24 @@ final class NewLockVisitor extends AbstractJavaAnalysisDriver<NewLockVisitor.Que
   // == Visit
   // ======================================================================
   
+  private void reportEffects(final IRNode mdecl) {
+    final Set<Effect> fx = effects.getImplementationEffects(mdecl, bca);
+    for (final Effect e : fx) {
+      final HintDrop drop = HintDrop.newInformation(e.getSource());
+      drop.setCategorizingMessage(DSC_EFFECTS);
+      drop.setMessage(EFFECT, e.toString());
+    }
+  }
+  
   @Override
   protected void handleMethodDeclaration(final IRNode mdecl) {
     // Manage the receiver Declaration
     final IRNode oldReceiverDecl = receiverDecl;
     try {
       receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
+      
+      reportEffects(mdecl);
+
       doAcceptForChildren(mdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
@@ -168,10 +207,18 @@ final class NewLockVisitor extends AbstractJavaAnalysisDriver<NewLockVisitor.Que
     final IRNode oldReceiverDecl = receiverDecl;
     try {
       receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
+      
+      reportEffects(cdecl);
+
       doAcceptForChildren(cdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
     }
+  }
+
+  @Override
+  protected void handleClassInitDeclaration(final IRNode classBody, final IRNode node) {
+    reportEffects(node);
   }
   
   @Override
