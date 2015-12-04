@@ -1,7 +1,7 @@
 package com.surelogic.analysis.concurrency.model;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -12,7 +12,7 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   public HeldInstanceLock(
       final IRNode objectRefExpr, final LockImplementation lockImpl,
       final IRNode source, final boolean needsWrite,
-      final PromiseDrop<?> supportingDrop) {
+      final RequiresLockPromiseDrop supportingDrop) {
     super(source, needsWrite, lockImpl, supportingDrop);
     this.objectRefExpr = objectRefExpr;
   }
@@ -63,8 +63,6 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   public String toString() {
     return "<" + DebugUnparser.toString(objectRefExpr) +
         lockImpl.getPostfixId() + ">." + 
-        (holdsWrite ? "write" : "read") +
-        " from " +
-        ((supportingDrop == null) ? null : supportingDrop);
+        (holdsWrite ? "write" : "read");
   }
 }

@@ -577,6 +577,13 @@ public abstract class Effect {
   }
 
   /**
+   * Get the locks that need to be held before producing this effect.
+   */
+  public final Set<NeededLock> getNeededLocks() {
+    return neededLocks;
+  }
+  
+  /**
    * Query if the effect is a read effect.
    */
   public abstract boolean isRead();

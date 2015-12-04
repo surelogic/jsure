@@ -35,7 +35,6 @@ import com.surelogic.common.util.FilterIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.IteratorUtil;
 import com.surelogic.common.util.SimpleIteratable;
-import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
@@ -944,7 +943,7 @@ public final class AnalysisLockModel {
   private final class PreconditionProcessorHeldLocks
   extends LockPreconditionProcessor<HeldLock> {
     private final HeldLockFactory heldLockFactory;
-    private final PromiseDrop<?> supportingDrop;
+    private final RequiresLockPromiseDrop supportingDrop;
     private final ImmutableSet.Builder<HeldLock> intrinsicBuilder;
     private final ImmutableSet.Builder<HeldLock> jucBuilder;
     
@@ -953,7 +952,7 @@ public final class AnalysisLockModel {
         final ImmutableSet.Builder<HeldLock> intrinsicBuilder,
         final ImmutableSet.Builder<HeldLock> jucBuilder,
         final HeldLockFactory heldLockFactory,
-        final PromiseDrop<?> supportingDrop) {
+        final RequiresLockPromiseDrop supportingDrop) {
       super(mdecl, source);
       this.heldLockFactory = heldLockFactory;
       this.supportingDrop = supportingDrop;
@@ -1040,7 +1039,7 @@ public final class AnalysisLockModel {
         // check if "MUTEX"
         final LockImplementation lockImpl = lock.getImplementation();
         if (!(lockImpl instanceof NamedLockImplementation) ||
-            ((NamedLockImplementation) lockImpl).getName().equals(MUTEX_NAME)) {
+            !((NamedLockImplementation) lockImpl).getName().equals(MUTEX_NAME)) {
           final HeldLock heldLock = heldLockFactory.createInstanceLock(
               rcvr, lockImpl, cdecl, true, null);
           (lock.isIntrinsic(binder) ? intrinsicBuilder : jucBuilder).add(heldLock);

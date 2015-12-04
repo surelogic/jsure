@@ -1,7 +1,7 @@
 package com.surelogic.analysis.concurrency.model;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -78,7 +78,7 @@ public final class BogusLock implements HeldLock {
   }
 
   @Override
-  public PromiseDrop<?> getSupportingDrop() {
+  public RequiresLockPromiseDrop getSupportingDrop() {
     // No promise supports a bogus lock because they aren't real locks
     return null;
   }

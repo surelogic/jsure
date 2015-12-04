@@ -1,7 +1,7 @@
 package com.surelogic.analysis.concurrency.model;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -23,7 +23,7 @@ public final class HeldLockFactory {
   public HeldLock createInstanceLock(
       final IRNode objectRefExpr, final LockImplementation lockImpl,
       final IRNode source, final boolean needsWrite,
-      final PromiseDrop<?> supportingDrop) {
+      final RequiresLockPromiseDrop supportingDrop) {
     return new HeldInstanceLock(
         thisExprBinder.bindThisExpression(objectRefExpr), 
         lockImpl, source, needsWrite, supportingDrop);
@@ -31,7 +31,7 @@ public final class HeldLockFactory {
   
   public HeldLock createStaticLock(
       final LockImplementation lockImpl, final IRNode source,
-      final boolean needsWrite, final PromiseDrop<?> supportingDrop) {
+      final boolean needsWrite, final RequiresLockPromiseDrop supportingDrop) {
     return new HeldStaticLock(lockImpl, source, needsWrite, supportingDrop);
   }
   

@@ -1,12 +1,9 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.alias.IMayAlias;
@@ -198,10 +195,13 @@ implements IBinderClient {
       drop.setCategorizingMessage(DSC_EFFECTS);
       drop.setMessage(EFFECT, e.toString());
       
-      for (final HeldLock heldLock : currentQuery().getHeldLocks(e.getSource())) {
-        final HintDrop lockDrop = HintDrop.newInformation(e.getSource());
-        lockDrop.setCategorizingMessage(DSC_EFFECTS);
-        lockDrop.setMessage(551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
+      // Show the held locks if the effect has needed locks
+      if (!e.getNeededLocks().isEmpty()) {
+        for (final HeldLock heldLock : currentQuery().getHeldLocks(e.getSource())) {
+          final HintDrop lockDrop = HintDrop.newInformation(e.getSource());
+          lockDrop.setCategorizingMessage(DSC_EFFECTS);
+          lockDrop.setMessage(551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
+        }
       }
     }
   }

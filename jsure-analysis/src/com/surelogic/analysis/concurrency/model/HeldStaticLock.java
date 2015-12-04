@@ -1,14 +1,14 @@
 package com.surelogic.analysis.concurrency.model;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
 public final class HeldStaticLock extends AbstractHeldLock {
   public HeldStaticLock(
       final LockImplementation lockImpl, final IRNode source,
-      final boolean needsWrite, final PromiseDrop<?> supportingDrop) {
+      final boolean needsWrite, final RequiresLockPromiseDrop supportingDrop) {
     super(source, needsWrite, lockImpl, supportingDrop);
   }
   
@@ -54,8 +54,6 @@ public final class HeldStaticLock extends AbstractHeldLock {
   public String toString() {
     return "<" + lockImpl.getDeclaredInClassName() + 
         lockImpl.getPostfixId() + ">." + 
-        (holdsWrite ? "write" : "read") +
-        " from " +
-        ((supportingDrop == null) ? null : supportingDrop);
+        (holdsWrite ? "write" : "read");
   }
 }
