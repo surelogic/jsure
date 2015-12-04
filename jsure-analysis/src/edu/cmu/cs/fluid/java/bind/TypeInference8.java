@@ -409,8 +409,8 @@ public class TypeInference8 {
     */
     // HACK to deal with type variables in the receiver?
     BoundSet hack = null;
-    if (m.mkind == Kind.METHOD) {
-      final TypeFormalCollector v = new TypeFormalCollector();
+    if (m.mkind == Kind.METHOD && call instanceof CallState) {
+      final TypeFormalCollector v = new TypeFormalCollector(true/*all formals*/);
       m.getReceiverType().visit(v);
 
       if (!v.formals.isEmpty()) {
@@ -495,6 +495,19 @@ public class TypeInference8 {
     }
     final BoundSet b_2 = new BoundSet(b_1);
     final IJavaTypeSubstitution theta = b_2.getInitialVarSubst();
+    // Include the receiver
+    if (call.getReceiverType() != null) {
+    	// No need to check for un/boxing
+        IJavaType formal_subst = Util.subst(call.getReceiverType(), theta);
+        IRNode receiver = call.getReceiverOrNull();
+        if (receiver == null) {
+          // TODO is there anything to do?
+          //reduceTypeCompatibilityConstraints(b_2, call.getArgType(i), formal_subst);
+        } else {
+          final ConstraintFormula f = new ConstraintFormula(receiver, FormulaConstraint.IS_COMPATIBLE, formal_subst);
+          reduceConstraintFormula(b_2, f);
+        }
+    }    
     final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.numArgs(), kind == InvocationKind.VARARGS);
     for (int i = 0; i < call.numArgs(); i++) {
       final IRNode e_i = call.getArgOrNull(i);
@@ -540,9 +553,17 @@ public class TypeInference8 {
 
   static class TypeFormalCollector extends IJavaType.BooleanVisitor {
     final Set<IJavaTypeFormal> formals = new HashSet<IJavaTypeFormal>();
+    final boolean collectAllFormals;
+    
+    TypeFormalCollector(boolean collectAll) {
+      collectAllFormals = collectAll;
+	}
 
-    public boolean accept(IJavaType t) {
-      if (t instanceof ReboundedTypeFormal) {
+	public boolean accept(IJavaType t) {
+	  if (collectAllFormals && t instanceof IJavaTypeFormal) {
+		formals.add((IJavaTypeFormal) t);
+	  }
+	  else if (t instanceof ReboundedTypeFormal) {
         formals.add((ReboundedTypeFormal) t);
       }
       return true;
@@ -565,7 +586,7 @@ public class TypeInference8 {
   }
 
   static IJavaType eliminateReboundedTypeFormals(final ITypeEnvironment tEnv, final IJavaType t) {
-	  final TypeFormalCollector c = new TypeFormalCollector();
+	  final TypeFormalCollector c = new TypeFormalCollector(false);
       t.visit(c);
       if (!c.formals.isEmpty()) {
     	  IJavaType temp = Util.subst(t, c.getSubst(tEnv));
@@ -2869,6 +2890,11 @@ public class TypeInference8 {
       return instantiations;
     }
 
+    /**
+     * 
+     * @param eliminateTypeVariables if true, eliminate internally introduced type variables
+     * @param useSubstAsBounds if true, reformulate 'sketchy' instantiations as ReboundedTypeFormal
+     */
     IJavaTypeSubstitution getFinalTypeSubst(boolean eliminateTypeVariables, boolean useSubstAsBounds) {
       Map<IJavaTypeFormal, IJavaType> subst = computeTypeSubst(eliminateTypeVariables, useSubstAsBounds);
       return new TypeSubstitution(tEnv.getBinder(), subst);

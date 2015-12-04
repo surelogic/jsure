@@ -41,6 +41,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
+import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8WithBoundSet;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraints;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
@@ -1342,7 +1343,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
      * @return true if bound
      */
     protected boolean bindCall(CallState call, String name, IJavaType recType) {
-      boolean success = bindCall(call, name, typeScope(recType));
+      boolean success = bindCall(call, name, typeScope(recType), false);
       if (!success) {
         DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), recType);
       }
@@ -1352,7 +1353,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     /**
      * @return true if bound
      */
-    protected boolean bindCall(final CallState state, final String name, final IJavaScope sc) {
+    protected boolean bindCall(final CallState state, final String name, final IJavaScope sc, boolean quietWarnings) {
       final IRNode from;
       final Operator callOp = JJNode.tree.getOperator(state.call);
       final boolean needMethod;
@@ -1374,7 +1375,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         bestMethod = methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
       }
       if (bestMethod == null) {
-        return bind(state.call, (IBinding) null);
+        return bind(state.call, (IBinding) null, quietWarnings);
       }
       /*
        * if ("getCurrentKey".equals(name)) { System.out.println(
@@ -1387,7 +1388,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       if (state.receiverType != null && state.receiverType != bestMethod.method.getReceiverType()) {
         throw new IllegalStateException();
       }
-      return bind(state.call, bestMethod.method);
+      return bind(state.call, bestMethod.method, quietWarnings);
     }
 
     private StringBuilder buildStringOfArgTypes(IJavaType[] argTypes) {
@@ -2198,12 +2199,23 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
           }
         }
         final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType, receiver);
-        boolean success = bindCall(state, name, toUse);
+        boolean success = bindCall(state, name, toUse, true);
         if (!success) {
-          // FIX hack to get things to bind for receivers of raw type
-          IJavaType newType = convertRawType(recType, true);
-          if (newType != recType) {
-            success = bindCall(state, name, newType);
+          // FIX hack to get things to bind if the receiver is a type formal
+          if (processJava8) {
+           	IJavaType newType = substituteFromBinding(recType, receiver);
+        	if (newType != recType) {
+        	  final CallState newState = new CallState(AbstractJavaBinder.this, node, targs, args, newType, receiver);        		
+        	  success = bindCall(newState, name, newType);
+        	}
+          }
+        	
+          if (!success) {
+            // FIX hack to get things to bind for receivers of raw type
+        	IJavaType newType = convertRawType(recType, true);
+        	if (newType != recType) {
+        	  success = bindCall(state, name, newType);
+        	}
           }
           if (!success) {
             IJavaType newType2 = convertRawType(recType, false);
@@ -2220,7 +2232,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
               System.out.println("Args:     " + DebugUnparser.toString(args));
               IJavaType temp = computeReceiverType(receiver);
               computeScope(temp);
-              bindCall(state, name, toUse);
+              bindCall(state, name, toUse, false);
             }
           }
         }
@@ -2231,6 +2243,24 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       return null;
     }
+    
+    // Adapted from getApproxJavaType()
+    private IJavaType substituteFromBinding(final IJavaType recType, final IRNode receiver) {
+      final MethodBinder8 mb = new MethodBinder8(AbstractJavaBinder.this, false);
+      final Operator op = JJNode.tree.getOperator(receiver);
+      if (mb.isPolyExpression(receiver, op)) {
+    	if (op instanceof CallInterface) {
+    	  final IBinding b = getIBinding(receiver);
+    	  if (b instanceof MethodBinding8WithBoundSet) {
+    		MethodBinding8WithBoundSet bb = (MethodBinding8WithBoundSet) b;
+    		IJavaTypeSubstitution subst = bb.getBoundSetSubst();
+    		IJavaType rv = recType.subst(subst);
+    		return rv;
+    	  }
+    	}
+      }
+      return recType;
+	}
 
     private Void bindAnnotationElement(IRNode node, String name, IJavaScope toUse) {
       boolean success = bind(node, toUse, IJavaScope.Util.isAnnoEltOrNoArgMethod);
