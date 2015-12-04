@@ -52,7 +52,7 @@ public final class HeldStaticLock extends AbstractHeldLock {
   
   @Override
   public String toString() {
-    return "<" + lockImpl.getClassName() + 
+    return "<" + lockImpl.getDeclaredInClassName() + 
         lockImpl.getPostfixId() + ">." + 
         (holdsWrite ? "write" : "read") +
         " from " +

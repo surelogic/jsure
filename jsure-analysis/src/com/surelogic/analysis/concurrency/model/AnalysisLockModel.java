@@ -287,7 +287,24 @@ public final class AnalysisLockModel {
     }
     
     public Iteratable<ModelLock<?, ?>> getDeclaredLocks() {
+      if (classDecl.getName().equals("test.intrinsic.Test")) {
+        System.out.println();
+      }
       return new SimpleIteratable<>(declaredLocks.iterator());
+    }
+    
+    public Iteratable<StateLock<?, ?>> getDeclaredStateLocks() {
+      return new FilterIterator<ModelLock<?, ?>, StateLock<?, ?>>(getDeclaredLocks()) {
+        @Override
+        protected Object select(final ModelLock<?, ?> lock) {
+          if (lock instanceof StateLock) {
+            return lock;
+          } else {
+            return IteratorUtil.noElement;
+          }
+          
+        }
+      };
     }
     
     public Iteratable<ModelLock<?, ?>> getAllLocksInClass() {
@@ -578,12 +595,11 @@ public final class AnalysisLockModel {
   }
   
   public void addLockDeclaration(final LockModel lockDeclDrop) {
-    final AbstractLockDeclarationNode aastNode = lockDeclDrop.getAAST();
-    final ExpressionNode lockField = aastNode.getField();
-    final IRNode promisedFor = lockDeclDrop.getPromisedFor();
-    final NamedLockImplementation namedLockImpl = 
-        getNamedLockImplementation(aastNode.getId(), promisedFor, lockField);
+    final NamedLockImplementation namedLockImpl = getNamedLockImplementation(lockDeclDrop);
     if (namedLockImpl != null) {
+      final AbstractLockDeclarationNode aastNode = lockDeclDrop.getAAST();
+      final ExpressionNode lockField = aastNode.getField();
+      final IRNode promisedFor = lockDeclDrop.getPromisedFor();
       final Member member = getMember(promisedFor, lockField);
       if (aastNode instanceof LockDeclarationNode) {
         insertLockIntoModel(promisedFor, member, new RegionLock(lockDeclDrop, namedLockImpl));
@@ -613,12 +629,14 @@ public final class AnalysisLockModel {
     return new ExpressionToLockImplSwitch(annotatedItem).apply(exprNode);
   }
   
-  private NamedLockImplementation getNamedLockImplementation(
-      final String id, final IRNode annotatedItem, final ExpressionNode exprNode) {
+  private NamedLockImplementation getNamedLockImplementation(final LockModel lockDeclDrop) {
+    final AbstractLockDeclarationNode aastNode = lockDeclDrop.getAAST();
+    final ExpressionNode lockField = aastNode.getField();
+    final IRNode promisedFor = lockDeclDrop.getPromisedFor();
     final UnnamedLockImplementation baseLockImpl =
-        getLockImplementation(annotatedItem, exprNode);
+        getLockImplementation(promisedFor, lockField);
     if (baseLockImpl != null) {
-      return new NamedLockImplementation(id, baseLockImpl);
+      return new NamedLockImplementation(promisedFor, aastNode.getId(), baseLockImpl);
     } else {
       return null;
     }
@@ -737,12 +755,7 @@ public final class AnalysisLockModel {
     
     protected final T processLockSpecification(final LockSpecificationNode lockSpec) {
       final LockModel lockModel = lockSpec.resolveBinding().getModel();
-
-      final AbstractLockDeclarationNode aastNode = lockModel.getAAST();
-      final ExpressionNode lockField = aastNode.getField();
-      final NamedLockImplementation lockImpl = getNamedLockImplementation(
-              aastNode.getId(), lockModel.getPromisedFor(), lockField);
-      
+      final NamedLockImplementation lockImpl = getNamedLockImplementation(lockModel);
       final boolean needsWrite = needsWrite(lockSpec);
       
       if (lockModel.isLockStatic()) {
@@ -1073,7 +1086,7 @@ public final class AnalysisLockModel {
       final ImmutableSet.Builder<HeldLock> jucBuilder,
       final HeldLockFactory heldLockFactory) {
     final Clazz clazz = getClazzFor(JavaPromise.getPromisedFor(classInitDecl));
-    for (final StateLock<?, ?> lock : clazz.getAllStateLocksInClass()) {
+    for (final StateLock<?, ?> lock : clazz.getDeclaredStateLocks()) {
       if (lock.isStatic()) { // Only want static locks
         final HeldLock heldLock = heldLockFactory.createStaticLock(
             lock.getImplementation(), classInitDecl, true, null);

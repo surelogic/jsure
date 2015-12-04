@@ -1,5 +1,7 @@
 package com.surelogic.analysis.concurrency.model;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
@@ -7,6 +9,11 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * from PolicyLock and RegionLock.
  */
 public final class NamedLockImplementation implements LockImplementation {
+  /**
+   * The class that declares this named lock.
+   */
+  private final IRNode declaredOn;
+  
   /** The name of the lock. */
   private final String name;
   
@@ -15,8 +22,9 @@ public final class NamedLockImplementation implements LockImplementation {
   
   
   
-  public NamedLockImplementation(
+  public NamedLockImplementation(final IRNode declaredOn,
       final String name, final UnnamedLockImplementation lockImpl) {
+    this.declaredOn = declaredOn;
     this.name = name;
     this.lockImpl = lockImpl;
   }
@@ -31,6 +39,7 @@ public final class NamedLockImplementation implements LockImplementation {
   @Override
   public int hashCode() {
     int result = 17;
+    result += 31 * result + declaredOn.hashCode(); // shouldn't be null
     result += 31 * result + name.hashCode();
     result += 31 * result + lockImpl.hashCode();
     return result;
@@ -42,7 +51,8 @@ public final class NamedLockImplementation implements LockImplementation {
       return true;
     } else if (other instanceof NamedLockImplementation) {
       final NamedLockImplementation castOther = (NamedLockImplementation) other;
-      return this.name.equals(castOther.name) && 
+      return this.declaredOn.equals(castOther.declaredOn) &&
+          this.name.equals(castOther.name) && 
           this.lockImpl.equals(castOther.lockImpl);
     } else {
       return false;
@@ -61,6 +71,11 @@ public final class NamedLockImplementation implements LockImplementation {
   }
   
   @Override
+  public String getDeclaredInClassName() {
+    return JavaNames.getFullTypeName(declaredOn);
+  }
+  
+  @Override
   public String getPostfixId() {
     return ":" + name;
   }
@@ -75,16 +90,16 @@ public final class NamedLockImplementation implements LockImplementation {
   
   @Override
   public boolean isIntrinsic(IBinder binder) {
-    return lockImpl.isIntrinsic(null);
+    return lockImpl.isIntrinsic(binder);
   }
   
   @Override
   public boolean isJUC(IBinder binder) {
-    return lockImpl.isJUC(null);
+    return lockImpl.isJUC(binder);
   }
   
   @Override
   public boolean isReadWrite(IBinder binder) {
-    return lockImpl.isReadWrite(null);
+    return lockImpl.isReadWrite(binder);
   }
 }

@@ -55,6 +55,11 @@ public final class ClassImplementation implements UnnamedLockImplementation {
   }
   
   @Override
+  public String getDeclaredInClassName() {
+    return getClassName();
+  }
+  
+  @Override
   public String getPostfixId() {
     return ".class";
   }

@@ -61,6 +61,11 @@ public abstract class ClassMemberImplementation implements UnnamedLockImplementa
   }
   
   @Override
+  public String getDeclaredInClassName() {
+    return getClassName();
+  }
+  
+  @Override
   public final boolean isStatic() {
     return TypeUtil.isStatic(memberDecl);
   }

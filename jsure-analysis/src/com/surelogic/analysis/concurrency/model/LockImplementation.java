@@ -13,6 +13,12 @@ public interface LockImplementation {
   public String getClassName();
   
   /**
+   * Get the name of the class where the lock implementation is declared.  For
+   * unnamed locks this is the same as {@link #getClassName}.
+   */
+  public String getDeclaredInClassName();
+  
+  /**
    * Get the "id" for the lock in a form suitable for appending to a qualifying
    * label.  That is, the id should start with the appropriate separator 
    * notation.

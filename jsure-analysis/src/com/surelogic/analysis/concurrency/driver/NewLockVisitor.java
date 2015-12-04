@@ -1,8 +1,12 @@
 package com.surelogic.analysis.concurrency.driver;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.alias.IMayAlias;
@@ -17,6 +21,7 @@ import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLocks;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
+import com.surelogic.analysis.concurrency.model.HeldLock;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
@@ -24,6 +29,7 @@ import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.dropsea.ir.HintDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -117,6 +123,14 @@ implements IBinderClient {
     public Queries subQuery(final IRNode caller) {
       return new Queries(this, caller);
     }
+    
+    public Iterable<HeldLock> getHeldLocks(final IRNode node) {
+      final Set<HeldLock> intrinsic = heldIntrinsicLocks.getResultFor(node);
+      final HeldLocks juc = heldJUCLocks.getResultFor(node);
+      return Iterables.concat(
+          intrinsic, juc.classInitLocks, juc.singleThreadedLocks,
+          juc.heldLocks);
+    }
   }
 
   // ======================================================================
@@ -183,6 +197,12 @@ implements IBinderClient {
       final HintDrop drop = HintDrop.newInformation(e.getSource());
       drop.setCategorizingMessage(DSC_EFFECTS);
       drop.setMessage(EFFECT, e.toString());
+      
+      for (final HeldLock heldLock : currentQuery().getHeldLocks(e.getSource())) {
+        final HintDrop lockDrop = HintDrop.newInformation(e.getSource());
+        lockDrop.setCategorizingMessage(DSC_EFFECTS);
+        lockDrop.setMessage(551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
+      }
     }
   }
   
