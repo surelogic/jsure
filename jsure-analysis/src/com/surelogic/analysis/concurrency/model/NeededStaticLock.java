@@ -32,7 +32,7 @@ public final class NeededStaticLock extends AbstractRealLock {
   
   @Override
   public String toString() {
-    return "<" + lockImpl.getClassName() + 
+    return "<" + lockImpl.getDeclaredInClassName() + 
         lockImpl.getPostfixId() + ">." + 
         (needsWrite ? "write" : "read");
   }
