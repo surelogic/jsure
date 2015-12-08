@@ -2005,7 +2005,7 @@ public class TypeUtils {
     	bi = (MethodBinding8) b;
     } else {
     	MethodBinding m = new MethodBinding(b);
-    	CallState state = new CallState(tEnv.getBinder(), call, targs, args, b.getReceiverType());
+    	CallState state = CallState.create(tEnv.getBinder(), call, targs, args, b.getReceiverType());
     	bi = MethodBinding8.create(state, m, tEnv, IJavaTypeSubstitution.NULL, IMethodBinder.InvocationKind.STRICT);
     }
     return computeInvocationTypeForCall(call, args, eliminateTypeVars, bi);

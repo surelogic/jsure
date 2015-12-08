@@ -632,7 +632,7 @@ public class MethodBinder8 implements IMethodBinder {
     	return isPolyExpression(e, op);
     }
     
-    boolean isPolyExpression(final IRNode e, final Operator op) {
+    boolean isPolyCall(final IRNode e, final Operator op, IBinding m) {
     	if (MethodCall.prototype.includes(op)) {
     		//  A method invocation expression is a poly expression if all of the following are true:
 
@@ -644,7 +644,7 @@ public class MethodBinder8 implements IMethodBinder {
     		// Otherwise, the method invocation expression is a standalone expression.    		
     		if (isInAssignmentOrInvocationContext(e) &&
     			numChildren(MethodCall.getTypeArgs(e)) == 0) {
-    			final IBinding mb = binder.getIBinding(e);
+    			final IBinding mb = m != null ? m : binder.getIBinding(e);
     			if (AnnotationElement.prototype.includes(mb.getNode())) {
     				return false;
     			}
@@ -653,9 +653,7 @@ public class MethodBinder8 implements IMethodBinder {
     				return refersToTypeParams(binder, MethodDeclaration.getReturnType(mb.getNode()), typeParams);
     			}
     		}    		
-    	}
-    	else if (ParenExpression.prototype.includes(op)) {
-    		return isPolyExpression(ParenExpression.getOp(e));
+    		return false;
     	}
     	else if (NewExpression.prototype.includes(op)) {
     		// A class instance creation expression is a poly expression (15.2) 
@@ -664,6 +662,16 @@ public class MethodBinder8 implements IMethodBinder {
     		// Otherwise, it is a standalone expression.  		
     		IRNode typeArgs = NewExpression.getTypeArgs(e);
     		return numChildren(typeArgs) == 0 && isInAssignmentOrInvocationContext(e);
+    	}
+    	throw new IllegalStateException("Unexpected call: "+op.name());
+    }
+    
+    boolean isPolyExpression(final IRNode e, final Operator op) {
+    	if (SomeFunctionCall.prototype.includes(op)) {
+    		return isPolyCall(e, op, null);
+    	}
+    	else if (ParenExpression.prototype.includes(op)) {
+    		return isPolyExpression(ParenExpression.getOp(e));
     	}
     	else if (ConditionalExpression.prototype.includes(op)) {
     		// 15.25.1 Boolean Conditional Expressions [New]
@@ -1094,16 +1102,20 @@ public class MethodBinder8 implements IMethodBinder {
 	CallState getCallState(IRNode call, IBinding b) {
 		final CallInterface op = (CallInterface) JJNode.tree.getOperator(call);
 		try {
-			return new CallState(binder, call, op.get_TypeArgs(call), op.get_Args(call), b.getReceiverType());
+			return CallState.create(binder, call, op.get_TypeArgs(call), op.get_Args(call), b.getReceiverType());
 		} catch (NoArgs e) {
 			throw new IllegalStateException("No args");
 		}
 	}
 		
 	IJavaType getCompileTimeResultType(IRNode call, IBinding b, IJavaType targetType) {
-	  CallState state = getCallState(call, b);
-  	  IJavaFunctionType ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);
-  	  return ftype.getReturnType();
+	  if (b instanceof MethodBinding8) {
+		CallState state = getCallState(call, b);
+		IJavaFunctionType ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);  	  
+		return ftype.getReturnType();
+	  }
+	  // Only for annotation elements?
+	  return binder.getJavaType(b.getNode());
 	}
 	
 	/**
@@ -1358,7 +1370,7 @@ public class MethodBinder8 implements IMethodBinder {
 			if (m.isGeneric()) {
 				if (call.getNumTypeArgs() == 0) {				
 					BoundSet bounds = typeInfer.inferForInvocationApplicability(call, m, getKind());
-					return bounds == null ? null : MethodBinding8WithBoundSet.create(call, m, tEnv, bounds, getKind());
+					return bounds == null ? null : MethodBinding8WithBoundSet.create(MethodBinder8.this, call, m, tEnv, bounds, getKind());
 				} else {							
 					if (call.getNumTypeArgs() != m.numTypeFormals) {
 						return null;
@@ -1383,7 +1395,7 @@ public class MethodBinder8 implements IMethodBinder {
 			// subst for rebounded formals?
 			final IJavaTypeSubstitution subst;
 			if (true) {
-				final TypeFormalCollector v = new TypeFormalCollector();
+				final TypeFormalCollector v = new TypeFormalCollector(false);
 				// copied from isApplicableAndCompatible()
 				for(IJavaType pType : m.getParamTypes(binder, call.numArgs(), usesVarargs())) {
 					if (pType == null) {
@@ -1718,34 +1730,46 @@ public class MethodBinder8 implements IMethodBinder {
     		contextSubst = JavaTypeSubstitution.create(tEnv, m.getContextType());
     	}
     	
-    	static MethodBinding8 create(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		final boolean debug = false;//c.toString().equals("<implicit>.expect(context.lookup(#))");
+    	static MethodBinding8 create(MethodBinder8 mb, ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
+    		final boolean debug = false;//c.toString().startsWith("Arrays.stream(args, i");
     		if (debug) {
     		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
     			System.out.println("Creating boundset: "+b);
     		}
-    		final BoundSet result = TypeInference8.resolve(b, null, debug);    		
-    		/*
-    		if ("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))".equals(c.toString())) {
-    			boolean gotObject = false;
-    			final Map<IJavaTypeFormal,IJavaType> map = result.computeTypeSubst(true);
-    			for(Map.Entry<IJavaTypeFormal,IJavaType> e : map.entrySet()) {
-    				if (e.getValue() == te.getObjectType()) {
-    					System.out.println("Mapped to Object: "+e.getKey());
-    					if ("R extends java.lang.Object in java.util.stream.Stream.collect(java.util.stream.Collector <? super T, A, R>)".equals(e.getKey().toString())) {
-    						gotObject = true;
-    					}
-    				}
-    			}
-    			if (gotObject) {
-    				System.out.println("Done with mappings");
-    				result.computeTypeSubst(true);
-    			}
+    		IBinding newB;
+    		if (mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
+        		// Don't include instantiations from computing applicability since they may not be right
+    			// TODO what if the return type is a type formal, and needs some kind of substitution?
+    			newB = m.bind;
+    		} else {
+        		final BoundSet result = TypeInference8.resolve(b, null, debug);    		
+        		/*
+        		if ("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))".equals(c.toString())) {
+        			boolean gotObject = false;
+        			final Map<IJavaTypeFormal,IJavaType> map = result.computeTypeSubst(true);
+        			for(Map.Entry<IJavaTypeFormal,IJavaType> e : map.entrySet()) {
+        				if (e.getValue() == te.getObjectType()) {
+        					System.out.println("Mapped to Object: "+e.getKey());
+        					if ("R extends java.lang.Object in java.util.stream.Stream.collect(java.util.stream.Collector <? super T, A, R>)".equals(e.getKey().toString())) {
+        						gotObject = true;
+        					}
+        				}
+        			}
+        			if (gotObject) {
+        				System.out.println("Done with mappings");
+        				result.computeTypeSubst(true);
+        			}
+        		}
+        		*/
+    			newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst(true, true));
     		}
-    		*/
-    		IBinding newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst(true, true));
     		return new MethodBinding8WithBoundSet(te, c, newB, b, kind);
     	}
+    	
+		IJavaTypeSubstitution getBoundSetSubst() {
+      		final BoundSet result = TypeInference8.resolve(bounds, null, false);   
+      		return result.getFinalTypeSubst(true, true);			
+		}
     	
 		@Override
 		public BoundSet getInitialBoundSet() {
@@ -2272,7 +2296,9 @@ public class MethodBinder8 implements IMethodBinder {
 						}
 					}
 					receiver = getCompileTimeResultType(rec, b, targetType); // TODO is this right?
-					subst = JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) receiver).combine(subst);
+					if (receiver instanceof IJavaDeclaredType) {
+						subst = JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) receiver).combine(subst);
+					}
 					skipFirstParameter = true;
 				}
 				// Same as below
@@ -2489,6 +2515,10 @@ public class MethodBinder8 implements IMethodBinder {
 			return type.getTypeFormals().toArray(JavaGlobals.noTypes);
 		}
 
+		public IRNode getReceiverOrNull() {
+			return null; // TODO what else could I return?
+		}
+		
 		public IJavaType getReceiverType() {
 			if (doSecond) {
 				return secondReceiver;

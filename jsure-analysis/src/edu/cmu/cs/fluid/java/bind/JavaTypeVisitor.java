@@ -454,7 +454,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     IBinding b = binder.getIBinding( node );
     IRNode targs = MethodCall.getTypeArgs(node);
 	IRNode args = MethodCall.getArgs(node);
-	CallState call = new CallState(binder, node, targs, args , b.getReceiverType());
+	CallState call = new CallState(binder, node, targs, args , b.getReceiverType(), MethodCall.getObject(node));
     IJavaType type = computeReturnType(call, b);    
     //return captureWildcards(binder, type);
     return type;
