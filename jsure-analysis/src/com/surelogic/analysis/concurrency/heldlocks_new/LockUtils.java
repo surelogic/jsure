@@ -542,12 +542,16 @@ public final class LockUtils {
     
     private void addInstanceLock(final IRNode objExpr,
         final ModelLock<?, ?> modelLock, final boolean isWrite) {
-      locks.add(heldLockFactory.createInstanceLock(objExpr, modelLock.getImplementation(), src, isWrite, null));
+      locks.add(heldLockFactory.createInstanceLock(
+          objExpr, modelLock.getImplementation(), src,
+          modelLock.getSourceAnnotation(), isWrite, null));
     }
     
     private void addStaticLock(
         final ModelLock<?, ?> modelLock, final boolean isWrite) {
-      locks.add(heldLockFactory.createStaticLock(modelLock.getImplementation(), src, isWrite, null));
+      locks.add(heldLockFactory.createStaticLock(
+          modelLock.getImplementation(), src,
+          modelLock.getSourceAnnotation(), isWrite, null));
     }
     
     private HeldLock convertReturnedLock(
@@ -624,7 +628,9 @@ public final class LockUtils {
        */
       for (final ModelLock<?, ?> lock : analysisLockModel.get().getLocksImplementedByThis(
           thisExprBinder.getJavaType(lockExpr))) {
-        locks.add(heldLockFactory.createInstanceLock(lockExpr, lock.getImplementation(), src, true, null));
+        locks.add(heldLockFactory.createInstanceLock(
+            lockExpr, lock.getImplementation(), src,
+            lock.getSourceAnnotation(), true, null));
       }
     }
 

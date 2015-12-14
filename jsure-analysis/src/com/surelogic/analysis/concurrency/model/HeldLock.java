@@ -1,7 +1,6 @@
 package com.surelogic.analysis.concurrency.model;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -44,4 +43,9 @@ public interface HeldLock extends InstantiatedLock {
    * Query if the lock must be identical to another lock.
    */  
   public boolean mustAlias(HeldLock lock, ThisExpressionBinder teb);
+  
+  /**
+   * Query if the lock satisfies the holding of the other lock.
+   */
+  public boolean mustSatisfy(NeededLock lock, ThisExpressionBinder teb);
 }

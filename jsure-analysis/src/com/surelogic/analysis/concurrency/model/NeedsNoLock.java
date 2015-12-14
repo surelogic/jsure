@@ -5,7 +5,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public final class NeedsNoLock extends AbstractNeededLock {
   public NeedsNoLock(final IRNode source) {
-    super(source, false);
+    super(source, null, false);
   }
 
   @Override
@@ -31,6 +31,8 @@ public final class NeedsNoLock extends AbstractNeededLock {
   public String toString() {
     return "<none>";
   }
+  
+  
   
   @Override
   public final boolean isIntrinsic(final IBinder binder) {

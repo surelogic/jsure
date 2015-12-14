@@ -1,5 +1,8 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.aast.IAASTNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 
 public abstract class AbstractNeededLock
@@ -9,8 +12,9 @@ implements NeededLock {
   
   
   
-  protected AbstractNeededLock(final IRNode source, final boolean needsWrite) {
-    super(source);
+  protected AbstractNeededLock(
+      final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise,  final boolean needsWrite) {
+    super(source, lockPromise);
     this.needsWrite = needsWrite;
   }
   

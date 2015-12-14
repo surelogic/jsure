@@ -1,15 +1,19 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.aast.IAASTNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 
 public final class NeededInstanceLock extends AbstractRealLock {
-  private final IRNode objectRefExpr;
+  // needs to be visible to HeldInstanceLock
+  final IRNode objectRefExpr;
   
   public NeededInstanceLock(
       final IRNode objectRefExpr, final LockImplementation lockImpl,
-      final IRNode source, final boolean needsWrite) {
-    super(source, needsWrite, lockImpl);
+      final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite) {
+    super(source, lockPromise, needsWrite, lockImpl);
     this.objectRefExpr = objectRefExpr;
   }
 

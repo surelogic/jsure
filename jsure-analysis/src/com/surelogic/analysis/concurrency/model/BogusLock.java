@@ -1,6 +1,8 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.aast.IAASTNode;
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -27,6 +29,7 @@ public final class BogusLock implements HeldLock {
     this.lockExpr = lockExpr;
   }
   
+  
 
   @Override
   public int hashCode() {
@@ -52,6 +55,8 @@ public final class BogusLock implements HeldLock {
     return "<" + DebugUnparser.toString(lockExpr) + ">";
   }
 
+  
+  
   /**
    * Check that the same lock is used, and then use syntactic equality of the
    * object expressions.
@@ -65,10 +70,21 @@ public final class BogusLock implements HeldLock {
       return false;
     }
   }
+  
+  @Override
+  public boolean mustSatisfy(
+      final NeededLock lock, final ThisExpressionBinder teb) {
+    return false;
+  }
 
   @Override
   public IRNode getSource() {
     return lockExpr;
+  }
+
+  @Override
+  public PromiseDrop<? extends IAASTNode> getLockPromise() {
+    return null;
   }
 
   @Override

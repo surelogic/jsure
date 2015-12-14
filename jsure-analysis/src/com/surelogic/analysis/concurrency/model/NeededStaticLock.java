@@ -1,12 +1,15 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.aast.IAASTNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 
 public final class NeededStaticLock extends AbstractRealLock {
   public NeededStaticLock(
       final LockImplementation lockImpl, final IRNode source,
-      final boolean needsWrite) {
-    super(source, needsWrite, lockImpl);
+      final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite) {
+    super(source, lockPromise, needsWrite, lockImpl);
   }
 
   @Override

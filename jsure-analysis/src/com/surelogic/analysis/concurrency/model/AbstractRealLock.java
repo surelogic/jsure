@@ -1,5 +1,8 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.aast.IAASTNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
@@ -7,9 +10,9 @@ public abstract class AbstractRealLock extends AbstractNeededLock {
   protected final LockImplementation lockImpl;
   
   protected AbstractRealLock(
-      final IRNode source, final boolean needsWrite, 
+      final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite, 
       final LockImplementation lockImpl) {
-    super(source, needsWrite);
+    super(source, lockPromise, needsWrite);
     this.lockImpl = lockImpl;
   }
   

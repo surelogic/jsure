@@ -1,6 +1,8 @@
 package com.surelogic.analysis.concurrency.model;
 
+import com.surelogic.aast.IAASTNode;
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -11,9 +13,9 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   
   public HeldInstanceLock(
       final IRNode objectRefExpr, final LockImplementation lockImpl,
-      final IRNode source, final boolean needsWrite,
+      final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite,
       final RequiresLockPromiseDrop supportingDrop) {
-    super(source, needsWrite, lockImpl, supportingDrop);
+    super(source, lockPromise, needsWrite, lockImpl, supportingDrop);
     this.objectRefExpr = objectRefExpr;
   }
 
@@ -31,7 +33,19 @@ public final class HeldInstanceLock extends AbstractHeldLock {
       return false;
     }
   }
-
+  
+  @Override
+  public boolean mustSatisfy(final NeededLock lock, final ThisExpressionBinder teb) {
+    if (lock instanceof NeededInstanceLock) {
+      final NeededInstanceLock o = (NeededInstanceLock) lock;
+      return (holdsWrite || (!holdsWrite && !o.needsWrite())) &&
+          lockImpl.equals(o.lockImpl) &&
+          SyntacticEquality.checkSyntacticEquality(objectRefExpr, o.objectRefExpr, teb);
+    } else {
+      return false;
+    }
+  }
+  
   @Override
   public int hashCode() {
     int result = 17;

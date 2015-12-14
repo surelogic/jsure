@@ -11,6 +11,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
+import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.java.ClassExpressionNode;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.FieldRefNode;
@@ -35,6 +36,7 @@ import com.surelogic.common.util.FilterIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.IteratorUtil;
 import com.surelogic.common.util.SimpleIteratable;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
@@ -729,9 +731,13 @@ public final class AnalysisLockModel {
       if (stateLock == null) {
         return new NeedsNoLock(source);
       } else if (stateLock.isStatic()) {
-        return new NeededStaticLock(stateLock.getImplementation(), source, needsWrite);
+        return new NeededStaticLock(
+            stateLock.getImplementation(), source,
+            stateLock.getSourceAnnotation(), needsWrite);
       } else { // instance lock
-        return new NeededInstanceLock(objectExpr, stateLock.getImplementation(), source, needsWrite);
+        return new NeededInstanceLock(
+            objectExpr, stateLock.getImplementation(), source,
+            stateLock.getSourceAnnotation(), needsWrite);
       }
     }
   }
@@ -758,7 +764,7 @@ public final class AnalysisLockModel {
       final boolean needsWrite = needsWrite(lockSpec);
       
       if (lockModel.isLockStatic()) {
-        return createStaticLock(lockImpl, source, needsWrite);
+        return createStaticLock(lockImpl, source, lockModel, needsWrite);
       } else {
         final LockNameNode lockName = lockSpec.getLock();
         final IRNode objExpr;
@@ -794,7 +800,7 @@ public final class AnalysisLockModel {
           }
         }
         if (objExpr != null) {
-          return createInstanceLock(objExpr, lockImpl, source, needsWrite);
+          return createInstanceLock(objExpr, lockImpl, source, lockModel, needsWrite);
         } else {
           return null;
         }
@@ -807,10 +813,12 @@ public final class AnalysisLockModel {
     }
     
     protected abstract T createStaticLock(
-        LockImplementation lockImpl, IRNode source, boolean needsWrite);
+        LockImplementation lockImpl, IRNode source,
+        PromiseDrop<? extends IAASTNode> lockPromise, boolean needsWrite);
     
     protected abstract T createInstanceLock(
-        IRNode objectRefExpr, LockImplementation lockImpl, IRNode source, boolean needsWrite);
+        IRNode objectRefExpr, LockImplementation lockImpl, IRNode source,
+        PromiseDrop<? extends IAASTNode> lockPromise, boolean needsWrite);
     
 //    protected abstract T createFieldRefLock(IRNode rcvr, IRNode fdecl, LockModel lock, boolean needsWrite);
   }
@@ -848,22 +856,24 @@ public final class AnalysisLockModel {
     
     @Override
     protected HeldLock createStaticLock(
-        final LockImplementation lockImpl, final IRNode source, final boolean needsWrite) {
+        final LockImplementation lockImpl, final IRNode source,
+        final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite) {
       // XXX: supporting information drop should be the @RetunrsLock???  Old version doesn't so this so not sure why not
-      return heldLockFactory.createStaticLock(lockImpl, source, needsWrite, null);
+      return heldLockFactory.createStaticLock(lockImpl, source, lockPromise, needsWrite, null);
     }
     
     @Override
     protected HeldLock createInstanceLock(
         final IRNode objectRefExpr, final LockImplementation lockImpl,
-        final IRNode source, final boolean needsWrite) {
+        final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise,
+        final boolean needsWrite) {
       // XXX: supporting information drop should be the @RetunrsLock???  Old version doesn't so this so not sure why not
       final IRNode mappedObjectExpr = formalsToActuals.get(objectRefExpr);
       if (mappedObjectExpr == null) {
         return null;
       } else {
         return heldLockFactory.createInstanceLock(
-            mappedObjectExpr, lockImpl, source, needsWrite, null);
+            mappedObjectExpr, lockImpl, source, lockPromise, needsWrite, null);
       }
     }
   }
@@ -923,19 +933,22 @@ public final class AnalysisLockModel {
     
     @Override
     protected NeededStaticLock createStaticLock(
-        final LockImplementation lockImpl, final IRNode source, boolean needsWrite) {
-      return new NeededStaticLock(lockImpl, source, needsWrite);
+        final LockImplementation lockImpl, final IRNode source, 
+        final PromiseDrop<? extends IAASTNode> lockPromise,
+        final boolean needsWrite) {
+      return new NeededStaticLock(lockImpl, source, lockPromise, needsWrite);
     }
     
     @Override
     protected NeededInstanceLock createInstanceLock(
         final IRNode objectRefExpr, final LockImplementation lockImpl,
-        final IRNode source, final boolean needsWrite) {
+        final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise,
+        final boolean needsWrite) {
       final IRNode mappedObjectExpr = formalToActualMap.get(objectRefExpr);
       if (mappedObjectExpr == null) {
         return null;
       } else {
-        return new NeededInstanceLock(mappedObjectExpr, lockImpl, source, needsWrite);
+        return new NeededInstanceLock(mappedObjectExpr, lockImpl, source, lockPromise, needsWrite);
       }
     }
   }
@@ -967,17 +980,19 @@ public final class AnalysisLockModel {
     
     @Override
     protected HeldLock createStaticLock(
-        final LockImplementation lockImpl, final IRNode source, boolean needsWrite) {
+        final LockImplementation lockImpl, final IRNode source,
+        final PromiseDrop<? extends IAASTNode> lockPromise, boolean needsWrite) {
       return heldLockFactory.createStaticLock(
-          lockImpl, source, needsWrite, supportingDrop);
+          lockImpl, source, lockPromise, needsWrite, supportingDrop);
     }
     
     @Override
     protected HeldLock createInstanceLock(
         final IRNode objectRefExpr, final LockImplementation lockImpl,
-        final IRNode source, final boolean needsWrite) {
+        final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise,
+        final boolean needsWrite) {
       return heldLockFactory.createInstanceLock(
-          objectRefExpr, lockImpl, source, needsWrite, supportingDrop);
+          objectRefExpr, lockImpl, source, lockPromise, needsWrite, supportingDrop);
     }
   }
   
@@ -1041,7 +1056,7 @@ public final class AnalysisLockModel {
         if (!(lockImpl instanceof NamedLockImplementation) ||
             !((NamedLockImplementation) lockImpl).getName().equals(MUTEX_NAME)) {
           final HeldLock heldLock = heldLockFactory.createInstanceLock(
-              rcvr, lockImpl, cdecl, true, null);
+              rcvr, lockImpl, cdecl, lock.getSourceAnnotation(), true, null);
           (lock.isIntrinsic(binder) ? intrinsicBuilder : jucBuilder).add(heldLock);
         }
       }
@@ -1063,13 +1078,15 @@ public final class AnalysisLockModel {
       if (TypeUtil.isStatic(mdecl)) {
         for (final ModelLock<?, ?> lock : getLocksImplemetedByClass(classDecl)) {
           intrinsicBuilder.add(heldLockFactory.createStaticLock(
-              lock.getImplementation(), mdecl, true, null));
+              lock.getImplementation(), mdecl, lock.getSourceAnnotation(), true, null));
         }
       } else {
         for (final ModelLock<?, ?> lock : getLocksImplementedByThis(
             JavaTypeFactory.getMyThisType(classDecl))) {
           intrinsicBuilder.add(heldLockFactory.createInstanceLock(
-              JavaPromise.getReceiverNodeOrNull(mdecl), lock.getImplementation(), mdecl, true, null));
+              JavaPromise.getReceiverNodeOrNull(mdecl),
+              lock.getImplementation(), mdecl,
+              lock.getSourceAnnotation(), true, null));
         }
       }
     }
@@ -1088,7 +1105,8 @@ public final class AnalysisLockModel {
     for (final StateLock<?, ?> lock : clazz.getDeclaredStateLocks()) {
       if (lock.isStatic()) { // Only want static locks
         final HeldLock heldLock = heldLockFactory.createStaticLock(
-            lock.getImplementation(), classInitDecl, true, null);
+            lock.getImplementation(), classInitDecl, lock.getSourceAnnotation(),
+            true, null);
         (lock.isIntrinsic(binder) ? intrinsicBuilder : jucBuilder).add(heldLock);
       }
     }
