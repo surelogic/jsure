@@ -641,10 +641,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
     } catch (StackOverflowError e) {
       System.out.println(Thread.currentThread() + " StackOverflow: " + DebugUnparser.toString(node) + " for " + this);
+      e.printStackTrace();
       if (true) {
     	  System.exit(-1);
       }
-      e.printStackTrace();
       throw e;
     }
     return bindings;
@@ -2187,17 +2187,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       final IJavaType recType = computeReceiverType(receiver);
       final IJavaScope toUse = computeScope(recType);
       if (toUse != null) {
-        if (recType instanceof IJavaDeclaredType) {
-          IJavaDeclaredType dt = (IJavaDeclaredType) recType;
-          if (AnnotationDeclaration.prototype.includes(dt.getDeclaration())) {
-            if (!JJNode.tree.hasChildren(args)) {
-              return bindAnnotationElement(node, name, toUse);
-              // throw new IllegalArgumentException("Illegal call to annotation
-              // element: "+DebugUnparser.toString(node));
-            }
-            // Process as normal method call
-          }
+    	if (isAnnoDeclAndNoArgs(recType, args)) {
+    	  return bindAnnotationElement(node, name, toUse);
         }
+        // Otherwise, process as normal method call
         final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType, receiver);
         boolean success = bindCall(state, name, toUse, true);
         if (!success) {
@@ -2205,6 +2198,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
           if (processJava8) {
            	IJavaType newType = substituteFromBinding(recType, receiver);
         	if (newType != recType) {
+              if (isAnnoDeclAndNoArgs(newType, args)) {
+            	return bindAnnotationElement(node, name, computeScope(newType));
+              }
+        	  // Otherwise, process as normal method call        		
         	  final CallState newState = new CallState(AbstractJavaBinder.this, node, targs, args, newType, receiver);        		
         	  success = bindCall(newState, name, newType);
         	}
@@ -2242,6 +2239,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         bind(node, (IRNode) null);
       }
       return null;
+    }
+    
+    private boolean isAnnoDeclAndNoArgs(IJavaType recType, IRNode args) {
+      if (recType instanceof IJavaDeclaredType) {
+    	IJavaDeclaredType dt = (IJavaDeclaredType) recType;
+    	if (AnnotationDeclaration.prototype.includes(dt.getDeclaration())) {
+    	  return !JJNode.tree.hasChildren(args);
+    	}
+      }
+      return false;
     }
     
     // Adapted from getApproxJavaType()
