@@ -21,12 +21,44 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * with a parse tree node that indicates where the lock is acquired.
  */
 public interface HeldLock extends InstantiatedLock {
+  public static enum Reason {
+    SYNCHRONIZED_STATEMENT(2001),
+    JUC_LOCK_CALL(2002),
+    SYNCHRONIZED_METHOD(2003),
+    STATIC_SYNCHRONIZED_METHOD(2004),
+    METHOD_PRECONDITION(2005),
+    SINGLE_THREADED(2006),
+    CLASS_INITIALIZATION(2007),
+    BOGUS(2008);
+    
+    private final int infoMsg;
+    
+    Reason(final int infoMsg) {
+      this.infoMsg = infoMsg;
+    }
+    
+    /**
+     * Return the id of the message to use when reporting the lock is held
+     * as part of supporting information.  The message has 1 argument: the lock.
+     */
+    public final int getInformationMessage() {
+      return infoMsg;
+    }
+  }
+  
+  
+  
   /**
    * Get the parse tree node of the expression or declaration that acquires
    * the lock.
    */
   @Override
   public IRNode getSource();
+  
+  /**
+   * Get the semantic reason for the lock being held.
+   */
+  public Reason getReason();
   
   /**
    * Is a write lock held?

@@ -1116,10 +1116,6 @@ public final class Effects implements IBinderClient {
       this.lockModel = lockModel;
     }
     
-    private boolean addResult(final Target target, final NeededLock lock) {
-      return addResult(target, ImmutableSet.of(lock));
-    }
-    
     private boolean addResult(final Target target, final Set<NeededLock> locks) {
       if (targets.add(target)) {
         lockMap.put(target, locks);

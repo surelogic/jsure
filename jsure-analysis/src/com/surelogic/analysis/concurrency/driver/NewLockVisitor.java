@@ -230,8 +230,8 @@ implements IBinderClient {
           
           // Add held locks as supporting information
           for (final HeldLock heldLock : heldLocks) {
-            resultDrop.addInformationHint(
-                heldLock.getSource(), Messages.LockAnalysis_ds_HeldLock, heldLock);
+            resultDrop.addInformationHint(heldLock.getSource(),
+                heldLock.getReason().getInformationMessage(), heldLock);
           }
         }
         

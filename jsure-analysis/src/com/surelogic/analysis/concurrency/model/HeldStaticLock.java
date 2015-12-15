@@ -10,9 +10,9 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public final class HeldStaticLock extends AbstractHeldLock {
   public HeldStaticLock(
       final LockImplementation lockImpl, final IRNode source,
-      final PromiseDrop<? extends IAASTNode> lockPromise,
+      final Reason reason, final PromiseDrop<? extends IAASTNode> lockPromise,
       final boolean needsWrite, final RequiresLockPromiseDrop supportingDrop) {
-    super(source, lockPromise, needsWrite, lockImpl, supportingDrop);
+    super(source, reason, lockPromise, needsWrite, lockImpl, supportingDrop);
   }
   
   /**

@@ -83,6 +83,11 @@ public final class BogusLock implements HeldLock {
   }
 
   @Override
+  public Reason getReason() {
+    return Reason.BOGUS;
+  }
+  
+  @Override
   public PromiseDrop<? extends IAASTNode> getLockPromise() {
     return null;
   }

@@ -16,6 +16,7 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.HeldLock.Reason;
 import com.surelogic.analysis.concurrency.model.HeldLockFactory;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
@@ -559,7 +560,8 @@ final class LockExpressions {
       if (lockUtils.isMethodFromJavaUtilConcurrentLocksLock(mcall)) {
         final MethodCall call = (MethodCall) JJNode.tree.getOperator(mcall);
         final IRNode lockExpr = call.get_Object(mcall);
-        final Set<HeldLock> locks = processLockExpression(false, lockExpr, lockExpr, null);
+        final Set<HeldLock> locks = processLockExpression(
+            false, lockExpr, lockExpr, Reason.JUC_LOCK_CALL, null);
         if (locks != null) jucLockExprsToLockSets.put(lockExpr, locks);
       }
       doAcceptForChildren(mcall);
@@ -568,21 +570,23 @@ final class LockExpressions {
     @Override
     public Void visitSynchronizedStatement(final IRNode syncBlock) {
       final IRNode lockExpr = SynchronizedStatement.getLock(syncBlock);
-      final Set<HeldLock> locks = processLockExpression(true, lockExpr, syncBlock, syncBlock);
+      final Set<HeldLock> locks = processLockExpression(
+          true, lockExpr, syncBlock, Reason.SYNCHRONIZED_STATEMENT, syncBlock);
       if (locks != null) syncBlocks.put(syncBlock, locks);
       doAcceptForChildren(syncBlock);
       return null;
     }
     
-    private Set<HeldLock> processLockExpression(final boolean convertAsIntrinsic,
-        final IRNode lockExpr, final IRNode src, final IRNode syncBlock) {
+    private Set<HeldLock> processLockExpression(
+        final boolean convertAsIntrinsic, final IRNode lockExpr,
+        final IRNode src, final Reason reason, final IRNode syncBlock) {
       if (lockUtils.isFinalExpression(
           lockExpr, thisExprBinder.enclosingFlowUnit, syncBlock,
           currentQuery().first(), currentQuery().second())) {
         // Get the locks for the lock expression
         final ImmutableSet.Builder<HeldLock> lockSet = ImmutableSet.builder();
         lockUtils.convertLockExpr(
-            convertAsIntrinsic, lockExpr, heldLockFactory, src,
+            convertAsIntrinsic, lockExpr, heldLockFactory, src, reason,
             currentQuery().second(), enclosingMethodDecl, lockSet);
         final Set<HeldLock> result = lockSet.build();
         if (result.isEmpty() && !convertAsIntrinsic) {

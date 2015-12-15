@@ -10,6 +10,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 public abstract class AbstractHeldLock
 extends AbstractInstantiatedLock
 implements HeldLock {
+  protected final Reason reason;
   protected final boolean holdsWrite;
   
   protected final LockImplementation lockImpl;
@@ -25,13 +26,20 @@ implements HeldLock {
 
   
   protected AbstractHeldLock(
-      final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise, 
+      final IRNode source, final Reason reason,
+      final PromiseDrop<? extends IAASTNode> lockPromise, 
       final boolean holdsWrite, final LockImplementation lockImpl,
       final RequiresLockPromiseDrop supportingDrop) {
     super(source, lockPromise);
+    this.reason = reason;
     this.holdsWrite = holdsWrite;
     this.lockImpl = lockImpl;
     this.supportingDrop = supportingDrop;
+  }
+  
+  @Override
+  public final Reason getReason() {
+    return reason;
   }
   
   @Override

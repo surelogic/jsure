@@ -13,9 +13,10 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   
   public HeldInstanceLock(
       final IRNode objectRefExpr, final LockImplementation lockImpl,
-      final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite,
+      final IRNode source, final Reason reason,
+      final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite,
       final RequiresLockPromiseDrop supportingDrop) {
-    super(source, lockPromise, needsWrite, lockImpl, supportingDrop);
+    super(source, reason, lockPromise, needsWrite, lockImpl, supportingDrop);
     this.objectRefExpr = objectRefExpr;
   }
 

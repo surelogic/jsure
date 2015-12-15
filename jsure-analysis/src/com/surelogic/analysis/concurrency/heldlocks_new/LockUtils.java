@@ -13,6 +13,7 @@ import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuer
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.HeldLock.Reason;
 import com.surelogic.analysis.concurrency.model.HeldLockFactory;
 import com.surelogic.analysis.concurrency.model.ModelLock;
 import com.surelogic.analysis.effects.ConflictChecker;
@@ -522,17 +523,19 @@ public final class LockUtils {
     // If false, convert as JUC
     private final boolean convertAsIntrinsic;
     private final IRNode src;
+    private final Reason reason;
     private final HeldLockFactory heldLockFactory;
     private final ProvablyUnassignedQuery query;
     private final IRNode enclosingDecl;
     private final ImmutableSet.Builder<HeldLock> locks;
     
     public LockExpressionConverter(
-        final boolean convertAsIntrinsic, final IRNode src,
+        final boolean convertAsIntrinsic, final IRNode src, final Reason reason,
         final HeldLockFactory heldLockFactory, final ProvablyUnassignedQuery query,
         final IRNode enclosingDecl, final ImmutableSet.Builder<HeldLock> locks) {
       this.convertAsIntrinsic = convertAsIntrinsic;
       this.src = src;
+      this.reason = reason;
       this.heldLockFactory = heldLockFactory;
       this.query = query;
       this.enclosingDecl = enclosingDecl;
@@ -542,14 +545,14 @@ public final class LockUtils {
     private void addInstanceLock(final IRNode objExpr,
         final ModelLock<?, ?> modelLock, final boolean isWrite) {
       locks.add(heldLockFactory.createInstanceLock(
-          objExpr, modelLock.getImplementation(), src,
+          objExpr, modelLock.getImplementation(), src, reason,
           modelLock.getSourceAnnotation(), isWrite, null));
     }
     
     private void addStaticLock(
         final ModelLock<?, ?> modelLock, final boolean isWrite) {
       locks.add(heldLockFactory.createStaticLock(
-          modelLock.getImplementation(), src,
+          modelLock.getImplementation(), src, reason,
           modelLock.getSourceAnnotation(), isWrite, null));
     }
     
@@ -562,7 +565,7 @@ public final class LockUtils {
         final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
             thisExprBinder, methodCall, methodDecl, enclosingDecl);
         return analysisLockModel.get().getHeldLockFromReturnsLock(
-            returnsLock, methodDecl, isWrite, src, m, heldLockFactory);
+            returnsLock, methodDecl, isWrite, src, reason, m, heldLockFactory);
       } else {
         return null;
       }
@@ -627,12 +630,13 @@ public final class LockUtils {
        */
       for (final ModelLock<?, ?> lock : analysisLockModel.get().getLocksImplementedByThis(
           thisExprBinder.getJavaType(lockExpr))) {
-        locks.add(heldLockFactory.createInstanceLock(
-            lockExpr, lock.getImplementation(), src,
-            lock.getSourceAnnotation(), true, null));
+        addInstanceLock(lockExpr, lock, true);
+//        locks.add(heldLockFactory.createInstanceLock(
+//            lockExpr, lock.getImplementation(), src, reason,
+//            lock.getSourceAnnotation(), true, null));
       }
     }
-
+    
     private void convertClassExpression(final IRNode lockExpr) {
       /* A class expression can never be a JUC lock because the reference type 
        * is always java.lang.Class.
@@ -772,10 +776,11 @@ public final class LockUtils {
   public void convertLockExpr(
       final boolean convertAsIntrinsic, final IRNode lockExpr,
       final HeldLockFactory heldLockFactory, final IRNode src,
+      final Reason reason,
       final ProvablyUnassignedQuery query, final IRNode enclosingDecl, 
       final ImmutableSet.Builder<HeldLock> locks) {
     final LockExpressionConverter converter = new LockExpressionConverter(
-        convertAsIntrinsic, src, heldLockFactory, query, enclosingDecl, locks);
+        convertAsIntrinsic, src, reason, heldLockFactory, query, enclosingDecl, locks);
     converter.convertLockExpr(lockExpr, true);
   }
 }
