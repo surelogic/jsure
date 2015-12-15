@@ -24,7 +24,6 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel.LockGenerator;
 import com.surelogic.analysis.concurrency.model.NeededLock;
-import com.surelogic.analysis.concurrency.model.NeedsNoLock;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
@@ -324,7 +323,7 @@ public final class Effects implements IBinderClient {
           // Shouldn't happen, but we need to ensure that blank final targ is initialized
           targ = null;
         }
-        final Effect eff = Effect.effect(callSite, isRead, targ, new NeedsNoLock(callSite));
+        final Effect eff = Effect.effect(callSite, isRead, targ);
         result.add(eff);
       }
     }
@@ -353,7 +352,7 @@ public final class Effects implements IBinderClient {
           new ClassTarget(getAllRegion(callSite), NoEvidence.INSTANCE);
       // get the RequiredLocks
       effects = Collections.singletonList(
-          Effect.write(callSite, anything, new NeedsNoLock(callSite)));
+          Effect.write(callSite, anything));
     }
     return effects;
   }
@@ -452,7 +451,7 @@ public final class Effects implements IBinderClient {
           elaborateInstanceTarget(
               bcaQuery, thisExprBinder, lockModel.get(),
               call, eff.isRead(), newTarg,
-              lockModel.get().getNeededLock(
+              lockModel.get().getNeededLocks(
                   thisExprBinder, newTarg, call, !eff.isRead(), objectExpr),
               methodEffects);
         } else { // See if ref is a QualifiedReceiverDeclaration
@@ -462,7 +461,7 @@ public final class Effects implements IBinderClient {
             final Target newTarg = new AnyInstanceTarget(
                 javaType, t.getRegion(),
                 new QualifiedReceiverConversionEvidence(mdecl, ref, javaType)); 
-            methodEffects.add(Effect.effect(call, eff.isRead(), newTarg, new NeedsNoLock(call)));
+            methodEffects.add(Effect.effect(call, eff.isRead(), newTarg));
           } else {
             throw new IllegalStateException("Unmappable instance target: " + t);
           }
@@ -498,10 +497,10 @@ public final class Effects implements IBinderClient {
       // XXX: Using bogus lock model and empty lock
       elaborateInstanceTarget(
           bcaQuery, thisExprBinder, new AnalysisLockModel(thisExprBinder), src,
-          isRead, target, new NeedsNoLock(src), elaboratedEffects);
+          isRead, target, ImmutableSet.<NeededLock>of(), elaboratedEffects);
       return Collections.unmodifiableSet(elaboratedEffects);
     } else {
-      return Collections.singleton(Effect.effect(src, isRead, target, Effect.NO_LOCKS));
+      return Collections.singleton(Effect.effect(src, isRead, target));
     }
   }
   
@@ -512,11 +511,11 @@ public final class Effects implements IBinderClient {
       final ThisExpressionBinder thisExprBinder,
       final AnalysisLockModel lockModel,
       final IRNode srcExpr, final boolean isRead,
-      final Target initTarget, final NeededLock initLock,
+      final Target initTarget, final Set<NeededLock> initLocks,
       final Set<Effect> outEffects) {
     final TargetElaborator te = new TargetElaborator(
         srcExpr, !isRead, bcaQuery, thisExprBinder, lockModel);
-    te.elaborateTarget(initTarget, initLock);
+    te.elaborateTarget(initTarget, initLocks);
     te.getEffects(srcExpr, isRead, outEffects);
   }
 
@@ -813,7 +812,7 @@ public final class Effects implements IBinderClient {
                   elaborateInstanceTarget(
                       context.bcaQuery, thisExprBinder, lockModel.get(),
                       expr, maskedEffect.isRead(), newTarget,
-                      lockModel.get().getNeededLock(thisExprBinder, newTarget, expr, !maskedEffect.isRead(), objectExpr),
+                      lockModel.get().getNeededLocks(thisExprBinder, newTarget, expr, !maskedEffect.isRead(), objectExpr),
                       context.theEffects);
                 } else {
                   /* 2012-08-24: We have to clean the type to make sure it is not a 
@@ -824,14 +823,14 @@ public final class Effects implements IBinderClient {
                     type = TypeUtil.typeFormalToDeclaredClass(
                         thisExprBinder.getTypeEnvironment(), (IJavaTypeFormal) type);
                   }
-                  lockModel.get().getNeededLock(thisExprBinder, target, expr, !maskedEffect.isRead(), ref);
+                  lockModel.get().getNeededLocks(thisExprBinder, target, expr, !maskedEffect.isRead(), ref);
                   context.theEffects.add(Effect.effect(
                       expr, maskedEffect.isRead(),
                       new AnyInstanceTarget(
                           (IJavaReferenceType) type, target.getRegion(),
                           new UnknownReferenceConversionEvidence(
                               maskedEffect, ref, (IJavaReferenceType) type)),
-                              lockModel.get().getNeededLock(thisExprBinder, target, expr, !maskedEffect.isRead(), ref)));
+                              lockModel.get().getNeededLocks(thisExprBinder, target, expr, !maskedEffect.isRead(), ref)));
                 }
               } else {
                 context.theEffects.add(maskedEffect.changeSource(
@@ -853,7 +852,7 @@ public final class Effects implements IBinderClient {
       final boolean isRead = context.isRead();
       elaborateInstanceTarget(
           context.bcaQuery, thisExprBinder, lockModel.get(), expr, isRead,
-          target, lockModel.get().getNeededLock(thisExprBinder, target, expr, !isRead, objectExpr),
+          target, lockModel.get().getNeededLocks(thisExprBinder, target, expr, !isRead, objectExpr),
           context.theEffects);
       doAcceptForChildren(expr);
       return null;
@@ -905,16 +904,16 @@ public final class Effects implements IBinderClient {
         if (TypeUtil.isStatic(id)) {
           final Target target = new ClassTarget(region, NoEvidence.INSTANCE);
           context.theEffects.add(Effect.effect(expr, isRead, target,
-              lockModel.get().getNeededLock(thisExprBinder, target, expr, !isRead, object)));
+              lockModel.get().getNeededLocks(thisExprBinder, target, expr, !isRead, object)));
         } else {
           final Target initTarget = new InstanceTarget(
               thisExprBinder.bindThisExpression(object),
               region, NoEvidence.INSTANCE);
-          final NeededLock initLock =
-              lockModel.get().getNeededLock(thisExprBinder, initTarget, expr, !isRead, object);
+          final Set<NeededLock> initLocks =
+              lockModel.get().getNeededLocks(thisExprBinder, initTarget, expr, !isRead, object);
           elaborateInstanceTarget(
               context.bcaQuery, thisExprBinder, lockModel.get(),
-              expr, isRead, initTarget, initLock, context.theEffects);
+              expr, isRead, initTarget, initLocks, context.theEffects);
         }
       } else { // must be a final field
         /* Check for a lock: the final field may be protected by
@@ -983,7 +982,7 @@ public final class Effects implements IBinderClient {
       final IRNode outerType =
           thisExprBinder.getBinding(QualifiedThisExpression.getType(expr));
       IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
-      context.theEffects.add(Effect.read(expr, new LocalTarget(qr), Effect.NO_LOCKS));
+      context.theEffects.add(Effect.read(expr, new LocalTarget(qr)));
       return null;
     }
 
@@ -993,7 +992,7 @@ public final class Effects implements IBinderClient {
     public Void visitSuperExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
       context.theEffects.add(
-          Effect.read(expr, new LocalTarget(context.theReceiverNode), Effect.NO_LOCKS));
+          Effect.read(expr, new LocalTarget(context.theReceiverNode)));
       return null;
     }
 
@@ -1003,7 +1002,7 @@ public final class Effects implements IBinderClient {
     public Void visitThisExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
       context.theEffects.add(
-          Effect.read(expr, new LocalTarget(context.theReceiverNode), Effect.NO_LOCKS));
+          Effect.read(expr, new LocalTarget(context.theReceiverNode)));
       return null;
     }
     
@@ -1022,7 +1021,7 @@ public final class Effects implements IBinderClient {
       final boolean isRead = context.isRead();
       final IRNode id = thisExprBinder.getBinding(expr);
       context.theEffects.add(
-          Effect.effect(expr, isRead, new LocalTarget(id), Effect.NO_LOCKS));
+          Effect.effect(expr, isRead, new LocalTarget(id)));
       return null;
     }
 
@@ -1035,20 +1034,20 @@ public final class Effects implements IBinderClient {
         if (isStatic) {
           final Target target = new ClassTarget(
               RegionModel.getInstance(varDecl), NoEvidence.INSTANCE);
-          final NeededLock lock = lockModel.get().getNeededLock(
+          final Set<NeededLock> lock = lockModel.get().getNeededLocks(
               thisExprBinder, target, varDecl, true, context.theReceiverNode);
           context.theEffects.add(Effect.write(varDecl, target, lock));
         } else {
           // First we read the receiver . . .
           context.theEffects.add(
-              Effect.read(varDecl, new LocalTarget(context.theReceiverNode), Effect.NO_LOCKS));
+              Effect.read(varDecl, new LocalTarget(context.theReceiverNode)));
           /* . . . then we write the field.  This never needs elaborating
            * because it is not a use expression or a field reference expression
            */
           final Target target = new InstanceTarget(
               thisExprBinder.bindThisExpression(context.theReceiverNode),
               RegionModel.getInstance(varDecl), NoEvidence.INSTANCE);
-          final NeededLock lock = lockModel.get().getNeededLock(
+          final Set<NeededLock> lock = lockModel.get().getNeededLocks(
               thisExprBinder, target, varDecl, true, context.theReceiverNode);
           context.theEffects.add(Effect.write(varDecl, target, lock));
         }
@@ -1069,7 +1068,7 @@ public final class Effects implements IBinderClient {
          * so we don't have to bind it.
          */
         context.theEffects.add(
-            Effect.write(varDecl, new LocalTarget(varDecl), Effect.NO_LOCKS));
+            Effect.write(varDecl, new LocalTarget(varDecl)));
       }
       doAcceptForChildren(varDecl);
     }
@@ -1139,14 +1138,14 @@ public final class Effects implements IBinderClient {
     }
     
     public void elaborateTarget(
-        final Target initTarget, final NeededLock initLock) {
+        final Target initTarget, final Set<NeededLock> initLocks) {
       if (used) {
         throw new IllegalStateException("Target elaborate has already been used");
       } else {
         used = true;
       }
       
-      addResult(initTarget, initLock);
+      addResult(initTarget, initLocks);
       Set<Target> newTargets = new HashSet<Target>(targets);
 
       // Loop until fixed-point is reached
@@ -1176,7 +1175,7 @@ public final class Effects implements IBinderClient {
           addResult(
               new EmptyTarget(new EmptyEvidence(
                   EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, expr)),
-              new NeedsNoLock(srcExpr));
+              ImmutableSet.<NeededLock>of());
           elaborated.add(target);
         } else {
           // Process the expression further
@@ -1199,7 +1198,7 @@ public final class Effects implements IBinderClient {
             addResult(
                 new EmptyTarget(
                     new EmptyEvidence(Reason.NULL_REFERENCE, target, expr)),
-                new NeedsNoLock(srcExpr));
+                ImmutableSet.<NeededLock>of());
             elaborated.add(target);
           }
         }
@@ -1288,13 +1287,13 @@ public final class Effects implements IBinderClient {
                   T, NoEvidence.INSTANCE); 
             }
             final LockGenerator lockGen = lockModel.getLockGenerator(thisExprBinder, t);
-            builder.add(lockGen.getLock(srcExpr, needsWrite, FieldRef.getObject(expr)));
+            builder.addAll(lockGen.getLocks(srcExpr, needsWrite, FieldRef.getObject(expr)));
             addedSubRegion = true;
           }
         }
         if (!addedSubRegion) {
           final LockGenerator lockGen = lockModel.getLockGenerator(thisExprBinder, newTarget);
-          builder.add(lockGen.getLock(srcExpr, needsWrite, FieldRef.getObject(expr)));
+          builder.addAll(lockGen.getLocks(srcExpr, needsWrite, FieldRef.getObject(expr)));
         }
         
         // Elaborate

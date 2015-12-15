@@ -448,8 +448,7 @@ final class LockExpressions {
        */
       final Effect writesInstance = Effect.write(null,
           new InstanceTarget(
-              rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE),
-          Effect.NO_LOCKS);
+              rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE));
 
       final RegionEffectsPromiseDrop eDrop = MethodEffectsRules.getRegionEffectsDrop(cdecl);
       final StartsPromiseDrop teDrop = ThreadEffectsRules.getStartsSpec(cdecl);

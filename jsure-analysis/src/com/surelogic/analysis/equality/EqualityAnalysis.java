@@ -114,7 +114,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		void initForCU(final IRNode cu) {
       final Target anything = 
           new ClassTarget(RegionModel.getAllRegion(cu), NoEvidence.INSTANCE);
-      readsAnything = Effect.read(cu, anything, Effect.NO_LOCKS);      
+      readsAnything = Effect.read(cu, anything);      
       instanceRegion = RegionModel.getInstanceRegion(cu);
 		}
 		
@@ -163,8 +163,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 	              Effect.read(null,
 	                  new InstanceTarget(
 	                      JavaPromise.getReceiverNode(mdecl),
-	                      instanceRegion, NoEvidence.INSTANCE),
-	                  Effect.NO_LOCKS);
+	                      instanceRegion, NoEvidence.INSTANCE));
 	          for (final Effect de : declared) {
 	            if (!de.isCheckedBy(getBinder(), readsThisInstance)) {
 	              result.addWarningHint(mdecl, READ_EFFECT_WARN, de.unparseForMessage());

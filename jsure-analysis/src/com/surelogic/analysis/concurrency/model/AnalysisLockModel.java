@@ -709,14 +709,14 @@ public final class AnalysisLockModel {
     return new LockGenerator(getLockForTarget(binder, target));
   }
   
-  public NeededLock getNeededLock(final IJavaType javaType, final IRegion region,
+  public Set<NeededLock> getNeededLock(final IJavaType javaType, final IRegion region,
       final IRNode srcExpr, final boolean needsWrite, final IRNode objectExpr) {
-    return getLockGenerator(javaType, region).getLock(srcExpr, needsWrite, objectExpr);
+    return getLockGenerator(javaType, region).getLocks(srcExpr, needsWrite, objectExpr);
   }
   
-  public NeededLock getNeededLock(final IBinder binder, final Target target,
+  public Set<NeededLock> getNeededLocks(final IBinder binder, final Target target,
       final IRNode srcExpr, final boolean needsWrite, final IRNode objectExpr) {
-    return getLockGenerator(binder, target).getLock(srcExpr, needsWrite, objectExpr);
+    return getLockGenerator(binder, target).getLocks(srcExpr, needsWrite, objectExpr);
   }
   
   public static final class LockGenerator {
@@ -726,18 +726,22 @@ public final class AnalysisLockModel {
       this.stateLock = stateLock;
     }
     
-    public NeededLock getLock(
+    public Set<NeededLock> getLocks(
         final IRNode source, final boolean needsWrite, final IRNode objectExpr) {
       if (stateLock == null) {
-        return new NeedsNoLock(source);
-      } else if (stateLock.isStatic()) {
-        return new NeededStaticLock(
-            stateLock.getImplementation(), source,
-            stateLock.getSourceAnnotation(), needsWrite);
-      } else { // instance lock
-        return new NeededInstanceLock(
-            objectExpr, stateLock.getImplementation(), source,
-            stateLock.getSourceAnnotation(), needsWrite);
+        return ImmutableSet.<NeededLock>of();
+      } else {
+        final NeededLock neededLock;
+        if (stateLock.isStatic()) {
+          neededLock = new NeededStaticLock(
+              stateLock.getImplementation(), source,
+              stateLock.getSourceAnnotation(), needsWrite);
+        } else { // instance lock
+          neededLock = new NeededInstanceLock(
+              objectExpr, stateLock.getImplementation(), source,
+              stateLock.getSourceAnnotation(), needsWrite);
+        }
+        return ImmutableSet.of(neededLock);
       }
     }
   }

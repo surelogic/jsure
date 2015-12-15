@@ -415,8 +415,7 @@ public final class LockUtils {
           final Set<Effect> exprEffects = Collections.singleton(
               Effect.read(null,
                   new InstanceTarget(thisExprBinder.bindThisExpression(array),
-                      RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE),
-                  Effect.NO_LOCKS));
+                      RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE)));
           final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
           return conflictChecker.mayConflict(bodyEffects, exprEffects);
         } else {

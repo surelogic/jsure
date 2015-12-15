@@ -21,7 +21,6 @@ import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.HeldLock;
 import com.surelogic.analysis.concurrency.model.NeededLock;
-import com.surelogic.analysis.concurrency.model.NeedsNoLock;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
@@ -213,28 +212,26 @@ implements IBinderClient {
         final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(e.getSource());
 
         for (final NeededLock neededLock : e.getNeededLocks()) {
-          if (!(neededLock instanceof NeedsNoLock)) {
-            final HeldLock satisfyingLock = isSatisfied(neededLock, heldLocks);
-            final ResultDrop resultDrop;
-            if (satisfyingLock != null) {
-              resultDrop = ResultsBuilder.createResult(
-                  true, neededLock.getLockPromise(), e.getSource(),
-                  Messages.LockAnalysis_ds_FieldAccessAssured,
-                  neededLock, DebugUnparser.toString(e.getSource()));
-              resultDrop.setCategorizingMessage(Messages.DSC_FIELD_ACCESS_ASSURED);
-            } else {
-              resultDrop = ResultsBuilder.createResult(
-                  false, neededLock.getLockPromise(), e.getSource(),
-                  Messages.LockAnalysis_ds_FieldAccessNotAssured,
-                  neededLock, DebugUnparser.toString(e.getSource()));
-              resultDrop.setCategorizingMessage(Messages.DSC_FIELD_ACCESS_NOT_ASSURED);
-            }
-            
-            // Add held locks as supporting information
-            for (final HeldLock heldLock : heldLocks) {
-              resultDrop.addInformationHint(
-                  heldLock.getSource(), Messages.LockAnalysis_ds_HeldLock, heldLock);
-            }
+          final HeldLock satisfyingLock = isSatisfied(neededLock, heldLocks);
+          final ResultDrop resultDrop;
+          if (satisfyingLock != null) {
+            resultDrop = ResultsBuilder.createResult(
+                true, neededLock.getLockPromise(), e.getSource(),
+                Messages.LockAnalysis_ds_FieldAccessAssured,
+                neededLock, DebugUnparser.toString(e.getSource()));
+            resultDrop.setCategorizingMessage(Messages.DSC_FIELD_ACCESS_ASSURED);
+          } else {
+            resultDrop = ResultsBuilder.createResult(
+                false, neededLock.getLockPromise(), e.getSource(),
+                Messages.LockAnalysis_ds_FieldAccessNotAssured,
+                neededLock, DebugUnparser.toString(e.getSource()));
+            resultDrop.setCategorizingMessage(Messages.DSC_FIELD_ACCESS_NOT_ASSURED);
+          }
+          
+          // Add held locks as supporting information
+          for (final HeldLock heldLock : heldLocks) {
+            resultDrop.addInformationHint(
+                heldLock.getSource(), Messages.LockAnalysis_ds_HeldLock, heldLock);
           }
         }
         

@@ -60,10 +60,6 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * @author Aaron Greenhouse
  */
 public abstract class Effect {
-  public static final Set<NeededLock> NO_LOCKS = ImmutableSet.<NeededLock>of();
-  
-  
-  
   private static final class EmptyEffect extends Effect {
     /** Only for use by changeSource(). */
     private EmptyEffect(final IRNode src, final Target t, final Set<NeededLock> neededLocks) {
@@ -461,6 +457,11 @@ public abstract class Effect {
       final NeededLock neededLock) {
     return read ? read(src, t, neededLock) : write(src, t, neededLock);
   }
+
+  public static Effect effect(
+      final IRNode src, final boolean read, final Target t) {
+    return Effect.effect(src, read, t, ImmutableSet.<NeededLock>of());
+  }
   
   /**
    * Create a new read effect.
@@ -480,6 +481,10 @@ public abstract class Effect {
       final Set<NeededLock> neededLocks) {
     return new ReadEffect(src, t, neededLocks);
   }
+
+  public static Effect read(final IRNode src, final Target t) {
+    return Effect.read(src, t, ImmutableSet.<NeededLock>of());
+  }
   
   /**
    * Create a new write effect.
@@ -498,6 +503,10 @@ public abstract class Effect {
   public static Effect write(final IRNode src, final Target t,
       final Set<NeededLock> neededLocks) {
     return new WriteEffect(src, t, neededLocks);
+  }
+  
+  public static Effect write(final IRNode src, final Target t) {
+    return Effect.write(src, t, ImmutableSet.<NeededLock>of());
   }
   
   /**
