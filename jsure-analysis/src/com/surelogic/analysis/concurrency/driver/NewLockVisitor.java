@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.collect.Iterables;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
@@ -19,11 +20,14 @@ import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLoc
 import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.NeededLock;
+import com.surelogic.analysis.concurrency.model.NeedsNoLock;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.dropsea.ir.HintDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -188,6 +192,15 @@ implements IBinderClient {
   // == Visit
   // ======================================================================
   
+  private HeldLock isSatisfied(final NeededLock neededLock, final Iterable<HeldLock> heldLocks) {
+    for (final HeldLock heldLock : heldLocks) {
+      if (heldLock.mustSatisfy(neededLock, thisExprBinder)) {
+        return heldLock;
+      }
+    }
+    return null;
+  }
+  
   private void reportEffects(final IRNode mdecl) {
     final Set<Effect> fx = effects.getImplementationEffects(mdecl, bca);
     for (final Effect e : fx) {
@@ -197,7 +210,35 @@ implements IBinderClient {
       
       // Show the held locks if the effect has needed locks
       if (!e.getNeededLocks().isEmpty()) {
-        for (final HeldLock heldLock : currentQuery().getHeldLocks(e.getSource())) {
+        final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(e.getSource());
+
+        for (final NeededLock neededLock : e.getNeededLocks()) {
+          if (!(neededLock instanceof NeedsNoLock)) {
+            final HeldLock satisfyingLock = isSatisfied(neededLock, heldLocks);
+            final ResultDrop resultDrop;
+            if (satisfyingLock != null) {
+              resultDrop = ResultsBuilder.createResult(
+                  true, neededLock.getLockPromise(), e.getSource(),
+                  Messages.LockAnalysis_ds_FieldAccessAssured,
+                  neededLock, DebugUnparser.toString(e.getSource()));
+              resultDrop.setCategorizingMessage(Messages.DSC_FIELD_ACCESS_ASSURED);
+            } else {
+              resultDrop = ResultsBuilder.createResult(
+                  false, neededLock.getLockPromise(), e.getSource(),
+                  Messages.LockAnalysis_ds_FieldAccessNotAssured,
+                  neededLock, DebugUnparser.toString(e.getSource()));
+              resultDrop.setCategorizingMessage(Messages.DSC_FIELD_ACCESS_NOT_ASSURED);
+            }
+            
+            // Add held locks as supporting information
+            for (final HeldLock heldLock : heldLocks) {
+              resultDrop.addInformationHint(
+                  heldLock.getSource(), Messages.LockAnalysis_ds_HeldLock, heldLock);
+            }
+          }
+        }
+        
+        for (final HeldLock heldLock : heldLocks) {
           final HintDrop lockDrop = HintDrop.newInformation(e.getSource());
           lockDrop.setCategorizingMessage(DSC_EFFECTS);
           lockDrop.setMessage(551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
