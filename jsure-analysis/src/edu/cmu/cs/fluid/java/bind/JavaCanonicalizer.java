@@ -332,17 +332,27 @@ public class JavaCanonicalizer {
     }
 
     protected boolean generateBoxUnbox(IRNode node) {
+      return generateBoxUnbox(node, true);
+    }
+    
+    protected boolean generateBoxUnbox(IRNode node, boolean ignoreIfParentIsLambda) {
       Operator op = tree.getOperator(node);
       if (op instanceof Expression) {
         IJavaType t = binder.getJavaType(node);
         if (isPrimitive(node, t)) { // / XXX: Bug!: this is requested on new
                                     // nodes, can crash versioned fixed binder
           if (contextIsReference(node)) {
+        	if (ignoreIfParentIsLambda && parentIsLambda(node)) {
+        	  return false;
+        	}
             boxExpression(node);
             return true;
           }
         } else if (couldBeUnboxed(t)) {
           if (contextIsPrimitive(node)) {
+          	if (ignoreIfParentIsLambda && parentIsLambda(node)) {
+          	  return false;
+          	}        	  
             unboxExpression(node);
             return true;
           }
@@ -351,7 +361,12 @@ public class JavaCanonicalizer {
       return false;
     }
 
-    /**
+    private boolean parentIsLambda(IRNode node) {
+	  IRNode parent = tree.getParent(node);
+	  return LambdaExpression.prototype.includes(parent);
+	}
+
+	/**
      * @param node
      */
     private void unboxExpression(IRNode node) {
@@ -530,6 +545,9 @@ public class JavaCanonicalizer {
         if (qThis == null) {
           LOG.severe("Cannot find compatible This for " + type);
           return null;
+        }
+        if (LambdaExpression.prototype.includes(qThis)) {          
+          continue; // Skip to its enclosing type
         }
         IJavaType qThisType = JavaTypeFactory.getMyThisType(qThis);
         if (tEnv.isRawSubType(qThisType, type)) {
@@ -1593,6 +1611,9 @@ public class JavaCanonicalizer {
 		ReceiverDeclaration.makeReceiverNode(mdecl);
 		AbstractAdapter.createRequiredClassNodes(ace);
 		PromiseUtil.addReceiverDeclsToType(ace);
+		
+		// Handle (un)boxing if necessary
+		generateBoxUnbox(origBody, false);
 		return true;
 	}
 
@@ -2008,6 +2029,11 @@ public class JavaCanonicalizer {
     }
 
     @Override
+    public Integer visitConstructorReference(IRNode node) {
+      return REFERENCE_CONTEXT;
+    }
+    
+    @Override
     public Integer visitDefaultValue(IRNode node) {
       final IRNode annoElt = tree.getParent(node);
       final IRNode type = AnnotationElement.getType(annoElt);
@@ -2081,6 +2107,11 @@ public class JavaCanonicalizer {
     
     @Override
     public Integer visitMethodCall(IRNode node) {
+      return REFERENCE_CONTEXT;
+    }
+    
+    @Override
+    public Integer visitMethodReference(IRNode node) {
       return REFERENCE_CONTEXT;
     }
 
