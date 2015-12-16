@@ -108,19 +108,17 @@ public abstract class AbstractBinder implements IBinder {
 		System.out.println("Found diamond: "+unparse);
 	}
 	*/
-	if (!processJava8) {
-	  final Operator op = JJNode.tree.getOperator(n);
-	  IJavaType rv = null;
-	  if (ParameterizedType.prototype.includes(op)) {
-		rv = inferForDiamond(n);
-	  }
-	  else if (NewExpression.prototype.includes(op)) {
-		IRNode type = NewExpression.getType(n);
-		rv = getJavaType(type);
-	  }
-	  if (rv != null) {
-		return rv;
-	  }
+	final Operator op = JJNode.tree.getOperator(n);
+	IJavaType rv = null;
+	if (ParameterizedType.prototype.includes(op)) {
+	  rv = inferForDiamond(n);
+	}
+	else if (NewExpression.prototype.includes(op)) {
+	  IRNode type = NewExpression.getType(n);
+	  rv = getJavaType(type);
+	}
+	if (rv != null) {
+	  return rv;
 	}
 	return typeVisitor.getJavaType(n);
   }
