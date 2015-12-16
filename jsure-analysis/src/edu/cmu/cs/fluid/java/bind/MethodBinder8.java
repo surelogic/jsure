@@ -1117,6 +1117,9 @@ public class MethodBinder8 implements IMethodBinder {
 		IJavaFunctionType ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);  
 		if (ftype == null) {
 			ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);  
+			if (ftype == null) {
+				return null;
+			}
 		}
 		return ftype.getReturnType();
 	  }
@@ -2289,9 +2292,20 @@ public class MethodBinder8 implements IMethodBinder {
 					IBinding b = binder.getIBinding(rec);
 					IJavaType targetType = call.getReceiverType();
 					if (targetType instanceof IJavaDeclaredType) {
-						targetType = wildcardify(targetType);
+						if ("<implicit>.setSelector(<implicit>.q, selector)._(cdata)".equals(call.toString())) {
+							System.out.println("Looking at problematic call");
+						}						
+						// Try with wildcardified, and otherwise use the one without
+						// TODO when shouldn't I do a subst?
+						IJavaType targetType2 = wildcardify(targetType);
+						IJavaType rec2 = getCompileTimeResultType(rec, b, targetType2);
+						if (rec2 == null) {
+							rec2 = getCompileTimeResultType(rec, b, targetType);
+						}
+						receiver = rec2;
+					} else {
+						receiver = getCompileTimeResultType(rec, b, targetType); // TODO is this right?
 					}
-					receiver = getCompileTimeResultType(rec, b, targetType); // TODO is this right?
 					if (receiver instanceof IJavaDeclaredType) {
 						subst = JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) receiver).combine(subst);
 					}
@@ -2337,7 +2351,11 @@ public class MethodBinder8 implements IMethodBinder {
 					IJavaTypeFormal f = (IJavaTypeFormal) temp;
 					try {
 					IJavaType bound = f.getExtendsBound(tEnv);
-					if (bound != tEnv.getObjectType()) {
+					if (refersTo(bound, f)) {
+						// Skip these due to self-reference (SOE)
+						// Ex: T extends javax.validation.Configuration <T>
+					}
+					else if (bound != tEnv.getObjectType()) {
 						//System.out.println("Wildcardifying "+presumedDeclaredT);
 						IJavaReferenceType lower = bound instanceof IJavaDeclaredType ? wildcardify(bound) : (IJavaReferenceType) bound;
 						temp = JavaTypeFactory.getWildcardType(null, lower);
@@ -2361,6 +2379,12 @@ public class MethodBinder8 implements IMethodBinder {
 		return dt;		
 	}
 	
+	private boolean refersTo(IJavaType bound, IJavaTypeFormal f) {
+		TypeFormalChecker c = new TypeFormalChecker();
+		bound.visit(c);
+		return c.formals.contains(f);
+	}
+
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
 		return JavaTypeFactory.getFunctionType(orig.getTypeFormals(), newReturn, orig.getParameterTypes(), orig.isVariable(), orig.getExceptions());
 	}
@@ -2642,5 +2666,15 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 		}
 		return null;
+	}
+
+	// Originally to replace inferForDiamond()
+	public static IJavaDeclaredType computeDiamondType(IPrivateBinder b, IRNode paramdType) {
+		MethodBinder8 mb = new MethodBinder8(b, false);
+		IRNode call = JJNode.tree.getParentOrNull(paramdType);
+		MethodBinding8 bi = (MethodBinding8) b.getIBinding(call);
+		CallState state = mb.getCallState(call, bi);
+		IJavaFunctionType ft = mb.computeInvocationType(state, bi, false);
+		return (IJavaDeclaredType) ft.getReturnType();
 	}
 }
