@@ -28,6 +28,7 @@ import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.aast.promise.LockType;
 import com.surelogic.aast.promise.QualifiedLockNameNode;
 import com.surelogic.aast.promise.SimpleLockNameNode;
+import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.model.HeldLock.Reason;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
@@ -702,28 +703,23 @@ public final class AnalysisLockModel {
     return getLockForRegion(target.getRelativeClass(binder), target.getRegion());
   }
   
-  public LockGenerator getLockGenerator(final IJavaType javaType, final IRegion region) {
-    return new LockGenerator(getLockForRegion(javaType, region));
-  }
-  
-  public LockGenerator getLockGenerator(final IBinder binder, final Target target) {
-    return new LockGenerator(getLockForTarget(binder, target));
-  }
-  
-  public Set<NeededLock> getNeededLock(final IJavaType javaType, final IRegion region,
+  public Set<NeededLock> getNeededLocks(final ThisExpressionBinder thisExprBinder, 
+      final IJavaType javaType, final IRegion region,
       final IRNode srcExpr, final boolean needsWrite, final IRNode objectExpr) {
-    return getLockGenerator(javaType, region).getLocks(srcExpr, needsWrite, objectExpr);
+    return new LockInstantiator(thisExprBinder, getLockForRegion(javaType, region)).getLocks(srcExpr, needsWrite, objectExpr);
   }
   
-  public Set<NeededLock> getNeededLocks(final IBinder binder, final Target target,
+  public Set<NeededLock> getNeededLocks(final ThisExpressionBinder thisExprBinder, final Target target,
       final IRNode srcExpr, final boolean needsWrite, final IRNode objectExpr) {
-    return getLockGenerator(binder, target).getLocks(srcExpr, needsWrite, objectExpr);
+    return new LockInstantiator(thisExprBinder, getLockForTarget(thisExprBinder, target)).getLocks(srcExpr, needsWrite, objectExpr);
   }
   
-  public static final class LockGenerator {
+  private static final class LockInstantiator {
+    private final ThisExpressionBinder thisExprBinder;
     private final StateLock<?, ?> stateLock;
     
-    public LockGenerator(final StateLock<?, ?> stateLock) {
+    public LockInstantiator(final ThisExpressionBinder thisExprBinder, final StateLock<?, ?> stateLock) {
+      this.thisExprBinder = thisExprBinder;
       this.stateLock = stateLock;
     }
     
@@ -739,7 +735,8 @@ public final class AnalysisLockModel {
               stateLock.getSourceAnnotation(), needsWrite);
         } else { // instance lock
           neededLock = new NeededInstanceLock(
-              objectExpr, stateLock.getImplementation(), source,
+              thisExprBinder.bindThisExpression(objectExpr),
+              stateLock.getImplementation(), source,
               stateLock.getSourceAnnotation(), needsWrite);
         }
         return ImmutableSet.of(neededLock);

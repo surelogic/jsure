@@ -22,7 +22,6 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
-import com.surelogic.analysis.concurrency.model.AnalysisLockModel.LockGenerator;
 import com.surelogic.analysis.concurrency.model.NeededLock;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
@@ -922,7 +921,8 @@ public final class Effects implements IBinderClient {
          */
         context.theEffects.add(
             Effect.empty(expr, new EmptyEvidence(Reason.FINAL_FIELD, id),
-                lockModel.get().getNeededLock(binder.getJavaType(object), region, expr, !isRead, object)));
+                lockModel.get().getNeededLocks(
+                    thisExprBinder, binder.getJavaType(object), region, expr, !isRead, object)));
       }
       doAcceptForChildren(expr);
       return null;
@@ -1282,14 +1282,14 @@ public final class Effects implements IBinderClient {
                   thisExprBinder.bindThisExpression(FieldRef.getObject(expr)),
                   T, NoEvidence.INSTANCE); 
             }
-            final LockGenerator lockGen = lockModel.getLockGenerator(thisExprBinder, t);
-            builder.addAll(lockGen.getLocks(srcExpr, needsWrite, FieldRef.getObject(expr)));
+            builder.addAll(lockModel.getNeededLocks(
+                thisExprBinder, t, srcExpr, needsWrite, FieldRef.getObject(expr)));
             addedSubRegion = true;
           }
         }
         if (!addedSubRegion) {
-          final LockGenerator lockGen = lockModel.getLockGenerator(thisExprBinder, newTarget);
-          builder.addAll(lockGen.getLocks(srcExpr, needsWrite, FieldRef.getObject(expr)));
+          builder.addAll(lockModel.getNeededLocks(
+              thisExprBinder, newTarget, srcExpr, needsWrite, FieldRef.getObject(expr)));
         }
         
         // Elaborate

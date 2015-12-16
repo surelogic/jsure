@@ -52,7 +52,7 @@ public final class BogusLock implements HeldLock {
   
   @Override
   public String toString() {
-    return "<" + DebugUnparser.toString(lockExpr) + ">";
+    return "Lock expression " + DebugUnparser.toString(lockExpr);
   }
 
   
