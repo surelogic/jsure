@@ -286,11 +286,26 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     return true;
   }
   */
+  
+  static class WildcardTargetType extends JavaWildcardType {
+	WildcardTargetType(JavaReferenceType ub, JavaReferenceType lb) {
+		super(ub, lb);
+	}
+  }
+  /**
+   * Marked specially for type inference
+   */
+  public static final IJavaWildcardType wildcardTargetType = new WildcardTargetType(null,null);
+  
+  public static boolean isTargetType(IJavaType t) {
+	  return t instanceof WildcardTargetType;
+  }
+  
   public static final IJavaWildcardType wildcardType = new JavaWildcardType(null,null);
   private static CleanableMap<IJavaType,JavaWildcardType> upperBounded = new JavaTypeCache<IJavaType,JavaWildcardType>();
   private static CleanableMap<IJavaType,JavaWildcardType> lowerBounded = new JavaTypeCache<IJavaType,JavaWildcardType>();
   private static JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaWildcardType> dualBounded =
-	      new JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaWildcardType>();
+	      new JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaWildcardType>();  
   
   public static synchronized IJavaWildcardType getWildcardType(IJavaReferenceType upper, IJavaReferenceType lower) {
     JavaWildcardType res;
@@ -1441,7 +1456,12 @@ class BoundedTypeFormal extends JavaTypeFormal {
 	@Override
 	public IJavaReferenceType getExtendsBound(ITypeEnvironment tEnv) {
 		IJavaReferenceType bound = super.getExtendsBound(tEnv);
-		return (IJavaReferenceType) bound.subst(subst);
+		IJavaReferenceType rv = (IJavaReferenceType) bound.subst(subst);
+		if (rv == null) {
+			// Presumed to be raw;
+			return (IJavaReferenceType) tEnv.computeErasure(bound);
+		}
+		return rv;
 	}
 	
 	@Override

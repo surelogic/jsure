@@ -206,6 +206,9 @@ public class TypeUtils {
     if (ec.isEmpty()) {
       System.err.println("Empty candidate set ...");
       for (IJavaReferenceType t : types) {
+    	if (t == null) {
+    	  continue;
+    	}
         System.err.println("STs for " + t + ":");
         for (IJavaSourceRefType s : getST(t)) {
           System.err.println("\t" + s);
@@ -490,6 +493,9 @@ public class TypeUtils {
       p.start("lub(" + types[0] + ", " + types[1] + ")");
     }
     final IJavaReferenceType result = computeLowestUpperBound(types);
+    if (result == null) {
+      return types[0];
+    }
     /*
      * if (result == null) { return tEnv.getObjectType(); }
      */
@@ -1848,6 +1854,7 @@ public class TypeUtils {
        */
       IJavaFunctionType ftype = computeInvocationTypeForCall(call, p, eliminateTypeVars, bi);
       if (ftype == null) {
+    	ftype = computeInvocationTypeForCall(call, p, eliminateTypeVars, bi);
         throw new IllegalStateException("Couldn't compute function type for "+DebugUnparser.toString(call)+" -> "+bi);
       }
       final int n = bi.mkind == MethodInfo.Kind.CONSTRUCTOR || TypeUtil.isStatic(bi.getNode()) ? i : i + 1;
