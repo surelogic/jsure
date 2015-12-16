@@ -663,6 +663,9 @@ public class MethodBinder8 implements IMethodBinder {
     		IRNode typeArgs = NewExpression.getTypeArgs(e);
     		return numChildren(typeArgs) == 0 && isInAssignmentOrInvocationContext(e);
     	}
+    	else if (ConstructorCall.prototype.includes(op)) {
+    		return false;
+    	}
     	throw new IllegalStateException("Unexpected call: "+op.name());
     }
     
@@ -1111,7 +1114,10 @@ public class MethodBinder8 implements IMethodBinder {
 	IJavaType getCompileTimeResultType(IRNode call, IBinding b, IJavaType targetType) {
 	  if (b instanceof MethodBinding8) {
 		CallState state = getCallState(call, b);
-		IJavaFunctionType ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);  	  
+		IJavaFunctionType ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);  
+		if (ftype == null) {
+			ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);  
+		}
 		return ftype.getReturnType();
 	  }
 	  // Only for annotation elements?
@@ -1233,7 +1239,7 @@ public class MethodBinder8 implements IMethodBinder {
 			if (r instanceof IJavaVoidType) {
 				return isVoidCompatible(body);
 			}
-			return checkResultExprCompatibility(body, r, new LambdaCache(tEnv, lambda, t, ft));
+			return checkResultExprCompatibility(body, r, new LambdaCache(tEnv, null, lambda, t, ft));
 		} else {
 			int i=0;
 			for(final IRNode pd : Parameters.getFormalIterator(params)) {
@@ -1660,7 +1666,8 @@ public class MethodBinder8 implements IMethodBinder {
 
     static class MethodBinding8 extends MethodBinding implements IMethodBinding8 {
     	final InvocationKind kind;
-    	final String call;
+    	//final String call;
+    	final ICallState state;
     	
     	MethodBinding8(ITypeEnvironment tEnv, ICallState call, IBinding b, InvocationKind invocationKind) {
     		super(b);
@@ -1678,7 +1685,8 @@ public class MethodBinder8 implements IMethodBinder {
     			}
     		}
     		kind = invocationKind;
-    		this.call = call.toString(); 
+    		//this.call = call.toString(); 
+    		state = call;
     	}
     	
     	public boolean isConcrete() {
@@ -1707,7 +1715,9 @@ public class MethodBinder8 implements IMethodBinder {
 		@Override
 		public String toString() {
 			//return bind.toString();
-			return call;
+			//
+			//return call;
+			return state.toString();
 		}
 
 		@Override
@@ -2279,21 +2289,7 @@ public class MethodBinder8 implements IMethodBinder {
 					IBinding b = binder.getIBinding(rec);
 					IJavaType targetType = call.getReceiverType();
 					if (targetType instanceof IJavaDeclaredType) {
-						final IJavaDeclaredType dt = (IJavaDeclaredType) targetType;
-						//targetType = tEnv.getMyThisType(dt.getDeclaration());
-						final int num = dt.getTypeParameters().size(); 
-						if (num > 0) {
-							// Replace any formals with wildcards?
-							List<IJavaType> types = new ArrayList<>(num);
-							for(int i=0; i<num; i++) {
-								IJavaType temp = dt.getTypeParameters().get(i);
-								if (temp instanceof IJavaTypeFormal) {
-									temp = JavaTypeFactory.wildcardType; // TODO is this right?
-								}
-								types.add(temp);
-							}
-							targetType = JavaTypeFactory.getDeclaredType(dt.getDeclaration(), types, ((IJavaDeclaredType) targetType).getOuterType());
-						}
+						targetType = wildcardify(targetType);
 					}
 					receiver = getCompileTimeResultType(rec, b, targetType); // TODO is this right?
 					if (receiver instanceof IJavaDeclaredType) {
@@ -2324,6 +2320,45 @@ public class MethodBinder8 implements IMethodBinder {
 		//return t;
 		//return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
 		return t.instantiate(t.getTypeFormals(), subst, skipFirstParameter);
+	}
+	
+	/**
+	 * Replace type formals with wildcards
+	 */
+	private IJavaDeclaredType wildcardify(IJavaType presumedDeclaredT) {
+		final IJavaDeclaredType dt = (IJavaDeclaredType) presumedDeclaredT;
+		final int num = dt.getTypeParameters().size(); 
+		if (num > 0) {
+			// Replace any formals with wildcards?
+			List<IJavaType> types = new ArrayList<>(num);
+			for(int i=0; i<num; i++) {
+				IJavaType temp = dt.getTypeParameters().get(i);
+				if (temp instanceof IJavaTypeFormal) {
+					IJavaTypeFormal f = (IJavaTypeFormal) temp;
+					try {
+					IJavaType bound = f.getExtendsBound(tEnv);
+					if (bound != tEnv.getObjectType()) {
+						//System.out.println("Wildcardifying "+presumedDeclaredT);
+						IJavaReferenceType lower = bound instanceof IJavaDeclaredType ? wildcardify(bound) : (IJavaReferenceType) bound;
+						temp = JavaTypeFactory.getWildcardType(null, lower);
+					} else {
+						// TODO is this right?
+						temp = JavaTypeFactory.wildcardTargetType;
+					}	
+					} catch(StackOverflowError e) {
+						System.out.println("SOE: "+DebugUnparser.toString(f.getDeclaration()));
+						throw e;
+					}
+				}
+				else if (temp instanceof IJavaDeclaredType) {
+					temp = wildcardify(temp);
+				}
+				// TODO what other cases are interesting?
+				types.add(temp);
+			}
+			return JavaTypeFactory.getDeclaredType(dt.getDeclaration(), types, dt.getOuterType(/*TODO*/));
+		}
+		return dt;		
 	}
 	
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
