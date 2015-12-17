@@ -338,7 +338,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
 
       /* If the Parameterized type uses the diamond operator, e.g., T<>, then
        * the inferred type may be raw (not parameterized), so we must stop
-       * checking the paramters.
+       * checking the parameters.
        */
       if (jTypeOfParameterizedType.getTypeParameters().size() > 0) {
         final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =

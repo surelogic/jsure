@@ -17,12 +17,24 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * with a parse tree node that gives rise to the region access.
  */
 public interface NeededLock extends InstantiatedLock {
+  public static enum Reason {
+    FIELD_ACCESS,
+    INDIRECT_ACCESS,
+    METHOD_CALL,
+    LOCK_PRECONDITION,
+  }
+  
   /**
    * Get the parse tree node of the region access that causes the need for 
    * the lock.
    */
   @Override
   public IRNode getSource();
+  
+  /**
+   * Get the semantic reason for this lock's necessity.
+   */
+  public Reason getReason();
   
   /**
    * Is a write lock needed?

@@ -50,7 +50,8 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   @Override
   public int hashCode() {
     int result = 17;
-    result += (holdsWrite ? 1 : 0);
+    result += 31 * reason.hashCode();
+    result += 31 * (holdsWrite ? 1 : 0);
     result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
     result += 31 * objectRefExpr.hashCode();
@@ -64,7 +65,8 @@ public final class HeldInstanceLock extends AbstractHeldLock {
       return true;
     } else if (other instanceof HeldInstanceLock) {
       final HeldInstanceLock o = (HeldInstanceLock) other;
-      return this.holdsWrite == o.holdsWrite &&
+      return this.reason == o.reason &&
+          this.holdsWrite == o.holdsWrite &&
           this.lockImpl.equals(o.lockImpl) && 
           this.objectRefExpr.equals(o.objectRefExpr) &&
           this.source.equals(o.source) &&

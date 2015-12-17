@@ -42,7 +42,8 @@ public final class HeldStaticLock extends AbstractHeldLock {
   @Override
   public int hashCode() {
     int result = 17;
-    result += (holdsWrite ? 1 : 0);
+    result += 31 * reason.hashCode();
+    result += 31 * (holdsWrite ? 1 : 0);
     result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
     result += 31 * ((supportingDrop == null) ? 0 : supportingDrop.hashCode());
@@ -55,7 +56,8 @@ public final class HeldStaticLock extends AbstractHeldLock {
       return true;
     } else if (other instanceof HeldStaticLock) {
       final HeldStaticLock o = (HeldStaticLock) other;
-      return this.holdsWrite == o.holdsWrite &&
+      return this.reason == o.reason &&
+          this.holdsWrite == o.holdsWrite &&
           this.lockImpl.equals(o.lockImpl) &&
           this.source.equals(o.source) &&
           (this.supportingDrop == null ? o.supportingDrop == null : this.supportingDrop.equals(o.supportingDrop));

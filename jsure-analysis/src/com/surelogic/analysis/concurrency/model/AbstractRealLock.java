@@ -10,9 +10,10 @@ public abstract class AbstractRealLock extends AbstractNeededLock {
   protected final LockImplementation lockImpl;
   
   protected AbstractRealLock(
-      final IRNode source, final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite, 
+      final IRNode source, final Reason reason,
+      final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite, 
       final LockImplementation lockImpl) {
-    super(source, lockPromise, needsWrite);
+    super(source, reason, lockPromise, needsWrite);
     this.lockImpl = lockImpl;
   }
   

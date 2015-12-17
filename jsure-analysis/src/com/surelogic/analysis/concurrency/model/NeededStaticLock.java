@@ -8,13 +8,16 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public final class NeededStaticLock extends AbstractRealLock {
   public NeededStaticLock(
       final LockImplementation lockImpl, final IRNode source,
+      final Reason reason,
       final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite) {
-    super(source, lockPromise, needsWrite, lockImpl);
+    super(source, reason, lockPromise, needsWrite, lockImpl);
   }
 
   @Override
   public int hashCode() {
     int result = 17;
+    result += 31 * reason.hashCode();
+    result += 31 * (needsWrite ? 1 : 0);
     result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
     return result;
@@ -26,7 +29,9 @@ public final class NeededStaticLock extends AbstractRealLock {
       return true;
     } else if (other instanceof NeededStaticLock) {
       final NeededStaticLock o = (NeededStaticLock) other;
-      return this.lockImpl.equals(o.lockImpl) &&
+      return this.reason == o.reason &&
+          this.needsWrite == o.needsWrite &&
+          this.lockImpl.equals(o.lockImpl) &&
           this.source.equals(o.source);
     } else {
       return false;
