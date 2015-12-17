@@ -655,14 +655,6 @@ public class MethodBinder8 implements IMethodBinder {
     		}    		
     		return false;
     	}
-    	else if (NewExpression.prototype.includes(op)) {
-    		// A class instance creation expression is a poly expression (15.2) 
-    		// if i) it uses a diamond '<>' in place of type arguments, and 
-    		// ii) it appears in an assignment context (5.2) or an invocation context (5.3). 
-    		// Otherwise, it is a standalone expression.  		
-    		IRNode typeArgs = NewExpression.getTypeArgs(e);
-    		return numChildren(typeArgs) == 0 && isInAssignmentOrInvocationContext(e);
-    	}
     	else if (ConstructorCall.prototype.includes(op)) {
     		return false;
     	}
@@ -673,6 +665,14 @@ public class MethodBinder8 implements IMethodBinder {
     	if (SomeFunctionCall.prototype.includes(op)) {
     		return isPolyCall(e, op, null);
     	}
+    	else if (NewExpression.prototype.includes(op)) {
+    		// A class instance creation expression is a poly expression (15.2) 
+    		// if i) it uses a diamond '<>' in place of type arguments, and 
+    		// ii) it appears in an assignment context (5.2) or an invocation context (5.3). 
+    		// Otherwise, it is a standalone expression.  		
+    		IRNode typeArgs = NewExpression.getTypeArgs(e);
+    		return numChildren(typeArgs) == 0 && isInAssignmentOrInvocationContext(e);
+    	}    	
     	else if (ParenExpression.prototype.includes(op)) {
     		return isPolyExpression(ParenExpression.getOp(e));
     	}
