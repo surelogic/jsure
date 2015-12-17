@@ -213,20 +213,13 @@ implements IBinderClient {
 
         for (final NeededLock neededLock : e.getNeededLocks()) {
           final HeldLock satisfyingLock = isSatisfied(neededLock, heldLocks);
-          final ResultDrop resultDrop;
-          if (satisfyingLock != null) {
-            resultDrop = ResultsBuilder.createResult(
-                true, neededLock.getLockPromise(), e.getSource(),
-                Messages.LockAnalysis_ds_FieldAccessAssured,
-                neededLock, DebugUnparser.toString(e.getSource()));
-            resultDrop.setCategorizingMessage(Messages.DSC_FIELD_ACCESS_ASSURED);
-          } else {
-            resultDrop = ResultsBuilder.createResult(
-                false, neededLock.getLockPromise(), e.getSource(),
-                Messages.LockAnalysis_ds_FieldAccessNotAssured,
-                neededLock, DebugUnparser.toString(e.getSource()));
-            resultDrop.setCategorizingMessage(Messages.DSC_FIELD_ACCESS_NOT_ASSURED);
-          }
+          final boolean success = satisfyingLock != null;
+          final ResultDrop resultDrop = ResultsBuilder.createResult(
+              success, neededLock.getLockPromise(), e.getSource(),
+              neededLock.getReason().getResultMessage(success),
+              neededLock, DebugUnparser.toString(e.getSource()));
+          resultDrop.setCategorizingMessage(
+              neededLock.getReason().getCategory(success));
           
           // Add held locks as supporting information
           for (final HeldLock heldLock : heldLocks) {
