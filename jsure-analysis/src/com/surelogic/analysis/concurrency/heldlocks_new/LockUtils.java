@@ -19,6 +19,7 @@ import com.surelogic.analysis.concurrency.model.ModelLock;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.NoEffectEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.annotation.rules.LockRules;
@@ -416,7 +417,8 @@ public final class LockUtils {
           final Set<Effect> exprEffects = Collections.singleton(
               Effect.read(null,
                   new InstanceTarget(thisExprBinder.bindThisExpression(array),
-                      RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE)));
+                      RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE),
+                  NoEffectEvidence.INSTANCE));
           final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
           return conflictChecker.mayConflict(bodyEffects, exprEffects);
         } else {

@@ -11,6 +11,7 @@ import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.NoEffectEvidence;
 import com.surelogic.analysis.effects.targets.ClassTarget;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
@@ -114,7 +115,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		void initForCU(final IRNode cu) {
       final Target anything = 
           new ClassTarget(RegionModel.getAllRegion(cu), NoEvidence.INSTANCE);
-      readsAnything = Effect.read(cu, anything);      
+      readsAnything = Effect.read(cu, anything, NoEffectEvidence.INSTANCE);      
       instanceRegion = RegionModel.getInstanceRegion(cu);
 		}
 		
@@ -163,7 +164,8 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 	              Effect.read(null,
 	                  new InstanceTarget(
 	                      JavaPromise.getReceiverNode(mdecl),
-	                      instanceRegion, NoEvidence.INSTANCE));
+	                      instanceRegion, NoEvidence.INSTANCE),
+	                  NoEffectEvidence.INSTANCE);
 	          for (final Effect de : declared) {
 	            if (!de.isCheckedBy(getBinder(), readsThisInstance)) {
 	              result.addWarningHint(mdecl, READ_EFFECT_WARN, de.unparseForMessage());

@@ -19,6 +19,7 @@ import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effect;
+import com.surelogic.analysis.effects.NoEffectEvidence;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
@@ -110,7 +111,7 @@ public class WholeModuleFXDrop extends Drop {
 
       final IJavaReferenceType jRefType = (IJavaReferenceType) jType;
       final Target t = new AnyInstanceTarget(jRefType, r, NoEvidence.INSTANCE);
-      final Effect e = Effect.write(null, t); // bogus src expression
+      final Effect e = Effect.write(null, t, NoEffectEvidence.INSTANCE); // bogus src expression
       interestingRegionWriteFX.add(e);
     }
     return interestingRegionWriteFX;

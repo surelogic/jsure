@@ -62,13 +62,14 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 public abstract class Effect {
   private static final class EmptyEffect extends Effect {
     /** Only for use by changeSource(). */
-    private EmptyEffect(final IRNode src, final Target t, final Set<NeededLock> neededLocks) {
-      super(src, t, neededLocks);
+    private EmptyEffect(final IRNode src, final Target t, 
+        final EffectEvidence evidence, final Set<NeededLock> neededLocks) {
+      super(src, t, evidence, neededLocks);
     }
 
     private EmptyEffect(final IRNode src, final EmptyEvidence evidence,
-        final Set<NeededLock> neededLocks) {
-      this(src, new EmptyTarget(evidence), neededLocks);
+        final EffectEvidence effectEvidence, final Set<NeededLock> neededLocks) {
+      this(src, new EmptyTarget(evidence), effectEvidence, neededLocks);
     }
 
   
@@ -88,8 +89,8 @@ public abstract class Effect {
     }
     
     @Override
-    public EmptyEffect changeSource(final IRNode src, final TargetEvidence e) {
-      return new EmptyEffect(src, target.changeEvidence(e), neededLocks);
+    public EmptyEffect changeSource(final IRNode src, final TargetEvidence e, final EffectEvidence newEvidence) {
+      return new EmptyEffect(src, target.changeEvidence(e), newEvidence, neededLocks);
     }
 
     @Override
@@ -153,7 +154,8 @@ public abstract class Effect {
         return true;
       } else if (o instanceof EmptyEffect) {
         final EmptyEffect other = (EmptyEffect) o;
-        return source == null ? other.source == null : source.equals(other.source);
+        return evidence.equals(other.evidence) &&
+            source == null ? other.source == null : source.equals(other.source);
       } else {
         return false;
       }
@@ -162,6 +164,7 @@ public abstract class Effect {
     @Override
     public int hashCode() {
       int result = 17;
+      result = 31 * result + evidence.hashCode();
       result = 31 * result + (source == null ? 0 : source.hashCode());
       return result;
     }
@@ -179,8 +182,8 @@ public abstract class Effect {
      *          Target of the effect
      */
     protected RealEffect(final IRNode src, final Target t,
-        final Set<NeededLock> neededLocks) {
-      super(src, t, neededLocks);
+        final EffectEvidence evidence, final Set<NeededLock> neededLocks) {
+      super(src, t, evidence, neededLocks);
     }
 
     protected final Effect maskImpl(final IBinder binder, final boolean isRead) {
@@ -190,7 +193,7 @@ public abstract class Effect {
       } else if (maskedTarget == target) {
         return this;        
       } else {
-        return effect(source, isRead, maskedTarget, neededLocks);
+        return effect(source, isRead, maskedTarget, evidence, neededLocks);
       }
     }
 
@@ -215,8 +218,8 @@ public abstract class Effect {
   
   private static final class ReadEffect extends RealEffect {
     private ReadEffect(final IRNode src, final Target t,
-        final Set<NeededLock> neededLocks) {
-      super(src, t, neededLocks);
+        final EffectEvidence evidence, final Set<NeededLock> neededLocks) {
+      super(src, t, evidence, neededLocks);
     }
 
     @Override
@@ -225,8 +228,8 @@ public abstract class Effect {
     }
     
     @Override
-    public ReadEffect changeSource(final IRNode src, final TargetEvidence e) {
-      return new ReadEffect(src, target.changeEvidence(e), neededLocks);
+    public ReadEffect changeSource(final IRNode src, final TargetEvidence e, final EffectEvidence newEvidence) {
+      return new ReadEffect(src, target.changeEvidence(e), newEvidence, neededLocks);
     }
     
     @Override
@@ -292,7 +295,8 @@ public abstract class Effect {
       } else if (o instanceof ReadEffect) {
         final ReadEffect other = (ReadEffect) o;
         return (source == null ? other.source == null : source.equals(other.source))
-            && target.equals(other.target);
+            && target.equals(other.target)
+            && evidence.equals(other.evidence);
       } else {
         return false;
       }
@@ -301,6 +305,8 @@ public abstract class Effect {
     @Override
     public final int hashCode() {
       int result = 17;
+      result = 31 * result + target.hashCode();
+      result = 31 * result + evidence.hashCode();
       result = 31 * result + (source == null ? 0 : source.hashCode());
       return result;
     }
@@ -310,8 +316,8 @@ public abstract class Effect {
   
   private static final class WriteEffect extends RealEffect {
     private WriteEffect(final IRNode src, final Target t,
-        final Set<NeededLock> neededLocks) {
-      super(src, t, neededLocks);
+        final EffectEvidence evidence, final Set<NeededLock> neededLocks) {
+      super(src, t, evidence, neededLocks);
     }
 
     @Override
@@ -320,8 +326,8 @@ public abstract class Effect {
     }
     
     @Override
-    public WriteEffect changeSource(final IRNode src, final TargetEvidence e) {
-      return new WriteEffect(src, target.changeEvidence(e), neededLocks);
+    public WriteEffect changeSource(final IRNode src, final TargetEvidence e, final EffectEvidence newEvidence) {
+      return new WriteEffect(src, target.changeEvidence(e), newEvidence, neededLocks);
     }
     
     @Override
@@ -389,7 +395,8 @@ public abstract class Effect {
       } else if (o instanceof WriteEffect) {
         final WriteEffect other = (WriteEffect) o;
         return (source == null ? other.source == null : source.equals(other.source))
-            && target.equals(other.target);
+            && target.equals(other.target)
+            && evidence.equals(other.evidence);            
       } else {
         return false;
       }
@@ -398,6 +405,8 @@ public abstract class Effect {
     @Override
     public final int hashCode() {
       int result = 19;  // don't clash with read effects
+      result = 31 * result + target.hashCode();
+      result = 31 * result + evidence.hashCode();
       result = 31 * result + (source == null ? 0 : source.hashCode());
       return result;
     }
@@ -409,8 +418,6 @@ public abstract class Effect {
    * The target of the effect.
    */
   protected final Target target;
-
- 
   
   /**
    * The expression that directly caused the effect or <code>null</code> if
@@ -418,19 +425,25 @@ public abstract class Effect {
    */
   protected final IRNode source;
 
-  
+  /**
+   * Any additional evidence for the existence of this effect.
+   * Never null
+   */
+  protected final EffectEvidence evidence;
   
   /**
    * The set of locks that should be held before producing this effect.
    */
   protected final Set<NeededLock> neededLocks;
-
+  
   
   
   private Effect(final IRNode src, final Target t,
+      final EffectEvidence evidence,
       final Set<NeededLock> neededLocks) {
     target = t;
     source = src;
+    this.evidence = evidence;
     this.neededLocks = neededLocks;
   }
   
@@ -448,19 +461,22 @@ public abstract class Effect {
    */
   public static Effect effect(
       final IRNode src, final boolean read, final Target t,
+      final EffectEvidence evidence,
       final Set<NeededLock> neededLocks) {
-    return read ? read(src, t, neededLocks) : write(src, t, neededLocks);
+    return read ? read(src, t, evidence, neededLocks) : write(src, t, evidence, neededLocks);
   }
 
   public static Effect effect(
       final IRNode src, final boolean read, final Target t,
+      final EffectEvidence evidence,
       final NeededLock neededLock) {
-    return read ? read(src, t, neededLock) : write(src, t, neededLock);
+    return read ? read(src, t, evidence, neededLock) : write(src, t, evidence, neededLock);
   }
 
   public static Effect effect(
-      final IRNode src, final boolean read, final Target t) {
-    return Effect.effect(src, read, t, ImmutableSet.<NeededLock>of());
+      final IRNode src, final boolean read, final Target t,
+      final EffectEvidence evidence) {
+    return Effect.effect(src, read, t, evidence, ImmutableSet.<NeededLock>of());
   }
   
   /**
@@ -473,17 +489,20 @@ public abstract class Effect {
    * @return An read affect on <tt>t</tt>
    */
   public static Effect read(final IRNode src, final Target t,
+      final EffectEvidence evidence,
       final NeededLock neededLock) {
-    return new ReadEffect(src, t, ImmutableSet.of(neededLock));
+    return new ReadEffect(src, t, evidence, ImmutableSet.of(neededLock));
   }
 
   public static Effect read(final IRNode src, final Target t,
+      final EffectEvidence evidence,
       final Set<NeededLock> neededLocks) {
-    return new ReadEffect(src, t, neededLocks);
+    return new ReadEffect(src, t, evidence, neededLocks);
   }
 
-  public static Effect read(final IRNode src, final Target t) {
-    return Effect.read(src, t, ImmutableSet.<NeededLock>of());
+  public static Effect read(final IRNode src, final Target t,
+      final EffectEvidence evidence) {
+    return Effect.read(src, t, evidence, ImmutableSet.<NeededLock>of());
   }
   
   /**
@@ -496,17 +515,20 @@ public abstract class Effect {
    * @return An write affect on <tt>t</tt>
    */
   public static Effect write(final IRNode src, final Target t,
+      final EffectEvidence evidence,
       final NeededLock neededLock) {
-    return new WriteEffect(src, t, ImmutableSet.of(neededLock));
+    return new WriteEffect(src, t, evidence, ImmutableSet.of(neededLock));
   }
   
   public static Effect write(final IRNode src, final Target t,
+      final EffectEvidence evidence,
       final Set<NeededLock> neededLocks) {
-    return new WriteEffect(src, t, neededLocks);
+    return new WriteEffect(src, t, evidence, neededLocks);
   }
   
-  public static Effect write(final IRNode src, final Target t) {
-    return Effect.write(src, t, ImmutableSet.<NeededLock>of());
+  public static Effect write(final IRNode src, final Target t,
+      final EffectEvidence evidence) {
+    return Effect.write(src, t, evidence, ImmutableSet.<NeededLock>of());
   }
   
   /**
@@ -515,16 +537,16 @@ public abstract class Effect {
    * @param src
    *          The source of the effect.
    */
-  public static Effect empty(final IRNode src, final EmptyEvidence evidence, final Set<NeededLock> neededLocks) {
-    return new EmptyEffect(src, evidence, neededLocks);
+  public static Effect empty(final IRNode src, final EmptyEvidence evidence, final EffectEvidence effectEvidence, final Set<NeededLock> neededLocks) {
+    return new EmptyEffect(src, evidence, effectEvidence, neededLocks);
   }
 
-  public static Effect empty(final IRNode src, final EmptyEvidence evidence, final NeededLock neededLock) {
-    return new EmptyEffect(src, evidence, ImmutableSet.of(neededLock));
+  public static Effect empty(final IRNode src, final EmptyEvidence evidence, final EffectEvidence effectEvidence, final NeededLock neededLock) {
+    return new EmptyEffect(src, evidence, effectEvidence, ImmutableSet.of(neededLock));
   }
 
-  public static Effect empty(final IRNode src, final EmptyEvidence evidence) {
-    return new EmptyEffect(src, evidence, ImmutableSet.<NeededLock>of());
+  public static Effect empty(final IRNode src, final EmptyEvidence evidence, final EffectEvidence effectEvidence) {
+    return new EmptyEffect(src, evidence, effectEvidence, ImmutableSet.<NeededLock>of());
   }
   
   /**
@@ -564,7 +586,7 @@ public abstract class Effect {
    * @return An effect of the same implementation class whose source node and
    *         target evidence are modifed with the given arguments.
    */
-  public abstract Effect changeSource(IRNode src, TargetEvidence e);
+  public abstract Effect changeSource(IRNode src, TargetEvidence e, final EffectEvidence newEvidence);
   
   /**
    * Get the target of the effect.
@@ -576,6 +598,10 @@ public abstract class Effect {
     return target;
   }
 
+  public final EffectEvidence getEvidence() {
+    return evidence;
+  }
+  
   /**
    * Get the rationale for the elaboration of the target, if it was
    * elaborated.  Returns {@value null} if the target was not generated

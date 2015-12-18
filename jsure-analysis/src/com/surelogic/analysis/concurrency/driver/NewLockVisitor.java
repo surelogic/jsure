@@ -22,7 +22,9 @@ import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.HeldLock;
 import com.surelogic.analysis.concurrency.model.NeededLock;
 import com.surelogic.analysis.effects.Effect;
+import com.surelogic.analysis.effects.EffectEvidenceProcessor;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.InitializationEvidence;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -30,6 +32,7 @@ import com.surelogic.dropsea.ir.ResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -38,6 +41,8 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 final class NewLockVisitor
 extends FlowUnitVisitor<NewLockVisitor.Queries>
 implements IBinderClient {
+  private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
+  
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
 
@@ -226,8 +231,22 @@ implements IBinderClient {
             resultDrop.addInformationHint(heldLock.getSource(),
                 heldLock.getReason().getInformationMessage(), heldLock);
           }
+          
+          /* Add constructor initialization information to help disambiguate
+           * field initialization results. 
+           */
+          new EffectEvidenceProcessor() {
+            @Override
+            public void visitInitializationEvidence(final InitializationEvidence e) {
+              final IRNode constructorDecl = e.getConstructorDeclaration();
+              resultDrop.addInformationHint(
+                  constructorDecl, ON_BEHALF_OF_CONSTRUCTOR,
+                  JavaNames.genMethodConstructorName(constructorDecl));
+            }
+          }.accept(e.getEvidence());
         }
         
+        // TESTING & DEBUGGING --- GET RID OF THIS LATER
         for (final HeldLock heldLock : heldLocks) {
           final HintDrop lockDrop = HintDrop.newInformation(e.getSource());
           lockDrop.setCategorizingMessage(DSC_EFFECTS);

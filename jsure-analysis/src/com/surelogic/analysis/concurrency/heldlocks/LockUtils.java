@@ -35,6 +35,7 @@ import com.surelogic.analysis.concurrency.heldlocks.locks.NeededLockFactory;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.NoEffectEvidence;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
@@ -447,7 +448,8 @@ public final class LockUtils {
       final Set<Effect> exprEffects = Collections.singleton(
           Effect.read(null,
               new InstanceTarget(thisExprBinder.bindThisExpression(array),
-                  RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE)));
+                  RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE),
+              NoEffectEvidence.INSTANCE));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
       return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
@@ -637,7 +639,8 @@ public final class LockUtils {
       final boolean isRead, final Target target,
       final Set<NeededLock> neededLocks) {
     final Set<Effect> elaboratedEffects =
-      Effects.elaborateEffect(bcaQuery, thisExprBinder, srcNode, isRead, target);
+      Effects.elaborateEffect(bcaQuery, thisExprBinder, srcNode, isRead, target,
+          NoEffectEvidence.INSTANCE);
     for (final Effect effect : elaboratedEffects) {
       if (!effect.isEmpty()) {
         getLocksFromEffect(effect, LastAggregationProcessor.get(effect), neededLocks);
@@ -1454,7 +1457,8 @@ public final class LockUtils {
      */
     final Effect writesInstance = Effect.write(null,
         new InstanceTarget(
-            rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE));
+            rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE),
+        NoEffectEvidence.INSTANCE);
 
     final List<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
     /* Ultimately this is only used if the effects are declared and of

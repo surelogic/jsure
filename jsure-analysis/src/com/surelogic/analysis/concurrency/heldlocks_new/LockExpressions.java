@@ -20,6 +20,7 @@ import com.surelogic.analysis.concurrency.model.HeldLock.Reason;
 import com.surelogic.analysis.concurrency.model.HeldLockFactory;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.NoEffectEvidence;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
@@ -449,7 +450,8 @@ final class LockExpressions {
        */
       final Effect writesInstance = Effect.write(null,
           new InstanceTarget(
-              rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE));
+              rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE),
+          NoEffectEvidence.INSTANCE);
 
       final RegionEffectsPromiseDrop eDrop = MethodEffectsRules.getRegionEffectsDrop(cdecl);
       final StartsPromiseDrop teDrop = ThreadEffectsRules.getStartsSpec(cdecl);

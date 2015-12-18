@@ -199,6 +199,14 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   private boolean insideConstructor = false;
 
   /**
+   * Whether we are analyzing the instance initialization block of a class.
+   * This happens during the visitation of a constructor declaration. 
+   * The {@link #enclosingDecl enclosing declaration} indicates which
+   * constructor is being visited.
+   */
+  private boolean insideInstanceInitialization = false;
+  
+  /**
    * Whether we are inside a field declaration.  This is set by 
    * {@link #visitFieldDeclaration}, and is also reset by the cases that 
    * recursively enter a class.
@@ -425,6 +433,10 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     return insideConstructor;
   }
   
+  protected final boolean isInsideInstanceInitialization() {
+    return insideInstanceInitialization;
+  }
+  
   /**
    * Called whenever the visitor enters a new method/constructor declaration.
    * This is called after the internal record of the enclosing declaration has
@@ -523,6 +535,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       final IRNode prevEnclosingType = enclosingType;
       final IRNode prevEnclosingDecl = enclosingDecl;
       final boolean prevInsideConstructor = insideConstructor;
+      final boolean prevInsideInstanceInitialization = insideInstanceInitialization;
       final boolean prevInsideFieldDeclaration = insideFieldDeclaration;
       final boolean prevIsStaticField = isStaticField;
       enterEnclosingType(typeDecl);
@@ -531,6 +544,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
        */
       enclosingDecl = null;
       insideConstructor = false;
+      insideInstanceInitialization = false;
       insideFieldDeclaration = false;
       isStaticField = false;
       try {
@@ -543,6 +557,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
         isStaticField = prevIsStaticField;
         insideFieldDeclaration = prevInsideFieldDeclaration;
         insideConstructor = prevInsideConstructor;
+        insideInstanceInitialization = prevInsideInstanceInitialization;
         enclosingDecl = prevEnclosingDecl;
         leaveEnclosingType(prevEnclosingType);
       }
@@ -826,6 +841,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     final IRNode prevEnclosingType = enclosingType;
     final IRNode prevEnclosingDecl = enclosingDecl;
     final boolean prevInsideConstructor = insideConstructor;
+    final boolean prevInsideInstanceInitialization = insideInstanceInitialization;
     final boolean prevInsideFieldDeclaration = insideFieldDeclaration;
     final boolean prevIsFieldStatic = isStaticField;
     
@@ -844,6 +860,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
        * class expression are executed as part of the enclosing method/constructor. 
        */
       insideConstructor = true; // We are inside the constructor of the anonymous class
+      insideInstanceInitialization = false;
       enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
       action.tryBefore();
       try {
@@ -852,6 +869,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
         action.finallyAfter();
         leaveEnclosingDecl(prevEnclosingDecl);
         insideConstructor = prevInsideConstructor;
+        insideInstanceInitialization = prevInsideInstanceInitialization;
       }
       action.afterVisit();
 
@@ -861,11 +879,13 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       if (visitInsideTypes) {
         try {
           insideConstructor = false;
+          insideInstanceInitialization = false;
           enclosingDecl = null; // We are not inside of any method or constructor -- see comments in visitNonAnnotationTypeDeclaration()
           handleAnonClassAsTypeDeclaration(expr, classBody);
         } finally {
           enclosingDecl = prevEnclosingDecl;
           insideConstructor = prevInsideConstructor;
+          insideInstanceInitialization = prevInsideInstanceInitialization;
         }
       }
     } finally {
@@ -1152,9 +1172,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       // 2.  Make sure we account for the super class's field initializers, etc
       final InstanceInitAction action = getConstructorCallInitAction(expr);
       action.tryBefore();      
+      insideInstanceInitialization = true;
       try {
         processClassBody(JJNode.tree.getParent(enclosingDecl), WhichMembers.INSTANCE);
       } finally {
+        insideInstanceInitialization = false;
         action.finallyAfter();
       }
       action.afterVisit();
@@ -1417,6 +1439,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   
     final IRNode prevEnclosingDecl = enclosingDecl;
     final boolean prevInsideConstructor = insideConstructor;
+    final boolean prevInsideInitialization = insideInstanceInitialization;
 
     /* Need to visit the instance initializer blocks and instance field 
      * declarations.  We rely on the fact that anonymous classes cannot 
@@ -1426,6 +1449,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
      * class expression are executed as part of the enclosing method/constructor. 
      */
     insideConstructor = true; // We are inside the constructor of the anonymous class
+    insideInstanceInitialization = true;
     final IRNode anonClassDecl = JavaPromise.getPromisedFor(initDecl);
     enterEnclosingDecl(initDecl, anonClassDecl); // Inside the <init> method
     action.tryBefore();
@@ -1439,6 +1463,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       action.finallyAfter();
       leaveEnclosingDecl(prevEnclosingDecl);
       insideConstructor = prevInsideConstructor;
+      insideInstanceInitialization = prevInsideInitialization;
     }
     action.afterVisit();
 

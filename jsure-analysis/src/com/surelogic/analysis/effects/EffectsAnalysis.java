@@ -287,7 +287,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 
         final Target cleanedTarget = cleanInferredTarget(member, target);
         final Effect cleanedEffect = Effect.effect(
-            null, maskedEffect.isRead(), cleanedTarget);
+            null, maskedEffect.isRead(), cleanedTarget,
+            NoEffectEvidence.INSTANCE);
         inferred.add(cleanedEffect);
       }
     } 

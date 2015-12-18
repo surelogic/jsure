@@ -68,7 +68,6 @@ public final class Messages extends AbstractMessages {
   public static final int LockAnalysis_ds_MatchingLock=233;
   public static final int LockAnalysis_ds_ConstructorIsSingleThreaded = 235;
   public static final int LockAnalysis_ds_OnBehalfOfConstructor = 236;
-  public static final int LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded = 238;
   public static final int LockAnalysis_ds_AssumedHeld = 240;
   public static final int LockAnalysis_ds_HeldLock = 241;
   public static final int LockAnalysis_ds_HeldJUCLock = 242;
