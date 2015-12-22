@@ -1,6 +1,7 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.declared;
 
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.analysis.concurrency.model.implementation.NamedLockImplementation;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 

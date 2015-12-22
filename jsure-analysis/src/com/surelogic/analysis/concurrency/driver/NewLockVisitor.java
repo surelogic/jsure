@@ -19,8 +19,8 @@ import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLocks;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
-import com.surelogic.analysis.concurrency.model.HeldLock;
-import com.surelogic.analysis.concurrency.model.NeededLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.NeededLock;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.EffectEvidenceProcessor;
 import com.surelogic.analysis.effects.Effects;
@@ -220,7 +220,7 @@ implements IBinderClient {
           final HeldLock satisfyingLock = isSatisfied(neededLock, heldLocks);
           final boolean success = satisfyingLock != null;
           final ResultDrop resultDrop = ResultsBuilder.createResult(
-              success, neededLock.getLockPromise(), e.getSource(),
+              success, neededLock.getAssuredPromise(), e.getSource(),
               neededLock.getReason().getResultMessage(success),
               neededLock, DebugUnparser.toString(e.getSource()));
           resultDrop.setCategorizingMessage(
@@ -228,6 +228,9 @@ implements IBinderClient {
           
           // Add held locks as supporting information
           for (final HeldLock heldLock : heldLocks) {
+            if (heldLock.getSupportingPromise() != null) {
+              resultDrop.addTrusted(heldLock.getSupportingPromise());
+            }
             resultDrop.addInformationHint(heldLock.getSource(),
                 heldLock.getReason().getInformationMessage(), heldLock);
           }

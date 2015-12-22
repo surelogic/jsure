@@ -1,7 +1,6 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.instantiated;
 
-import com.surelogic.aast.IAASTNode;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.analysis.concurrency.model.declared.ModelLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -20,11 +19,6 @@ public interface InstantiatedLock {
    * the lock or that causes the lock to be held.
    */
   public IRNode getSource();
-  
-  /**
-   * Get the lock promise that declare the lock being instantiated.
-   */
-  public PromiseDrop<? extends IAASTNode> getLockPromise();
   
   /** 
    * Returns whether the lock is an intrinsic Java lock, that is one that

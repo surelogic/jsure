@@ -1,12 +1,14 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.instantiated;
 
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
-public final class NeededStaticLock extends AbstractRealLock {
-  public NeededStaticLock(
+public final class NeededStaticLock extends AbstractNeededLock {
+  // Must use NeededLockFactory
+  NeededStaticLock(
       final LockImplementation lockImpl, final IRNode source,
       final Reason reason,
       final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite) {

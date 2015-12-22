@@ -1,7 +1,6 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.instantiated;
 
-import com.surelogic.aast.IAASTNode;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -27,10 +26,9 @@ implements HeldLock {
   
   protected AbstractHeldLock(
       final IRNode source, final Reason reason,
-      final PromiseDrop<? extends IAASTNode> lockPromise, 
       final boolean holdsWrite, final LockImplementation lockImpl,
       final RequiresLockPromiseDrop supportingDrop) {
-    super(source, lockPromise);
+    super(source);
     this.reason = reason;
     this.holdsWrite = holdsWrite;
     this.lockImpl = lockImpl;
@@ -48,7 +46,7 @@ implements HeldLock {
   }
   
   @Override
-  public final RequiresLockPromiseDrop getSupportingDrop() {
+  public final RequiresLockPromiseDrop getSupportingPromise() {
     return supportingDrop;
   }
   

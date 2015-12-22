@@ -1,4 +1,4 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.implementation;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
@@ -6,13 +6,8 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * Represents an object instance being used as a lock to protect one of its 
  * own regions.
  */
-public final class SelfImplementation implements UnnamedLockImplementation {
-  // XXX: Should have a singleton prototype?  See how this class plays out
-  public SelfImplementation() {
-    super();
-  }
-  
-  
+public enum SelfImplementation implements UnnamedLockImplementation {
+  INSTANCE;
   
   @Override
   public String toString() {
@@ -26,7 +21,7 @@ public final class SelfImplementation implements UnnamedLockImplementation {
   
   @Override
   public String getDeclaredInClassName() {
-    return getClassName();
+    return "java.lang.Object";
   }
   
   @Override

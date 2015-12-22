@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.IRNode;

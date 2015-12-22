@@ -1,42 +1,37 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.declared;
+
+import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 
 /**
- * Represents the implementation of a lock.
+ * Lock in the lock model.
  */
-public interface LockImplementation {
+public interface ModelLock<A extends PromiseDrop<? extends IAASTRootNode>, L extends LockImplementation> {
   /**
-   * Get the name of the class whose member or reference is being
-   * used as the lock.
+   * Get the annotation that generated this lock.
+   * Could be a RegionLock, PolicyLock, or GuardedBy annotation.
    */
-  public String getClassName();
+  public A getSourceAnnotation();
   
   /**
-   * Get the name of the class where the lock implementation is declared.  For
-   * unnamed locks this is the same as {@link #getClassName}.
+   * Get the lock implementation.
    */
-  public String getDeclaredInClassName();
-  
+  public L getImplementation();
+
   /**
-   * Get the "id" for the lock in a form suitable for appending to a qualifying
-   * label.  That is, the id should start with the appropriate separator 
-   * notation.
+   * Get the class in which the lock is declared.
    */
-  public String getPostfixId();
+  public IJavaDeclaredType getDeclaredInClass();
   
   /**
    * Returns whether the lock is static: whether the field/method representing
    * the lock is static, or if the lock is a class representation.
    */
   public boolean isStatic();
-  
-  /**
-   * Whether the lock protects final fields or not.  Right now the only time
-   * a final field is protected is to implement the "itself" case of the
-   * GuardedBy annotation.
-   */
-  public boolean isFinalProtected();
   
   /** 
    * Returns whether the lock is an intrinsic Java lock, that is one that
@@ -59,6 +54,4 @@ public interface LockImplementation {
    * {@link java.util.concurrent.ReadWriteLock}. 
    */
   public boolean isReadWrite(IBinder binder);
-  
-  // Not sure what else goes here yet
 }

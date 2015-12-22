@@ -1,8 +1,7 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.instantiated;
 
-import com.surelogic.aast.IAASTNode;
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.analysis.concurrency.model.SyntacticEquality;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -86,11 +85,6 @@ public final class BogusLock implements HeldLock {
   public Reason getReason() {
     return Reason.BOGUS;
   }
-  
-  @Override
-  public PromiseDrop<? extends IAASTNode> getLockPromise() {
-    return null;
-  }
 
   @Override
   public boolean holdsWrite() {
@@ -99,7 +93,7 @@ public final class BogusLock implements HeldLock {
   }
 
   @Override
-  public RequiresLockPromiseDrop getSupportingDrop() {
+  public RequiresLockPromiseDrop getSupportingPromise() {
     // No promise supports a bogus lock because they aren't real locks
     return null;
   }

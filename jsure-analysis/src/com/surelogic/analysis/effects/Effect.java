@@ -4,7 +4,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.concurrency.model.NeededLock;
+import com.surelogic.analysis.concurrency.model.instantiated.NeededLock;
 import com.surelogic.analysis.effects.targets.EmptyTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
@@ -60,6 +60,126 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * @author Aaron Greenhouse
  */
 public abstract class Effect {
+  /**
+   * The target of the effect.
+   */
+  protected final Target target;
+  
+  /**
+   * The expression that directly caused the effect or <code>null</code> if
+   * unknown.
+   */
+  protected final IRNode source;
+
+  /**
+   * Any additional evidence for the existence of this effect.
+   * Never null
+   */
+  protected final EffectEvidence evidence;
+  
+  /**
+   * The set of locks that should be held before producing this effect.
+   */
+  protected final Set<NeededLock> neededLocks;
+  
+  
+  
+  private Effect(final IRNode src, final Target t,
+      final EffectEvidence evidence,
+      final Set<NeededLock> neededLocks) {
+    target = t;
+    source = src;
+    this.evidence = evidence;
+    this.neededLocks = neededLocks;
+  }
+  
+  /**
+   * Create a new effect.
+   * 
+   * @param src
+   *          The source of the effect.
+   * @param read
+   *          <tt>true</tt> to create a read effect, <tt>false</tt> to
+   *          create a write effect
+   * @param t
+   *          Target of the effect
+   * @return An effect of the appropriate kind on target <tt>t</tt>
+   */
+  public static Effect effect(
+      final IRNode src, final boolean read, final Target t,
+      final EffectEvidence evidence,
+      final Set<NeededLock> neededLocks) {
+    return read ? read(src, t, evidence, neededLocks) : write(src, t, evidence, neededLocks);
+  }
+
+  public static Effect effect(
+      final IRNode src, final boolean read, final Target t,
+      final EffectEvidence evidence,
+      final NeededLock neededLock) {
+    return read ? read(src, t, evidence, neededLock) : write(src, t, evidence, neededLock);
+  }
+
+  public static Effect effect(
+      final IRNode src, final boolean read, final Target t,
+      final EffectEvidence evidence) {
+    return Effect.effect(src, read, t, evidence, ImmutableSet.<NeededLock>of());
+  }
+  
+  
+
+  /**
+   * Convert the effect to a string that can be used in a RegionEffect 
+   * promise.   
+   */
+  public abstract String unparseForPromise();
+  
+  /**
+   * Convert the effect to a string that can be used in a DropSea message.
+   */
+  public abstract String unparseForMessage();
+
+  /**
+   * Convert the effect to a String. The string is of the form "<tt>read( </tt><I>target</I><tt> )</tt>"
+   * or "<tt>write( </tt><I>target</I><tt> )</tt>", as appropriate, where
+   * <i>target</i> is the String representation of the effect's target.
+   * 
+   * @return The String representation of the effect
+   */
+  @Override
+  public abstract String toString();
+  
+  /**
+   * Compare two effects. Two effects are equal if the have the same target and
+   * are either both read or both write effects and they have the same source.
+   * 
+   * @param obj
+   *          The object to test.
+   * @see #reallyEquals(Effect)
+   * @return <code>true</code> if the two effects are equal;
+   *         <code>false</code> otherwise.
+   */
+  @Override
+  public abstract boolean equals(Object o);
+
+  protected boolean baseEquals(final Effect other) {
+    return target.equals(other.target) &&
+        (source == null ? other.source == null : source.equals(other.source)) &&
+        evidence.equals(other.evidence) &&
+        neededLocks.equals(other.neededLocks);
+  }
+  
+  @Override
+  public final int hashCode() {
+    int result = 17;
+    result = 31 * result + target.hashCode();
+    result = 31 * result + (source == null ? 0 : source.hashCode());
+    result = 31 * result + evidence.hashCode();
+    result = 31 * result + neededLocks.hashCode();
+    return result;
+  }
+
+  
+  
   private static final class EmptyEffect extends Effect {
     /** Only for use by changeSource(). */
     private EmptyEffect(final IRNode src, final Target t, 
@@ -153,20 +273,10 @@ public abstract class Effect {
       if (o == this) {
         return true;
       } else if (o instanceof EmptyEffect) {
-        final EmptyEffect other = (EmptyEffect) o;
-        return evidence.equals(other.evidence) &&
-            source == null ? other.source == null : source.equals(other.source);
+        return baseEquals((EmptyEffect) o);
       } else {
         return false;
       }
-    }
-    
-    @Override
-    public int hashCode() {
-      int result = 17;
-      result = 31 * result + evidence.hashCode();
-      result = 31 * result + (source == null ? 0 : source.hashCode());
-      return result;
     }
   }
   
@@ -293,22 +403,10 @@ public abstract class Effect {
       if (o == this) {
         return true;
       } else if (o instanceof ReadEffect) {
-        final ReadEffect other = (ReadEffect) o;
-        return (source == null ? other.source == null : source.equals(other.source))
-            && target.equals(other.target)
-            && evidence.equals(other.evidence);
+        return baseEquals((ReadEffect) o);
       } else {
         return false;
       }
-    }
-    
-    @Override
-    public final int hashCode() {
-      int result = 17;
-      result = 31 * result + target.hashCode();
-      result = 31 * result + evidence.hashCode();
-      result = 31 * result + (source == null ? 0 : source.hashCode());
-      return result;
     }
   }
   
@@ -393,92 +491,15 @@ public abstract class Effect {
       if (o == this) {
         return true;
       } else if (o instanceof WriteEffect) {
-        final WriteEffect other = (WriteEffect) o;
-        return (source == null ? other.source == null : source.equals(other.source))
-            && target.equals(other.target)
-            && evidence.equals(other.evidence);            
+        return baseEquals((WriteEffect) o);
       } else {
         return false;
       }
     }
-    
-    @Override
-    public final int hashCode() {
-      int result = 19;  // don't clash with read effects
-      result = 31 * result + target.hashCode();
-      result = 31 * result + evidence.hashCode();
-      result = 31 * result + (source == null ? 0 : source.hashCode());
-      return result;
-    }
   }
   
   
-  
-  /**
-   * The target of the effect.
-   */
-  protected final Target target;
-  
-  /**
-   * The expression that directly caused the effect or <code>null</code> if
-   * unknown.
-   */
-  protected final IRNode source;
 
-  /**
-   * Any additional evidence for the existence of this effect.
-   * Never null
-   */
-  protected final EffectEvidence evidence;
-  
-  /**
-   * The set of locks that should be held before producing this effect.
-   */
-  protected final Set<NeededLock> neededLocks;
-  
-  
-  
-  private Effect(final IRNode src, final Target t,
-      final EffectEvidence evidence,
-      final Set<NeededLock> neededLocks) {
-    target = t;
-    source = src;
-    this.evidence = evidence;
-    this.neededLocks = neededLocks;
-  }
-  
-  /**
-   * Create a new effect.
-   * 
-   * @param src
-   *          The source of the effect.
-   * @param read
-   *          <tt>true</tt> to create a read effect, <tt>false</tt> to
-   *          create a write effect
-   * @param t
-   *          Target of the effect
-   * @return An effect of the appropriate kind on target <tt>t</tt>
-   */
-  public static Effect effect(
-      final IRNode src, final boolean read, final Target t,
-      final EffectEvidence evidence,
-      final Set<NeededLock> neededLocks) {
-    return read ? read(src, t, evidence, neededLocks) : write(src, t, evidence, neededLocks);
-  }
-
-  public static Effect effect(
-      final IRNode src, final boolean read, final Target t,
-      final EffectEvidence evidence,
-      final NeededLock neededLock) {
-    return read ? read(src, t, evidence, neededLock) : write(src, t, evidence, neededLock);
-  }
-
-  public static Effect effect(
-      final IRNode src, final boolean read, final Target t,
-      final EffectEvidence evidence) {
-    return Effect.effect(src, read, t, evidence, ImmutableSet.<NeededLock>of());
-  }
-  
   /**
    * Create a new read effect.
    * 
@@ -667,51 +688,4 @@ public abstract class Effect {
    * the given write effect.
    */
   abstract boolean checksWrite(IBinder binder, Effect implEffect);
-  
-  
-
-  /**
-   * Convert the effect to a string that can be used in a RegionEffect 
-   * promise.   
-   */
-  public abstract String unparseForPromise();
-  
-  /**
-   * Convert the effect to a string that can be used in a DropSea message.
-   */
-  public abstract String unparseForMessage();
-  
-  /**
-   * Convert the effect to a String. The string is of the form "<tt>read( </tt><I>target</I><tt> )</tt>"
-   * or "<tt>write( </tt><I>target</I><tt> )</tt>", as appropriate, where
-   * <i>target</i> is the String representation of the effect's target.
-   * 
-   * @return The String representation of the effect
-   */
-  @Override
-  public abstract String toString();
-  
-  /**
-   * Compare two effects. Two effects are equal if the have the same target and
-   * are either both read or both write effects and they have the same source.
-   * 
-   * @param obj
-   *          The object to test.
-   * @see #reallyEquals(Effect)
-   * @return <code>true</code> if the two effects are equal;
-   *         <code>false</code> otherwise.
-   */
-  @Override
-  public abstract boolean equals(Object o);
-
-  /**
-   * Get the hash value of an effect. The hash value is equal to the
-   * <code>getTarget().hashCode()</code> if the effect is a read effect,
-   * otherwise the hash value is the bitwise complement of the target's hash
-   * value.
-   * 
-   * @return The hash value of the effect.
-   */
-  @Override
-  public abstract int hashCode();
 }

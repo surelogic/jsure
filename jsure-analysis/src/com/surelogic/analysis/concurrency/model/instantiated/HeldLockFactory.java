@@ -1,9 +1,8 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.instantiated;
 
-import com.surelogic.aast.IAASTNode;
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.analysis.concurrency.model.HeldLock.Reason;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock.Reason;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -25,19 +24,18 @@ public final class HeldLockFactory {
   
   public HeldLock createInstanceLock(
       final IRNode objectRefExpr, final LockImplementation lockImpl,
-      final IRNode source, final Reason reason,
-      final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite,
+      final IRNode source, final Reason reason, final boolean needsWrite,
       final RequiresLockPromiseDrop supportingDrop) {
     return new HeldInstanceLock(
         thisExprBinder.bindThisExpression(objectRefExpr), 
-        lockImpl, source, reason, lockPromise, needsWrite, supportingDrop);
+        lockImpl, source, reason, needsWrite, supportingDrop);
   }
   
   public HeldLock createStaticLock(
       final LockImplementation lockImpl, final IRNode source,
-      final Reason reason, final PromiseDrop<? extends IAASTNode> lockPromise,
-      final boolean needsWrite, final RequiresLockPromiseDrop supportingDrop) {
-    return new HeldStaticLock(lockImpl, source, reason, lockPromise, needsWrite, supportingDrop);
+      final Reason reason, final boolean needsWrite,
+      final RequiresLockPromiseDrop supportingDrop) {
+    return new HeldStaticLock(lockImpl, source, reason, needsWrite, supportingDrop);
   }
   
   public BogusLock createBogusLock(final IRNode lockExpr) {

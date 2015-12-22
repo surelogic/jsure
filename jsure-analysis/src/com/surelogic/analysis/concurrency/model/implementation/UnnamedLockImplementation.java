@@ -1,4 +1,4 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.implementation;
 
 /**
  * Place holder interface for lock implementations that are not named.

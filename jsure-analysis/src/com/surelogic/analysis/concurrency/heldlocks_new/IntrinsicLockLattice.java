@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.IRNode;

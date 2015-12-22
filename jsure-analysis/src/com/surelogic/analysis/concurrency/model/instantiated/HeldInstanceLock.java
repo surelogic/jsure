@@ -1,8 +1,8 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.instantiated;
 
-import com.surelogic.aast.IAASTNode;
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.analysis.concurrency.model.SyntacticEquality;
+import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -11,12 +11,12 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 public final class HeldInstanceLock extends AbstractHeldLock {
   private final IRNode objectRefExpr;
   
-  public HeldInstanceLock(
+  // Must use the HeldLockFactory
+  HeldInstanceLock(
       final IRNode objectRefExpr, final LockImplementation lockImpl,
-      final IRNode source, final Reason reason,
-      final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite,
+      final IRNode source, final Reason reason, final boolean needsWrite,
       final RequiresLockPromiseDrop supportingDrop) {
-    super(source, reason, lockPromise, needsWrite, lockImpl, supportingDrop);
+    super(source, reason, needsWrite, lockImpl, supportingDrop);
     this.objectRefExpr = objectRefExpr;
   }
 

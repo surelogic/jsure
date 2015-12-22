@@ -1,7 +1,5 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.surelogic.aast.promise.LockDeclarationNode;
@@ -55,9 +53,6 @@ extends AbstractWholeIRAnalysis<IBinderClient, CUDrop> {
 		
 		// Run through the LockModel and add them to the GlobalLockModel
     for (LockModel lockDrop : Sea.getDefault().getDropsOfType(LockModel.class)) {
-			if (lockDrop.getMessage().contains("MUTEX")) {
-				System.err.println("Looking at @"+lockDrop.getMessage());
-			}
 			final IRNode classDecl = lockDrop.getNode();
 
 			if (classDecl == null) {
@@ -90,14 +85,14 @@ extends AbstractWholeIRAnalysis<IBinderClient, CUDrop> {
         newLockModel.addGuardedByDelaration(guardedByDrop);
       }
     }		
-
-    try {
-      final PrintWriter pw = new PrintWriter("/Users/aarong/model.txt");
-      newLockModel.dumpModel(pw);
-      pw.close();
-    } catch (IOException e) {
-      // eat it
-    }
+//
+//    try {
+//      final PrintWriter pw = new PrintWriter("/Users/aarong/model.txt");
+//      newLockModel.dumpModel(pw);
+//      pw.close();
+//    } catch (IOException e) {
+//      // eat it
+//    }
     
 		// Share the new global lock model with the lock visitor, and other
 		// helpers

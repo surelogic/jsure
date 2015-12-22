@@ -1,36 +1,43 @@
-package com.surelogic.analysis.concurrency.model;
-
-import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.dropsea.ir.PromiseDrop;
+package com.surelogic.analysis.concurrency.model.implementation;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 
 /**
- * Lock in the lock model.
+ * Represents the implementation of a lock: The thing that names the thing 
+ * that must be acquired.
  */
-public interface ModelLock<A extends PromiseDrop<? extends IAASTRootNode>, L extends LockImplementation> {
+public interface LockImplementation {
   /**
-   * Get the annotation that generated this lock.
-   * Could be a RegionLock, PolicyLock, or GuardedBy annotation.
+   * Get the name of the class whose member or reference is being
+   * used as the lock.
    */
-  public A getSourceAnnotation();
+  public String getClassName();
   
   /**
-   * Get the lock implementation.
+   * Get the name of the class where the lock implementation is declared.  For
+   * unnamed locks this is the same as {@link #getClassName}.
    */
-  public L getImplementation();
-
+  public String getDeclaredInClassName();
+  
   /**
-   * Get the class in which the lock is declared.
+   * Get the "id" for the lock in a form suitable for appending to a qualifying
+   * label.  That is, the id should start with the appropriate separator 
+   * notation.
    */
-  public IJavaDeclaredType getDeclaredInClass();
+  public String getPostfixId();
   
   /**
    * Returns whether the lock is static: whether the field/method representing
    * the lock is static, or if the lock is a class representation.
    */
   public boolean isStatic();
+  
+  /**
+   * Whether the lock protects final fields or not.  Right now the only time
+   * a final field is protected is to implement the "itself" case of the
+   * GuardedBy annotation.
+   */
+  public boolean isFinalProtected();
   
   /** 
    * Returns whether the lock is an intrinsic Java lock, that is one that

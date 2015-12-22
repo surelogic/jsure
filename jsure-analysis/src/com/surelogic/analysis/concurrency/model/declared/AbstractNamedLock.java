@@ -1,6 +1,7 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.declared;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.analysis.concurrency.model.implementation.NamedLockImplementation;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 public abstract class AbstractNamedLock<

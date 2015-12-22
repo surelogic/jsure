@@ -12,10 +12,10 @@ import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
-import com.surelogic.analysis.concurrency.model.HeldLock;
-import com.surelogic.analysis.concurrency.model.HeldLock.Reason;
-import com.surelogic.analysis.concurrency.model.HeldLockFactory;
-import com.surelogic.analysis.concurrency.model.ModelLock;
+import com.surelogic.analysis.concurrency.model.declared.ModelLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLockFactory;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock.Reason;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
@@ -547,15 +547,13 @@ public final class LockUtils {
     private void addInstanceLock(final IRNode objExpr,
         final ModelLock<?, ?> modelLock, final boolean isWrite) {
       locks.add(heldLockFactory.createInstanceLock(
-          objExpr, modelLock.getImplementation(), src, reason,
-          modelLock.getSourceAnnotation(), isWrite, null));
+          objExpr, modelLock.getImplementation(), src, reason, isWrite, null));
     }
     
     private void addStaticLock(
         final ModelLock<?, ?> modelLock, final boolean isWrite) {
       locks.add(heldLockFactory.createStaticLock(
-          modelLock.getImplementation(), src, reason,
-          modelLock.getSourceAnnotation(), isWrite, null));
+          modelLock.getImplementation(), src, reason, isWrite, null));
     }
     
     private HeldLock convertReturnedLock(

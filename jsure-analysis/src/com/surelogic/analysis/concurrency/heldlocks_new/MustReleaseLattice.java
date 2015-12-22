@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.util.ImmutableList;

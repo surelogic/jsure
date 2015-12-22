@@ -2,7 +2,7 @@ package com.surelogic.analysis.concurrency.heldlocks_new;
 
 import java.util.Set;
 
-import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.util.IThunk;
 

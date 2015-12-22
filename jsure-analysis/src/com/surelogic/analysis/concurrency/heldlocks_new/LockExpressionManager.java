@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
-import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

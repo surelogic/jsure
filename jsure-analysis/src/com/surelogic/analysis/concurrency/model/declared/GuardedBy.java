@@ -1,5 +1,6 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.declared;
 
+import com.surelogic.analysis.concurrency.model.implementation.UnnamedLockImplementation;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;

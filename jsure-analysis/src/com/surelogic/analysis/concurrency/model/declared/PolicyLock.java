@@ -1,5 +1,6 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.declared;
 
+import com.surelogic.analysis.concurrency.model.implementation.NamedLockImplementation;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.java.JavaNames;

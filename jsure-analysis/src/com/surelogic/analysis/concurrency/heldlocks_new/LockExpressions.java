@@ -15,9 +15,9 @@ import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuer
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
-import com.surelogic.analysis.concurrency.model.HeldLock;
-import com.surelogic.analysis.concurrency.model.HeldLock.Reason;
-import com.surelogic.analysis.concurrency.model.HeldLockFactory;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLockFactory;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock.Reason;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.NoEffectEvidence;

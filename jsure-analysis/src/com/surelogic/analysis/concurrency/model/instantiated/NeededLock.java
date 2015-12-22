@@ -1,4 +1,8 @@
-package com.surelogic.analysis.concurrency.model;
+package com.surelogic.analysis.concurrency.model.instantiated;
+
+import com.surelogic.aast.IAASTNode;
+import com.surelogic.analysis.concurrency.model.declared.ModelLock;
+import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -54,6 +58,14 @@ public interface NeededLock extends InstantiatedLock {
    */
   @Override
   public IRNode getSource();
+  
+  /**
+   * Get the lock promise that controls why the lock is needed.  For 
+   * field accesses this is the GuardedBy or RegionLock annotation on the
+   * field declaration.  For method preconditions this is the RequiresLock
+   * annotation on the method.
+   */
+  public PromiseDrop<? extends IAASTNode> getAssuredPromise();
   
   /**
    * Get the semantic reason for this lock's necessity.

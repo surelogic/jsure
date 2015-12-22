@@ -5,7 +5,7 @@ import java.util.Set;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils.LockMethods;
-import com.surelogic.analysis.concurrency.model.HeldLock;
+import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
