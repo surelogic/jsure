@@ -25,6 +25,8 @@ import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.EffectEvidenceProcessor;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.InitializationEvidence;
+import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
+import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -42,6 +44,7 @@ final class NewLockVisitor
 extends FlowUnitVisitor<NewLockVisitor.Queries>
 implements IBinderClient {
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
+  private static final int ANONYMOUS_CLASS_INITIALIZATION_EFFECT = 2021;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -226,6 +229,10 @@ implements IBinderClient {
           resultDrop.setCategorizingMessage(
               neededLock.getReason().getCategory(success));
           
+          /* Too many sources of evidence.  Why should I have to look at the
+           * lock, the effect, and the target???
+           */
+          
           // Add held locks as supporting information
           for (final HeldLock heldLock : heldLocks) {
             if (heldLock.getSupportingPromise() != null) {
@@ -247,6 +254,20 @@ implements IBinderClient {
                   JavaNames.genMethodConstructorName(constructorDecl));
             }
           }.accept(e.getEvidence());
+          
+          /* Add "held as" information that describes the mapping of 
+           * qualified receivers inside of anonymous classes into 
+           * references in the outer context.
+           */
+          new EvidenceProcessor() {
+            @Override
+            public void visitAnonClassEvidence(final AnonClassEvidence ace) {
+              resultDrop.addInformationHint(
+                  ace.getLink(), ANONYMOUS_CLASS_INITIALIZATION_EFFECT,
+                  ace.getOriginalEffect().unparseForMessage(),
+                  e.unparseForMessage());
+            }
+          }.accept(e.getTarget().getEvidence());
         }
         
         // TESTING & DEBUGGING --- GET RID OF THIS LATER

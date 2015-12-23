@@ -233,12 +233,12 @@ public final class Effects implements IBinderClient {
     if (effects.isEmpty()) {
       return Collections.emptySet();
     } else {
-      final Set<Effect> newEffects = new HashSet<Effect>();
+      final ImmutableSet.Builder<Effect> newEffects = ImmutableSet.builder();
       for (final Effect e : effects) {
         final Effect masked = e.mask(binder);
         if (masked != null) newEffects.add(masked);
       }
-      return Collections.unmodifiableSet(newEffects);
+      return newEffects.build();
     }
   }
 
@@ -444,7 +444,7 @@ public final class Effects implements IBinderClient {
     // === Step 2: Instantiate the declared effects based on the substitution map
     
     // go through list and replace each effect on p with effects on table[p]
-    final Set<Effect> methodEffects = new HashSet<Effect>();
+    final ImmutableSet.Builder<Effect> methodEffects = ImmutableSet.builder();
     for (final Effect eff : getMethodEffects(mdecl, call)) {
       final Target t = eff.getTarget();
       if (t instanceof InstanceTarget) {
@@ -478,7 +478,7 @@ public final class Effects implements IBinderClient {
       }
     }
   
-    return Collections.unmodifiableSet(methodEffects);
+    return methodEffects.build();
   }
 
   
@@ -501,12 +501,12 @@ public final class Effects implements IBinderClient {
       final IRNode src, final boolean isRead, final Target target,
       final EffectEvidence evidence) {
     if (target instanceof InstanceTarget) {
-      final Set<Effect> elaboratedEffects = new HashSet<Effect>();
+      final ImmutableSet.Builder<Effect> elaboratedEffects = ImmutableSet.builder();
       // XXX: Using bogus lock model and empty lock
       elaborateInstanceTarget(
           bcaQuery, new NeededLockFactory(thisExprBinder), thisExprBinder, new AnalysisLockModel(thisExprBinder), src,
           isRead, target, evidence, ImmutableSet.<NeededLock>of(), elaboratedEffects);
-      return Collections.unmodifiableSet(elaboratedEffects);
+      return elaboratedEffects.build();
     } else {
       return Collections.singleton(Effect.effect(src, isRead, target, evidence));
     }
@@ -521,7 +521,7 @@ public final class Effects implements IBinderClient {
       final AnalysisLockModel lockModel,
       final IRNode srcExpr, final boolean isRead, final Target initTarget,
       final EffectEvidence evidence, final Set<NeededLock> initLocks,
-      final Set<Effect> outEffects) {
+      final ImmutableSet.Builder<Effect> outEffects) {
     final TargetElaborator te = new TargetElaborator(
         srcExpr, !isRead, evidence, bcaQuery, lockFactory,  thisExprBinder, lockModel);
     te.elaborateTarget(initTarget, initLocks);
@@ -546,7 +546,7 @@ public final class Effects implements IBinderClient {
      * The set of accumulated effects.  This field has a value only when a 
      * traversal is being performed; otherwise it is <code>null</code>.
      */
-    private final Set<Effect> theEffects;
+    private final ImmutableSet.Builder<Effect> theEffects;
     
     /**
      * The MethodDeclaration, ConstructorDeclaration, or ClassInitDeclaration
@@ -594,7 +594,7 @@ public final class Effects implements IBinderClient {
   
     
     
-    private Context(final Set<Effect> effects, final IRNode method,
+    private Context(final ImmutableSet.Builder<Effect> effects, final IRNode method,
         final IRNode rcvr, final BindingContextAnalysis.Query query,
         final boolean lhs) {
       this.theEffects = effects;
@@ -606,7 +606,7 @@ public final class Effects implements IBinderClient {
   
     public static Context forNormalMethod(
         final BindingContextAnalysis.Query query, final IRNode enclosingMethod) {
-      return new Context(new HashSet<Effect>(), enclosingMethod,
+      return new Context(ImmutableSet.<Effect>builder(), enclosingMethod,
           JavaPromise.getReceiverNodeOrNull(enclosingMethod),
           query, false);
     }
@@ -614,7 +614,7 @@ public final class Effects implements IBinderClient {
     public static Context forACE(
         final Context oldContext, final IRNode anonClassExpr,
         final IRNode enclosingDecl, final IRNode rcvr) {
-      return new Context(new HashSet<Effect>(), enclosingDecl, rcvr,
+      return new Context(ImmutableSet.<Effect>builder(), enclosingDecl, rcvr,
           oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), false);
     }
     
@@ -699,7 +699,7 @@ public final class Effects implements IBinderClient {
     
     
     public Set<Effect> getTheEffects() {
-      return context.theEffects;
+      return context.theEffects.build();
     }
     
     
@@ -825,7 +825,7 @@ public final class Effects implements IBinderClient {
                 thisExprBinder, expr,
                 superClassDecl,
                 context.theReceiverNode, getEnclosingDecl());
-          for (final Effect e : newContext.theEffects) {
+          for (final Effect e : newContext.theEffects.build()) {
             final Effect maskedEffect = e.mask(thisExprBinder);
             if (maskedEffect != null
                 && !maskedEffect.affectsReceiver(newContext.theReceiverNode)) {
@@ -1179,7 +1179,7 @@ public final class Effects implements IBinderClient {
     
     public void getEffects(
         final IRNode srcExpr, final boolean isRead,
-        final Set<Effect> outEffects) {
+        final ImmutableSet.Builder<Effect> outEffects) {
       for (final Target t : targets) {
         outEffects.add(Effect.effect(srcExpr, isRead, t, evidence, lockMap.get(t)));
       }
