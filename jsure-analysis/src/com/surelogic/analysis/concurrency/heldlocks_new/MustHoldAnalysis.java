@@ -59,7 +59,7 @@ public final class MustHoldAnalysis extends
   
   private final static class EmptyHeldLocksQuery implements JavaFlowAnalysisQuery<HeldLocks> {
     @Override
-    public JavaFlowAnalysisQuery<HeldLocks> getSubAnalysisQuery(final IRNode caller) {
+    public EmptyHeldLocksQuery getSubAnalysisQuery(final IRNode caller) {
       return this;
     }
 

@@ -838,15 +838,24 @@ public final class Effects implements IBinderClient {
                   final IRNode objectExpr = thisExprBinder.bindThisExpression(newRef);
                   final Target newTarget = new InstanceTarget(
                       objectExpr, target.getRegion(), new AnonClassEvidence(maskedEffect));
+                  final Set<NeededLock> newLocks = new HashSet<>();
+                  for (final NeededLock lock : maskedEffect.getNeededLocks()) {
+                    newLocks.add(lock.replaceEnclosingInstanceReference(enclosing));
+                  }
                   elaborateInstanceTarget(
                       context.bcaQuery, lockFactory, thisExprBinder, lockModel.get(),
-                      expr, maskedEffect.isRead(), newTarget, getEvidence(),
-                      lockModel.get().getNeededLocks(
-                          lockFactory, thisExprBinder, newTarget, expr,
-                          NeededLock.Reason.FIELD_ACCESS,
-                          !maskedEffect.isRead(), objectExpr),
-                      context.theEffects);
+                      maskedEffect.getSource(), maskedEffect.isRead(), newTarget, getEvidence(),
+                      newLocks, context.theEffects);
+//                      lockModel.get().getNeededLocks(
+//                          lockFactory, thisExprBinder, newTarget, expr,
+//                          NeededLock.Reason.FIELD_ACCESS,
+//                          !maskedEffect.isRead(), objectExpr),
+//                      context.theEffects);
                 } else {
+                  /* XXX: Not sure if it is possible to get here.  External
+                   * variable references are turned into ANyInstance targets
+                   * during elaboration.
+                   */
                   /* 2012-08-24: We have to clean the type to make sure it is not a 
                    * type formal.
                    */
@@ -856,20 +865,21 @@ public final class Effects implements IBinderClient {
                         thisExprBinder.getTypeEnvironment(), (IJavaTypeFormal) type);
                   }
                   context.theEffects.add(Effect.effect(
-                      expr, maskedEffect.isRead(),
+                      maskedEffect.getSource(), maskedEffect.isRead(),
                       new AnyInstanceTarget(
                           (IJavaReferenceType) type, target.getRegion(),
                           new UnknownReferenceConversionEvidence(
                               maskedEffect, ref, (IJavaReferenceType) type)),
-                      getEvidence(),
-                      lockModel.get().getNeededLocks(
-                          lockFactory, thisExprBinder, target, expr,
-                          NeededLock.Reason.FIELD_ACCESS,
-                          !maskedEffect.isRead(), ref)));
+                      getEvidence(), maskedEffect.getNeededLocks()));
+                  
+//                      lockModel.get().getNeededLocks(
+//                          lockFactory, thisExprBinder, target, expr,
+//                          NeededLock.Reason.FIELD_ACCESS,
+//                          !maskedEffect.isRead(), ref)));
                 }
               } else {
                 context.theEffects.add(maskedEffect.changeSource(
-                expr, new AnonClassEvidence(maskedEffect), getEvidence()));
+                    maskedEffect.getSource(), new AnonClassEvidence(maskedEffect), getEvidence()));
               }
             }
           }

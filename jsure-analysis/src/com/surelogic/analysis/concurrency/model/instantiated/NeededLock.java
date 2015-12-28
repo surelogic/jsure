@@ -1,6 +1,7 @@
 package com.surelogic.analysis.concurrency.model.instantiated;
 
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.analysis.MethodCallUtils.EnclosingRefs;
 import com.surelogic.analysis.concurrency.model.declared.ModelLock;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
@@ -76,4 +77,12 @@ public interface NeededLock extends InstantiatedLock {
    * Is a write lock needed?
    */
   public boolean needsWrite();
+  
+  /**
+   * The lock is passing through a context boundary from inside of the
+   * initializer block of a nested class to the main flow of control of the
+   * containing method body.  We need to convert the object reference expression
+   * (if any) to make sense in the context of the method body.
+   */
+  public NeededLock replaceEnclosingInstanceReference(EnclosingRefs refs);
 }

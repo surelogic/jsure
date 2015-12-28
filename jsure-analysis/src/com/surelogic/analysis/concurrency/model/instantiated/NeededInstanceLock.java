@@ -1,6 +1,7 @@
 package com.surelogic.analysis.concurrency.model.instantiated;
 
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.analysis.MethodCallUtils.EnclosingRefs;
 import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
@@ -18,6 +19,16 @@ public final class NeededInstanceLock extends AbstractNeededLock {
       final PromiseDrop<? extends IAASTNode> assuredPromise, final boolean needsWrite) {
     super(source, reason, assuredPromise, needsWrite, lockImpl);
     this.objectRefExpr = objectRefExpr;
+  }
+
+  @Override
+  public NeededLock replaceEnclosingInstanceReference(final EnclosingRefs refs) {
+    final IRNode newRef = refs.replace(objectRefExpr);
+    if (newRef == null) { // no change
+      return this;
+    } else {
+      return new NeededInstanceLock(newRef, lockImpl, source, reason, assuredPromise, needsWrite);
+    }
   }
 
   @Override

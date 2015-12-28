@@ -211,14 +211,16 @@ implements IBinderClient {
   private void reportEffects(final IRNode mdecl) {
     final Set<Effect> fx = effects.getImplementationEffects(mdecl, bca);
     for (final Effect e : fx) {
+      // ======== DEBUG ========
       final HintDrop drop = HintDrop.newInformation(e.getSource());
       drop.setCategorizingMessage(DSC_EFFECTS);
       drop.setMessage(EFFECT, e.toString());
+      // ======== DEBUG ========
+
       
       // Show the held locks if the effect has needed locks
       if (!e.getNeededLocks().isEmpty()) {
         final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(e.getSource());
-
         for (final NeededLock neededLock : e.getNeededLocks()) {
           final HeldLock satisfyingLock = isSatisfied(neededLock, heldLocks);
           final boolean success = satisfyingLock != null;
@@ -229,8 +231,8 @@ implements IBinderClient {
           resultDrop.setCategorizingMessage(
               neededLock.getReason().getCategory(success));
           
-          /* Too many sources of evidence.  Why should I have to look at the
-           * lock, the effect, and the target???
+          /* XXX: Too many sources of evidence.  Why should I have to look at
+           * XXX: the lock, the effect, and the target???
            */
           
           // Add held locks as supporting information
@@ -259,7 +261,7 @@ implements IBinderClient {
            * qualified receivers inside of anonymous classes into 
            * references in the outer context.
            */
-          new EvidenceProcessor() {
+          new EvidenceProcessor(true) {
             @Override
             public void visitAnonClassEvidence(final AnonClassEvidence ace) {
               resultDrop.addInformationHint(
@@ -270,12 +272,16 @@ implements IBinderClient {
           }.accept(e.getTarget().getEvidence());
         }
         
-        // TESTING & DEBUGGING --- GET RID OF THIS LATER
+        
+        
+        
+        // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
         for (final HeldLock heldLock : heldLocks) {
           final HintDrop lockDrop = HintDrop.newInformation(e.getSource());
           lockDrop.setCategorizingMessage(DSC_EFFECTS);
           lockDrop.setMessage(551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
         }
+        // ===============================================================
       }
     }
   }

@@ -1,8 +1,14 @@
 package com.surelogic.analysis.effects.targets.evidence;
 
 public abstract class EvidenceProcessor implements EvidenceVisitor {
+  private final boolean chain;
+  
+  protected EvidenceProcessor(final boolean chain) {
+    this.chain = chain;
+  }
+  
   protected EvidenceProcessor() {
-    super();
+    this(false);
   }
   
   
@@ -47,6 +53,7 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
   @Override
   public void visitElaborationEvidence(final ElaborationEvidence e) {
     visit(e);
+    if (chain) accept(e.getMoreEvidence());
   }
 
   @Override

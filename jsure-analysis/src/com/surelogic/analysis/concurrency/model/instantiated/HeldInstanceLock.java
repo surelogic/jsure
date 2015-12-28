@@ -17,6 +17,7 @@ public final class HeldInstanceLock extends AbstractHeldLock {
       final IRNode source, final Reason reason, final boolean needsWrite,
       final RequiresLockPromiseDrop supportingDrop) {
     super(source, reason, needsWrite, lockImpl, supportingDrop);
+    if (objectRefExpr == null) throw new NullPointerException();
     this.objectRefExpr = objectRefExpr;
   }
 
