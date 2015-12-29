@@ -24,6 +24,7 @@ import com.surelogic.analysis.concurrency.model.instantiated.NeededLock;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.EffectEvidenceProcessor;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.Effects.ImplementedEffects;
 import com.surelogic.analysis.effects.InitializationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
@@ -36,7 +37,9 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.analysis.HasSubQuery;
 import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.QueryTransformer;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
@@ -102,7 +105,7 @@ implements IBinderClient {
   // == Manage the query stack
   // ======================================================================
   
-  final class Queries {
+  final class Queries implements HasSubQuery {
     private final BindingContextAnalysis.Query exprObjects;
     private final ProvablyUnassignedQuery provablyUnassigned;
     private final IntrinsicLockAnalysis.Query heldIntrinsicLocks;
@@ -128,7 +131,8 @@ implements IBinderClient {
       unlockCalls = q.unlockCalls.getSubAnalysisQuery(caller);
     }
     
-    public Queries subQuery(final IRNode caller) {
+    @Override
+    public Queries getSubAnalysisQuery(final IRNode caller) {
       return new Queries(this, caller);
     }
     
@@ -168,7 +172,7 @@ implements IBinderClient {
   
   @Override
   protected Queries createSubQuery(final IRNode caller) {
-    return currentQuery().subQuery(caller);
+    return currentQuery().getSubAnalysisQuery(caller);
   }
   
   
@@ -209,10 +213,14 @@ implements IBinderClient {
   }
   
   private void reportEffects(final IRNode mdecl) {
-    final Set<Effect> fx = effects.getImplementationEffects(mdecl, bca);
-    for (final Effect e : fx) {
+    final ImplementedEffects implementationEffects = effects.getImplementationEffects(mdecl, bca);
+    for (final Effect e : implementationEffects) {
+      final IRNode src = e.getSource();
+      final QueryTransformer qt = implementationEffects.getTransformerFor(src);
+      final Queries queries = qt.transform(currentQuery());
+      
       // ======== DEBUG ========
-      final HintDrop drop = HintDrop.newInformation(e.getSource());
+      final HintDrop drop = HintDrop.newInformation(src);
       drop.setCategorizingMessage(DSC_EFFECTS);
       drop.setMessage(EFFECT, e.toString());
       // ======== DEBUG ========
@@ -220,14 +228,14 @@ implements IBinderClient {
       
       // Show the held locks if the effect has needed locks
       if (!e.getNeededLocks().isEmpty()) {
-        final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(e.getSource());
+        final Iterable<HeldLock> heldLocks = queries.getHeldLocks(src);
         for (final NeededLock neededLock : e.getNeededLocks()) {
           final HeldLock satisfyingLock = isSatisfied(neededLock, heldLocks);
           final boolean success = satisfyingLock != null;
           final ResultDrop resultDrop = ResultsBuilder.createResult(
-              success, neededLock.getAssuredPromise(), e.getSource(),
+              success, neededLock.getAssuredPromise(), src,
               neededLock.getReason().getResultMessage(success),
-              neededLock, DebugUnparser.toString(e.getSource()));
+              neededLock, DebugUnparser.toString(src));
           resultDrop.setCategorizingMessage(
               neededLock.getReason().getCategory(success));
           
@@ -277,7 +285,7 @@ implements IBinderClient {
         
         // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
         for (final HeldLock heldLock : heldLocks) {
-          final HintDrop lockDrop = HintDrop.newInformation(e.getSource());
+          final HintDrop lockDrop = HintDrop.newInformation(src);
           lockDrop.setCategorizingMessage(DSC_EFFECTS);
           lockDrop.setMessage(551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
         }

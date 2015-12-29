@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * objects that are necessary for handling instance initializer blocks when
  * analyzing {@code super()} constructor calls and anonymous class expressions.
  */
-public interface JavaFlowAnalysisQuery<R> extends HasSubQuery, AnalysisQuery<R>{
+public interface HasSubQuery {
   /**
    * Get the query that is based on the initializer block subanalysis associated
    * with the analysis used by this query. Implementations should specialize the
@@ -24,6 +24,5 @@ public interface JavaFlowAnalysisQuery<R> extends HasSubQuery, AnalysisQuery<R>{
    *              Thrown if a subsidiary flow analysis for the given call does
    *              not exist.
    */
-  @Override
-  public JavaFlowAnalysisQuery<R> getSubAnalysisQuery(IRNode caller);
+  public HasSubQuery getSubAnalysisQuery(IRNode caller);
 }

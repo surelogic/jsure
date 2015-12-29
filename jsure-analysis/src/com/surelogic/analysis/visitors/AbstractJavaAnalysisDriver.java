@@ -4,6 +4,7 @@ import java.util.LinkedList;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.QueryTransformer;
 
 /**
  * Visitor that ensures that a new "query" record is created whenever a 
@@ -24,7 +25,9 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
    * use {@link #currentQuery()} to get the value.  
    */
   private Q currentQuery = null;
-  private final LinkedList<Q> oldQueries = new LinkedList<Q>();
+  private QueryTransformer currentTransformer = null;
+  private final LinkedList<Q> oldQueries = new LinkedList<>();
+  private final LinkedList<QueryTransformer> oldTransformers = new LinkedList<>();
 
   
   
@@ -52,13 +55,29 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
     return currentQuery;
   }
   
-  private void pushQuery(final Q q) {
-    oldQueries.addFirst(currentQuery);
-    currentQuery = q;
+  protected final QueryTransformer currentTransformer() {
+    return currentTransformer;
   }
   
+  private void pushNewQuery(final IRNode mdecl) {
+    oldQueries.addFirst(currentQuery);
+    currentQuery = createNewQuery(mdecl);
+    
+    oldTransformers.addFirst(currentTransformer);
+    currentTransformer = QueryTransformer.get();
+  }
+  
+  private void pushSubQuery(final IRNode caller) {
+    oldQueries.addFirst(currentQuery);
+    currentQuery = createSubQuery(caller);
+    
+    oldTransformers.addFirst(currentTransformer);
+    currentTransformer = currentTransformer.addCaller(caller);
+  }
+    
   private void popQuery() {
     currentQuery = oldQueries.removeFirst();
+    currentTransformer = oldTransformers.removeFirst();
   }
   
   
@@ -103,13 +122,11 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   protected final void enteringEnclosingDecl(
       final IRNode newDecl, final IRNode anonClassDecl) {
     enteringEnclosingDeclPrefix(newDecl, anonClassDecl);
-    final Q query;
     if (anonClassDecl == null) {
-      query = createNewQuery(newDecl);
+      pushNewQuery(newDecl);
     } else {
-      query = createSubQuery(anonClassDecl);
+      pushSubQuery(anonClassDecl);
     }
-    pushQuery(query);
     enteringEnclosingDeclPostfix(newDecl, anonClassDecl);
   }
   
@@ -173,8 +190,7 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
     return new InstanceInitAction() {
       @Override
       public void tryBefore() {
-        final Q subAnalysisQuery = createSubQuery(ccall);
-        pushQuery(subAnalysisQuery);
+        pushSubQuery(ccall);
         a.tryBefore();
       }
       

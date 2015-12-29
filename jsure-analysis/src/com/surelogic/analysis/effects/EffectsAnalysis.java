@@ -194,7 +194,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 				final List<Effect> declFx =
 						Effects.getDeclaredMethodEffects(member, member);
 				final Set<Effect> implFx = getAnalysis().getImplementationEffects(
-						member, getSharedAnalysis()); //, callback);
+						member, getSharedAnalysis()).effects();
 				// only assure if there is declared intent
 				if (declFx != null) {
 					final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);

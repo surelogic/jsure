@@ -43,8 +43,8 @@ import com.surelogic.analysis.effects.targets.LocalTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.visitors.InstanceInitAction;
-import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.dropsea.ir.drops.RegionModel;
@@ -55,6 +55,7 @@ import com.surelogic.javac.Projects;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.QueryTransformer;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
@@ -218,12 +219,12 @@ public final class Effects implements IBinderClient {
    * @param bac The BCA analysis to use.
    * @return The effects of the method as implemented, not declared.
    */
-  public Set<Effect> getImplementationEffects(
+  public ImplementedEffects getImplementationEffects(
       final IRNode flowUnit, final BindingContextAnalysis bca) {
     final EffectsVisitor visitor = new EffectsVisitor(
         flowUnit, bca.getExpressionObjectsQuery(flowUnit));
     visitor.doAccept(flowUnit);
-    return Collections.unmodifiableSet(visitor.getTheEffects());
+    return visitor.getResult();
   }
   
   /**
@@ -535,6 +536,31 @@ public final class Effects implements IBinderClient {
   // Nested types
   // ----------------------------------------------------------------------
   
+  public static final class ImplementedEffects implements Iterable<Effect> {
+    private final Set<Effect> effects;
+    private final Map<IRNode, QueryTransformer> transformerMap;
+    
+    private ImplementedEffects(final Set<Effect> effects, final Map<IRNode, QueryTransformer> transformerMap) {
+      this.effects = effects;
+      this.transformerMap = transformerMap;
+    }
+    
+    @Override
+    public Iterator<Effect> iterator() {
+      return effects.iterator();
+    }
+    
+    public Set<Effect> effects() {
+      return effects;
+    }
+    
+    public QueryTransformer getTransformerFor(final IRNode src) {
+      return transformerMap.get(src);
+    }
+  }
+  
+  
+  
   /**
    * Class stores the details about the particular visitation being performed.
    * Initialized by one of the public entry methods:
@@ -547,6 +573,8 @@ public final class Effects implements IBinderClient {
      * traversal is being performed; otherwise it is <code>null</code>.
      */
     private final ImmutableSet.Builder<Effect> theEffects;
+    
+    private final Map<IRNode, QueryTransformer> transformerMap;
     
     /**
      * The MethodDeclaration, ConstructorDeclaration, or ClassInitDeclaration
@@ -594,10 +622,12 @@ public final class Effects implements IBinderClient {
   
     
     
-    private Context(final ImmutableSet.Builder<Effect> effects, final IRNode method,
+    private Context(final ImmutableSet.Builder<Effect> effects,
+        final Map<IRNode, QueryTransformer> transformerMap, final IRNode method,
         final IRNode rcvr, final BindingContextAnalysis.Query query,
         final boolean lhs) {
       this.theEffects = effects;
+      this.transformerMap = transformerMap;
       this.enclosingMethod = method;
       this.theReceiverNode = rcvr;
       this.bcaQuery = query;
@@ -605,24 +635,47 @@ public final class Effects implements IBinderClient {
     }
   
     public static Context forNormalMethod(
+        final Map<IRNode, QueryTransformer> transformerMap, 
         final BindingContextAnalysis.Query query, final IRNode enclosingMethod) {
-      return new Context(ImmutableSet.<Effect>builder(), enclosingMethod,
+      return new Context(ImmutableSet.<Effect>builder(), 
+          transformerMap, enclosingMethod,
           JavaPromise.getReceiverNodeOrNull(enclosingMethod),
           query, false);
     }
     
     public static Context forACE(
+        final Map<IRNode, QueryTransformer> transformerMap, 
         final Context oldContext, final IRNode anonClassExpr,
         final IRNode enclosingDecl, final IRNode rcvr) {
-      return new Context(ImmutableSet.<Effect>builder(), enclosingDecl, rcvr,
+      return new Context(ImmutableSet.<Effect>builder(), transformerMap, 
+          enclosingDecl, rcvr,
           oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), false);
     }
     
-    public static Context forConstructorCall(final Context oldContext, final IRNode ccall) {
+    public static Context forConstructorCall(
+        final Map<IRNode, QueryTransformer> transformerMap, 
+        final Context oldContext, final IRNode ccall) {
       // Purposely alias the effects set
-      return new Context(oldContext.theEffects, 
+      return new Context(oldContext.theEffects, transformerMap,
           oldContext.enclosingMethod, oldContext.theReceiverNode,
           oldContext.bcaQuery.getSubAnalysisQuery(ccall), oldContext.isLHS);
+    }
+    
+    
+    
+    public void addEffect(final QueryTransformer qt, final Effect e) {
+      transformerMap.put(e.getSource(), qt);
+      theEffects.add(e);
+    }
+    
+    public void addCallEffects(final QueryTransformer qt,
+        final IRNode src, final Set<Effect> e) {
+      transformerMap.put(src, qt);
+      theEffects.addAll(e);
+    }
+    
+    public void putTransformer(final IRNode src, final QueryTransformer qt) {
+      transformerMap.put(src, qt);
     }
     
     
@@ -636,7 +689,11 @@ public final class Effects implements IBinderClient {
 
 
 
-  private final class EffectsVisitor extends JavaSemanticsVisitor {
+  /* Need to extend AbstractJavaAnalysisDriver and not JavaSemanticsVisitor 
+   * because we need to compute QueryTransformer objects.  The query itself
+   * is of no value so we just use Object.
+   */
+  private final class EffectsVisitor extends AbstractJavaAnalysisDriver<Object> {
     private final RegionModel INSTANCE_REGION;
 
     /**
@@ -657,6 +714,20 @@ public final class Effects implements IBinderClient {
      * the parent analysis.
      */
     private Context context;
+    
+    /**
+     * A map from IRNodes to QueryTransformers.  Each node is a source node
+     * of an effect in the ultimate set of effects.  The transformer details
+     * how to change a root-level analysis query so that it can be used 
+     * with the effect.  Normally when we do a traversal with a visitor, we can
+     * control the queries directly (to get the appropriate subqueries), but 
+     * when we just grab a source node from an effect we do not know where it
+     * is in the parse tree. So the QueryTransformer for the node should be
+     * obtained.  It encapsulates the subquery details (if any). 
+     */
+    private final Map<IRNode, QueryTransformer> transformerMap = new HashMap<>();
+    
+    
     
     //----------------------------------------------------------------------
 
@@ -689,19 +760,29 @@ public final class Effects implements IBinderClient {
      */
     public EffectsVisitor(final IRNode flowUnit,
         final BindingContextAnalysis.Query query) {
-      super(false, true, flowUnit);
+      super(false, flowUnit, true);
       thisExprBinder = new EVThisExpressionBinder(binder);
       lockFactory = new NeededLockFactory(thisExprBinder);
       INSTANCE_REGION = RegionModel.getInstanceRegion(flowUnit);    
-      context = Context.forNormalMethod(query, flowUnit);
+      context = Context.forNormalMethod(transformerMap, query, flowUnit);
     }
 
     
     
-    public Set<Effect> getTheEffects() {
-      return context.theEffects.build();
+    public ImplementedEffects getResult() {
+      return new ImplementedEffects(context.theEffects.build(), transformerMap);
     }
     
+    //----------------------------------------------------------------------
+    
+    @Override
+    protected Object createNewQuery(final IRNode decl) { return null; }
+    
+    @Override
+    protected Object createSubQuery(final IRNode caller) { return null; }
+    
+    //----------------------------------------------------------------------
+
     
     
     //----------------------------------------------------------------------
@@ -716,6 +797,14 @@ public final class Effects implements IBinderClient {
       }
     }
 
+    void addEffect(final Effect e) {
+      context.addEffect(currentTransformer(), e);
+    }
+    
+    void addCallEffects(final IRNode src, final Set<Effect> effects) {
+      context.addCallEffects(currentTransformer(), src, effects);
+    }
+    
     //----------------------------------------------------------------------
     
     private final class EVThisExpressionBinder extends AbstractThisExpressionBinder {
@@ -743,7 +832,7 @@ public final class Effects implements IBinderClient {
        * {@link Context#enclosingMethod enclosing method} of the current
        * {@link #context context.}.
        */
-      context.theEffects.addAll(
+      addCallEffects(call,
           Effects.this.getMethodCallEffects(
               context.bcaQuery, lockFactory, thisExprBinder, call, getEnclosingDecl(),
               getEvidence()));
@@ -761,9 +850,11 @@ public final class Effects implements IBinderClient {
             lockModel.get().getNeededLocksFromRequiresLock(
                 lockFactory, requiresLock, call, formalToActualMap,
                 new HashSet<LockSpecificationNode>());
-        if (!requiredLocks.isEmpty()) context.theEffects.add(
+        if (!requiredLocks.isEmpty()) {
+          addEffect(
             Effect.empty(call, new EmptyEvidence(Reason.METHOD_CALL), 
                 getEvidence(), requiredLocks));
+        }
       }
     }
     
@@ -806,7 +897,7 @@ public final class Effects implements IBinderClient {
         @Override
         public void tryBefore() {
           this.newContext = Context.forACE(
-              oldContext, expr, getEnclosingDecl(),
+              transformerMap, oldContext, expr, getEnclosingDecl(),
               JavaPromise.getReceiverNodeOrNull(getEnclosingDecl()));
           EffectsVisitor.this.context = this.newContext;
         }
@@ -825,6 +916,10 @@ public final class Effects implements IBinderClient {
                 thisExprBinder, expr,
                 superClassDecl,
                 context.theReceiverNode, getEnclosingDecl());
+          /* The transformer will already be set in the map correctly for these
+           * effects when they are original generated.  We are just modifying
+           * the lock and evidence information for the effects.
+           */
           for (final Effect e : newContext.theEffects.build()) {
             final Effect maskedEffect = e.mask(thisExprBinder);
             if (maskedEffect != null
@@ -901,6 +996,7 @@ public final class Effects implements IBinderClient {
               lockFactory, thisExprBinder, target, expr, 
               NeededLock.Reason.FIELD_ACCESS, !isRead, objectExpr),
           context.theEffects);
+      context.putTransformer(expr, currentTransformer());
       doAcceptForChildren(expr);
       return null;
     }
@@ -918,12 +1014,12 @@ public final class Effects implements IBinderClient {
     //----------------------------------------------------------------------
 
     @Override
-    protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
+    protected InstanceInitAction getConstructorCallInitAction2(final IRNode ccall) {
       final Context oldContext = context;
       return new InstanceInitAction() {
         @Override
         public void tryBefore() {
-          context = Context.forConstructorCall(oldContext, ccall);
+          context = Context.forConstructorCall(transformerMap, oldContext, ccall);
         }
         
         @Override
@@ -950,7 +1046,7 @@ public final class Effects implements IBinderClient {
       if (!TypeUtil.isJSureFinal(id)) {
         if (TypeUtil.isStatic(id)) {
           final Target target = new ClassTarget(region, NoEvidence.INSTANCE);
-          context.theEffects.add(
+          addEffect(
               Effect.effect(expr, isRead, target, getEvidence(),
                   lockModel.get().getNeededLocks(
                       lockFactory, thisExprBinder, target, expr,
@@ -966,13 +1062,14 @@ public final class Effects implements IBinderClient {
           elaborateInstanceTarget(
               context.bcaQuery, lockFactory, thisExprBinder, lockModel.get(),
               expr, isRead, initTarget, getEvidence(), initLocks, context.theEffects);
+          context.putTransformer(expr, currentTransformer());
         }
       } else { // must be a final field
         /* Check for a lock: the final field may be protected by
          * a @GuardedBy(itself) annotation.  N.B. @GuardedBy(itself) is
          * an intrinsic lock always, so we don't need read/write information.
          */
-        context.theEffects.add(
+        addEffect(
             Effect.empty(expr, new EmptyEvidence(Reason.FINAL_FIELD, id),
                 getEvidence(), lockModel.get().getNeededLocks(
                     lockFactory, binder.getJavaType(object), region, expr, 
@@ -1036,7 +1133,7 @@ public final class Effects implements IBinderClient {
       final IRNode outerType =
           thisExprBinder.getBinding(QualifiedThisExpression.getType(expr));
       IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
-      context.theEffects.add(Effect.read(expr, new LocalTarget(qr), getEvidence()));
+      addEffect(Effect.read(expr, new LocalTarget(qr), getEvidence()));
       return null;
     }
 
@@ -1045,8 +1142,7 @@ public final class Effects implements IBinderClient {
     @Override 
     public Void visitSuperExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
-      context.theEffects.add(
-          Effect.read(expr, new LocalTarget(context.theReceiverNode), getEvidence()));
+      addEffect(Effect.read(expr, new LocalTarget(context.theReceiverNode), getEvidence()));
       return null;
     }
 
@@ -1055,8 +1151,7 @@ public final class Effects implements IBinderClient {
     @Override 
     public Void visitThisExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
-      context.theEffects.add(
-          Effect.read(expr, new LocalTarget(context.theReceiverNode), getEvidence()));
+      addEffect(Effect.read(expr, new LocalTarget(context.theReceiverNode), getEvidence()));
       return null;
     }
     
@@ -1074,8 +1169,7 @@ public final class Effects implements IBinderClient {
     public Void visitVariableUseExpression(final IRNode expr) {
       final boolean isRead = context.isRead();
       final IRNode id = thisExprBinder.getBinding(expr);
-      context.theEffects.add(
-          Effect.effect(expr, isRead, new LocalTarget(id), getEvidence()));
+      addEffect(Effect.effect(expr, isRead, new LocalTarget(id), getEvidence()));
       return null;
     }
 
@@ -1091,11 +1185,10 @@ public final class Effects implements IBinderClient {
           final Set<NeededLock> locks = lockModel.get().getNeededLocks(
               lockFactory, thisExprBinder, target, varDecl, 
               NeededLock.Reason.FIELD_ACCESS, true, context.theReceiverNode);
-          context.theEffects.add(Effect.write(varDecl, target, getEvidence(), locks));
+          addEffect(Effect.write(varDecl, target, getEvidence(), locks));
         } else {
           // First we read the receiver . . .
-          context.theEffects.add(Effect.read(
-              varDecl, new LocalTarget(context.theReceiverNode), getEvidence()));
+          addEffect(Effect.read(varDecl, new LocalTarget(context.theReceiverNode), getEvidence()));
           /* . . . then we write the field.  This never needs elaborating
            * because it is not a use expression or a field reference expression
            */
@@ -1105,7 +1198,7 @@ public final class Effects implements IBinderClient {
           final Set<NeededLock> locks = lockModel.get().getNeededLocks(
               lockFactory, thisExprBinder, target, varDecl, 
               NeededLock.Reason.FIELD_ACCESS, true, context.theReceiverNode);
-          context.theEffects.add(Effect.write(varDecl, target, getEvidence(), locks));
+          addEffect(Effect.write(varDecl, target, getEvidence(), locks));
         }
       } else {
         /* N.B. Don't care about @GuardedBy(itself) here because we aren't 
@@ -1123,8 +1216,7 @@ public final class Effects implements IBinderClient {
         /* LOCAL VARIABLE: 'varDecl' is already the declaration of the variable,
          * so we don't have to bind it.
          */
-        context.theEffects.add(
-            Effect.write(varDecl, new LocalTarget(varDecl), getEvidence()));
+        addEffect(Effect.write(varDecl, new LocalTarget(varDecl), getEvidence()));
       }
       doAcceptForChildren(varDecl);
     }
@@ -1405,7 +1497,7 @@ public final class Effects implements IBinderClient {
       final EffectsVisitor visitor =
           new EffectsVisitor(flowUnit, bcaQuery);
       visitor.doAccept(expr);
-      return Collections.unmodifiableSet(visitor.getTheEffects());
+      return visitor.getResult().effects();
     }
   }
 }

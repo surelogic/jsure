@@ -1,7 +1,5 @@
 package com.surelogic.analysis.testing;
 
-import java.util.Set;
-
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
@@ -48,9 +46,7 @@ extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, Effects, CUDrop>
 		}
 		
 		private void reportEffects(final IRNode mdecl) {
-		  final Set<Effect> effects = 
-		      getAnalysis().getImplementationEffects(mdecl, getSharedAnalysis());
-		  for (final Effect e : effects) {
+		  for (final Effect e : getAnalysis().getImplementationEffects(mdecl, getSharedAnalysis())) {
 		    final HintDrop drop = HintDrop.newInformation(e.getSource());
 		    drop.setCategorizingMessage(Messages.DSC_EFFECTS);
 		    drop.setMessage(Messages.EFFECT, e.toString());
