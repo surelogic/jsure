@@ -1,25 +1,19 @@
 package com.surelogic.analysis.concurrency.model.instantiated;
 
 import com.surelogic.aast.IAASTNode;
-import com.surelogic.analysis.MethodCallUtils.EnclosingRefs;
 import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 
-public final class NeededStaticLock extends AbstractNeededLock {
+public final class NormalNeededInstanceLock extends NeededInstanceLock {
   // Must use NeededLockFactory
-  NeededStaticLock(
-      final LockImplementation lockImpl, final IRNode source,
-      final Reason reason,
-      final PromiseDrop<? extends IAASTNode> lockPromise, final boolean needsWrite) {
-    super(source, reason, lockPromise, needsWrite, lockImpl);
-  }
-
-  @Override
-  public NeededLock replaceEnclosingInstanceReference(final EnclosingRefs refs) {
-    // there isn't an object reference expression, so we stay the same
-    return this;
+  NormalNeededInstanceLock(
+      final IRNode objectRefExpr, final LockImplementation lockImpl,
+      final IRNode source, final Reason reason,
+      final PromiseDrop<? extends IAASTNode> assuredPromise, final boolean needsWrite) {
+    super(objectRefExpr, lockImpl, source, reason, assuredPromise, needsWrite);
   }
 
   @Override
@@ -34,6 +28,7 @@ public final class NeededStaticLock extends AbstractNeededLock {
     result += 31 * (needsWrite ? 1 : 0);
     result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
+    result += 31 * objectRefExpr.hashCode();
     return result;
   }
   
@@ -41,11 +36,12 @@ public final class NeededStaticLock extends AbstractNeededLock {
   public boolean equals(final Object other) {
     if (other == this) { 
       return true;
-    } else if (other instanceof NeededStaticLock) {
-      final NeededStaticLock o = (NeededStaticLock) other;
+    } else if (other instanceof NormalNeededInstanceLock) {
+      final NormalNeededInstanceLock o = (NormalNeededInstanceLock) other;
       return this.reason == o.reason &&
           this.needsWrite == o.needsWrite &&
-          this.lockImpl.equals(o.lockImpl) &&
+          this.lockImpl.equals(o.lockImpl) && 
+          this.objectRefExpr.equals(o.objectRefExpr) &&
           this.source.equals(o.source);
     } else {
       return false;
@@ -54,7 +50,7 @@ public final class NeededStaticLock extends AbstractNeededLock {
   
   @Override
   public String toString() {
-    return "<" + lockImpl.getDeclaredInClassName() + 
+    return "<" + DebugUnparser.toString(objectRefExpr) +
         lockImpl.getPostfixId() + ">." + 
         (needsWrite ? "write" : "read");
   }

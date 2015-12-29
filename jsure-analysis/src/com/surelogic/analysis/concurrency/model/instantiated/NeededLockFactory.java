@@ -27,7 +27,7 @@ public final class NeededLockFactory {
       final IRNode objectRefExpr, final LockImplementation lockImpl,
       final IRNode source, final Reason reason,
       final PromiseDrop<? extends IAASTNode> assuredPromise, final boolean needsWrite) {
-    return new NeededInstanceLock(
+    return new NormalNeededInstanceLock(
         thisExprBinder.bindThisExpression(objectRefExpr), 
         lockImpl, source, reason, assuredPromise, needsWrite);
   }

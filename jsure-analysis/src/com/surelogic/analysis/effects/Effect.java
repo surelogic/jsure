@@ -9,7 +9,6 @@ import com.surelogic.analysis.effects.targets.EmptyTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
 import com.surelogic.analysis.effects.targets.TargetRelationships;
-import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
 
@@ -638,20 +637,6 @@ public abstract class Effect {
    */
   public final Set<NeededLock> getNeededLocks() {
     return neededLocks;
-  }
-  
-  /**
-   * Get the effect in a different that this effect is derived from,
-   * if it exists.  For example, effects from anonymous class expression
-   * instance initializers are the source for effects that are considered part
-   * of the control flow of the containing method.
-   */
-  public final Effect getInOriginalContext() {
-    if (target.getEvidence() instanceof AnonClassEvidence) {
-      return ((AnonClassEvidence) target.getEvidence()).getOriginalEffect();
-    } else {
-      return null;
-    }
   }
   
   /**

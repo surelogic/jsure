@@ -26,10 +26,10 @@ import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.instantiated.NeededLock;
 import com.surelogic.analysis.concurrency.model.instantiated.NeededLockFactory;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
-import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
 import com.surelogic.analysis.effects.targets.evidence.CallEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence;
+import com.surelogic.analysis.effects.targets.evidence.EnclosingRefEvidence;
 import com.surelogic.analysis.effects.targets.evidence.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.effects.targets.evidence.QualifiedReceiverConversionEvidence;
@@ -932,7 +932,8 @@ public final class Effects implements IBinderClient {
                 if (newRef != null) {
                   final IRNode objectExpr = thisExprBinder.bindThisExpression(newRef);
                   final Target newTarget = new InstanceTarget(
-                      objectExpr, target.getRegion(), new AnonClassEvidence(maskedEffect));
+                      objectExpr, target.getRegion(),
+                      new EnclosingRefEvidence(maskedEffect.getSource(), ref, newRef));
                   final Set<NeededLock> newLocks = new HashSet<>();
                   for (final NeededLock lock : maskedEffect.getNeededLocks()) {
                     newLocks.add(lock.replaceEnclosingInstanceReference(enclosing));
@@ -941,11 +942,6 @@ public final class Effects implements IBinderClient {
                       context.bcaQuery, lockFactory, thisExprBinder, lockModel.get(),
                       maskedEffect.getSource(), maskedEffect.isRead(), newTarget, getEvidence(),
                       newLocks, context.theEffects);
-//                      lockModel.get().getNeededLocks(
-//                          lockFactory, thisExprBinder, newTarget, expr,
-//                          NeededLock.Reason.FIELD_ACCESS,
-//                          !maskedEffect.isRead(), objectExpr),
-//                      context.theEffects);
                 } else {
                   /* XXX: Not sure if it is possible to get here.  External
                    * variable references are turned into ANyInstance targets
@@ -966,15 +962,10 @@ public final class Effects implements IBinderClient {
                           new UnknownReferenceConversionEvidence(
                               maskedEffect, ref, (IJavaReferenceType) type)),
                       getEvidence(), maskedEffect.getNeededLocks()));
-                  
-//                      lockModel.get().getNeededLocks(
-//                          lockFactory, thisExprBinder, target, expr,
-//                          NeededLock.Reason.FIELD_ACCESS,
-//                          !maskedEffect.isRead(), ref)));
                 }
               } else {
                 context.theEffects.add(maskedEffect.changeSource(
-                    maskedEffect.getSource(), new AnonClassEvidence(maskedEffect), getEvidence()));
+                    maskedEffect.getSource(), null, getEvidence()));
               }
             }
           }

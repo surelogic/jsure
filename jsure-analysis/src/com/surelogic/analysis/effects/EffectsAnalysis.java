@@ -13,7 +13,6 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.driver.LockModelBuilder;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
-import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
 import com.surelogic.analysis.effects.targets.evidence.CallEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence;
@@ -520,13 +519,13 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       accept(e.getMoreEvidence());
     }
     
-    @Override
-    public void visitAnonClassEvidence(final AnonClassEvidence e) {
-      final Effect originalEffect = e.getOriginalEffect();
-      resultDrop.addInformationHint(
-          e.getLink(), Messages.ACE_EVIDENCE, originalEffect.unparseForMessage());
-      accept(originalEffect.getTargetEvidence());
-    }
+//    @Override
+//    public void visitAnonClassEvidence(final AnonClassEvidence e) {
+//      final Effect originalEffect = e.getOriginalEffect();
+//      resultDrop.addInformationHint(
+//          e.getLink(), Messages.ACE_EVIDENCE, originalEffect.unparseForMessage());
+//      accept(originalEffect.getTargetEvidence());
+//    }
     
     @Override
     public void visitBCAEvidence(final BCAEvidence e) {

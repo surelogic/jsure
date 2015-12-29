@@ -1,7 +1,6 @@
 package com.surelogic.analysis.concurrency.heldlocks;
 
 import com.surelogic.analysis.effects.targets.Target;
-import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
 
@@ -16,10 +15,10 @@ final class UndoBCAProcessor extends EvidenceProcessor {
   
 
   
-  @Override
-  public void visitAnonClassEvidence(final AnonClassEvidence e) {
-    accept(e.getOriginalEffect().getTargetEvidence());
-  }
+//  @Override
+//  public void visitAnonClassEvidence(final AnonClassEvidence e) {
+//    accept(e.getOriginalEffect().getTargetEvidence());
+//  }
 
   @Override
   public void visitBCAEvidence(final BCAEvidence e) {

@@ -34,11 +34,6 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
   public void visitAggregationEvidence(final AggregationEvidence e) {
     visitElaborationEvidence(e);
   }
-
-  @Override
-  public void visitAnonClassEvidence(final AnonClassEvidence e) {
-    visit(e);
-  }
   
   @Override
   public void visitBCAEvidence(final BCAEvidence e) {
@@ -56,6 +51,11 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
     if (chain) accept(e.getMoreEvidence());
   }
 
+  @Override
+  public void visitEnclosingRefEvidence(final EnclosingRefEvidence e) {
+    visit(e);
+  }
+  
   @Override
   public void visitEmptyEvidence(final EmptyEvidence e) {
     visit(e);
@@ -78,6 +78,6 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
   
   @Override
   public void visitUnknownReferenceConversionEvidence(final UnknownReferenceConversionEvidence e) {
-    visitAnonClassEvidence(e);
+    visit(e);
   }
 }

@@ -85,4 +85,11 @@ public interface NeededLock extends InstantiatedLock {
    * (if any) to make sense in the context of the method body.
    */
   public NeededLock replaceEnclosingInstanceReference(EnclosingRefs refs);
+  
+  /**
+   * What lock, if any, the lock is aliased to/derived from.
+   */
+  public NeededLock getDerivedFrom();
+  
+  public String unparseForMessage();
 }

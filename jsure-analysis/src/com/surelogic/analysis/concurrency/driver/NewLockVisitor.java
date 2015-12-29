@@ -26,7 +26,7 @@ import com.surelogic.analysis.effects.EffectEvidenceProcessor;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.Effects.ImplementedEffects;
 import com.surelogic.analysis.effects.InitializationEvidence;
-import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
+import com.surelogic.analysis.effects.targets.evidence.EnclosingRefEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
@@ -47,7 +47,7 @@ final class NewLockVisitor
 extends FlowUnitVisitor<NewLockVisitor.Queries>
 implements IBinderClient {
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
-  private static final int ANONYMOUS_CLASS_INITIALIZATION_EFFECT = 2021;
+  private static final int ANONYMOUS_CLASS_ENCLOSING_REF = 2021;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -209,7 +209,12 @@ implements IBinderClient {
         return heldLock;
       }
     }
-    return null;
+    final NeededLock derivedFrom = neededLock.getDerivedFrom();
+    if (derivedFrom != null) {
+      return isSatisfied(derivedFrom, heldLocks);
+    } else {
+      return null;
+    }
   }
   
   private void reportEffects(final IRNode mdecl) {
@@ -235,7 +240,7 @@ implements IBinderClient {
           final ResultDrop resultDrop = ResultsBuilder.createResult(
               success, neededLock.getAssuredPromise(), src,
               neededLock.getReason().getResultMessage(success),
-              neededLock, DebugUnparser.toString(src));
+              neededLock.unparseForMessage(), DebugUnparser.toString(src));
           resultDrop.setCategorizingMessage(
               neededLock.getReason().getCategory(success));
           
@@ -271,11 +276,11 @@ implements IBinderClient {
            */
           new EvidenceProcessor(true) {
             @Override
-            public void visitAnonClassEvidence(final AnonClassEvidence ace) {
+            public void visitEnclosingRefEvidence(final EnclosingRefEvidence ere) {
               resultDrop.addInformationHint(
-                  ace.getLink(), ANONYMOUS_CLASS_INITIALIZATION_EFFECT,
-                  ace.getOriginalEffect().unparseForMessage(),
-                  e.unparseForMessage());
+                  ere.getLink(), ANONYMOUS_CLASS_ENCLOSING_REF,
+                  EnclosingRefEvidence.unparseRef(ere.getOriginal()),
+                  EnclosingRefEvidence.unparseRef(ere.getEnclosingRef()));
             }
           }.accept(e.getTarget().getEvidence());
         }
