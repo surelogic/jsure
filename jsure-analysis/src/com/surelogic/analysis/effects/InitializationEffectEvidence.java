@@ -6,10 +6,10 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * Evidence that the effect comes from analyzing an object initialization 
  * control-flow on behalf of a particular constructor.
  */
-public final class InitializationEvidence implements EffectEvidence {
+public final class InitializationEffectEvidence implements EffectEvidence {
   private final IRNode constructorDecl;
   
-  public InitializationEvidence(final IRNode constructorDecl) {
+  public InitializationEffectEvidence(final IRNode constructorDecl) {
     this.constructorDecl = constructorDecl;
   }
 
@@ -21,7 +21,7 @@ public final class InitializationEvidence implements EffectEvidence {
   
   @Override
   public void visit(final EffectEvidenceVisitor visitor) {
-    visitor.visitInitializationEvidence(this);
+    visitor.visitInitializationEffectEvidence(this);
   }
   
   @Override
@@ -35,8 +35,8 @@ public final class InitializationEvidence implements EffectEvidence {
   public boolean equals(final Object other) { 
     if (other == this) {
       return true;
-    } else if (other instanceof InitializationEvidence) {
-      final InitializationEvidence o2 = (InitializationEvidence) other;
+    } else if (other instanceof InitializationEffectEvidence) {
+      final InitializationEffectEvidence o2 = (InitializationEffectEvidence) other;
       return this.constructorDecl.equals(o2.constructorDecl);
     }
     return false;

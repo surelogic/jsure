@@ -1,8 +1,14 @@
 package com.surelogic.analysis.effects;
 
 public abstract class EffectEvidenceProcessor implements EffectEvidenceVisitor {
+  public final void accept(final Iterable<EffectEvidence> ee) {
+    for (final EffectEvidence e : ee) {
+      this.accept(e);
+    }
+  }
+  
   @Override
-  public void accept(final EffectEvidence e) {
+  public final void accept(final EffectEvidence e) {
     if (e != null) e.visit(this);
   }
   
@@ -11,7 +17,7 @@ public abstract class EffectEvidenceProcessor implements EffectEvidenceVisitor {
   }
   
   @Override
-  public void visitInitializationEvidence(InitializationEvidence e) {
+  public void visitInitializationEffectEvidence(InitializationEffectEvidence e) {
     visit(e);
   }
   
@@ -27,6 +33,11 @@ public abstract class EffectEvidenceProcessor implements EffectEvidenceVisitor {
   
   @Override
   public void visitPromisedEffectEvidence(PromisedEffectEvidence e) {
+    visit(e);
+  }
+  
+  @Override
+  public void visitUnresolveableLocksEffectEvidence(UnresolveableLocksEffectEvidence e) {
     visit(e);
   }
 }

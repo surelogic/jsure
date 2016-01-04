@@ -25,28 +25,37 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
    * use {@link #currentQuery()} to get the value.  
    */
   private Q currentQuery = null;
-  private QueryTransformer currentTransformer = null;
   private final LinkedList<Q> oldQueries = new LinkedList<>();
+  
+  private final boolean createTransformers;
+  private QueryTransformer currentTransformer = null;
   private final LinkedList<QueryTransformer> oldTransformers = new LinkedList<>();
 
   
   
-  protected AbstractJavaAnalysisDriver(final boolean skipA) {
+  protected AbstractJavaAnalysisDriver(final boolean skipA, final boolean create) {
     super(true, skipA);
+    createTransformers = create;
   }
   
-  protected AbstractJavaAnalysisDriver(final boolean goInside, final boolean skipA) {
+  protected AbstractJavaAnalysisDriver(
+      final boolean goInside, final boolean skipA, final boolean create) {
     super(goInside, skipA);
+    createTransformers = create;
   }
   
   protected AbstractJavaAnalysisDriver(
-      final IRNode typeDecl, final boolean goInside, final boolean skipA) {
+      final IRNode typeDecl, final boolean goInside,
+      final boolean skipA, final boolean create) {
     super(typeDecl, goInside, skipA);
+    createTransformers = create;
   }
   
   protected AbstractJavaAnalysisDriver(
-      final boolean goInside, final IRNode flowUnit, final boolean skipA) {
+      final boolean goInside, final IRNode flowUnit,
+      final boolean skipA, final boolean create) {
     super(goInside, skipA, flowUnit);
+    createTransformers = create;
   }
   
   
@@ -63,21 +72,27 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
     oldQueries.addFirst(currentQuery);
     currentQuery = createNewQuery(mdecl);
     
-    oldTransformers.addFirst(currentTransformer);
-    currentTransformer = QueryTransformer.get();
+    if (createTransformers) {
+      oldTransformers.addFirst(currentTransformer);
+      currentTransformer = QueryTransformer.get();
+    }
   }
   
   private void pushSubQuery(final IRNode caller) {
     oldQueries.addFirst(currentQuery);
     currentQuery = createSubQuery(caller);
-    
-    oldTransformers.addFirst(currentTransformer);
-    currentTransformer = currentTransformer.addCaller(caller);
+
+    if (createTransformers) {
+      oldTransformers.addFirst(currentTransformer);
+      currentTransformer = currentTransformer.addCaller(caller);
+    }
   }
     
   private void popQuery() {
     currentQuery = oldQueries.removeFirst();
-    currentTransformer = oldTransformers.removeFirst();
+    if (createTransformers) {
+      currentTransformer = oldTransformers.removeFirst();
+    }
   }
   
   

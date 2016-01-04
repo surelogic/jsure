@@ -38,7 +38,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   
   
   protected QualifiedTypeChecker(final IBinder b) {
-    super(true);
+    super(true, false);
     binder = b;
   }
 

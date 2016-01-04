@@ -56,7 +56,7 @@ public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullR
   
   private final class RawTypeVisitor extends AbstractJavaAnalysisDriver<Triple<Query, QualifiedThisQuery, DebugQuery>> {
     public RawTypeVisitor() {
-      super(true);
+      super(true, false);
     }
     
     @Override

@@ -222,7 +222,7 @@ public final class Effects implements IBinderClient {
   public ImplementedEffects getImplementationEffects(
       final IRNode flowUnit, final BindingContextAnalysis bca) {
     final EffectsVisitor visitor = new EffectsVisitor(
-        flowUnit, bca.getExpressionObjectsQuery(flowUnit));
+        flowUnit, bca.getExpressionObjectsQuery(flowUnit), true);
     visitor.doAccept(flowUnit);
     return visitor.getResult();
   }
@@ -475,7 +475,8 @@ public final class Effects implements IBinderClient {
           }
         }
       } else { // It's an effect on static state or any instance
-        methodEffects.add(eff.changeSource(call, new CallEvidence(mdecl), evidence));
+        methodEffects.add(
+            eff.updateEvidence(new CallEvidence(mdecl), ImmutableSet.of(evidence)));
       }
     }
   
@@ -759,8 +760,9 @@ public final class Effects implements IBinderClient {
      *          anonymous classes, this should be the appropriate sub-sub-query.
      */
     public EffectsVisitor(final IRNode flowUnit,
-        final BindingContextAnalysis.Query query) {
-      super(false, flowUnit, true);
+        final BindingContextAnalysis.Query query,
+        final boolean createTransformers) {
+      super(false, flowUnit, true, createTransformers);
       thisExprBinder = new EVThisExpressionBinder(binder);
       lockFactory = new NeededLockFactory(thisExprBinder);
       INSTANCE_REGION = RegionModel.getInstanceRegion(flowUnit);    
@@ -791,7 +793,7 @@ public final class Effects implements IBinderClient {
     
     private EffectEvidence getEvidence() {
       if (isInsideInstanceInitialization()) {
-        return new InitializationEvidence(getEnclosingDecl());
+        return new InitializationEffectEvidence(getEnclosingDecl());
       } else {
         return NoEffectEvidence.INSTANCE;
       }
@@ -845,15 +847,24 @@ public final class Effects implements IBinderClient {
       final RequiresLockPromiseDrop requiresLock = LockRules.getRequiresLock(mdecl);
       if (requiresLock != null) {
         final Map<IRNode, IRNode> formalToActualMap =
-            MethodCallUtils.constructFormalToActualMap(thisExprBinder, call, mdecl, getEnclosingDecl());
+            MethodCallUtils.constructFormalToActualMap(
+                thisExprBinder, call, mdecl, getEnclosingDecl());
+        final ImmutableSet.Builder<LockSpecificationNode> badLocksBuilder = ImmutableSet.builder();
         final Set<NeededLock> requiredLocks =
             lockModel.get().getNeededLocksFromRequiresLock(
-                lockFactory, requiresLock, call, formalToActualMap,
-                new HashSet<LockSpecificationNode>());
-        if (!requiredLocks.isEmpty()) {
+                lockFactory, requiresLock, call, formalToActualMap, badLocksBuilder);
+        final Set<LockSpecificationNode> badLocks = badLocksBuilder.build();
+        if (!requiredLocks.isEmpty() || !badLocks.isEmpty()) {
+          final Set<EffectEvidence> evidence;
+          if (badLocks.isEmpty()) {
+            evidence = ImmutableSet.of(getEvidence());
+          } else {
+            evidence = ImmutableSet.of(getEvidence(),
+                new UnresolveableLocksEffectEvidence(requiresLock, badLocks));
+          }
           addEffect(
             Effect.empty(call, new EmptyEvidence(Reason.METHOD_CALL), 
-                getEvidence(), requiredLocks));
+                evidence, requiredLocks));
         }
       }
     }
@@ -964,8 +975,8 @@ public final class Effects implements IBinderClient {
                       getEvidence(), maskedEffect.getNeededLocks()));
                 }
               } else {
-                context.theEffects.add(maskedEffect.changeSource(
-                    maskedEffect.getSource(), null, getEvidence()));
+                context.theEffects.add(
+                    maskedEffect.updateEvidence(null, ImmutableSet.of(getEvidence())));
               }
             }
           }
@@ -1062,7 +1073,7 @@ public final class Effects implements IBinderClient {
          */
         addEffect(
             Effect.empty(expr, new EmptyEvidence(Reason.FINAL_FIELD, id),
-                getEvidence(), lockModel.get().getNeededLocks(
+                ImmutableSet.of(getEvidence()), lockModel.get().getNeededLocks(
                     lockFactory, binder.getJavaType(object), region, expr, 
                     NeededLock.Reason.FIELD_ACCESS, !isRead, object)));
       }
@@ -1486,7 +1497,7 @@ public final class Effects implements IBinderClient {
     @Override
     public Set<Effect> getResultFor(final IRNode expr) {
       final EffectsVisitor visitor =
-          new EffectsVisitor(flowUnit, bcaQuery);
+          new EffectsVisitor(flowUnit, bcaQuery, false);
       visitor.doAccept(expr);
       return visitor.getResult().effects();
     }

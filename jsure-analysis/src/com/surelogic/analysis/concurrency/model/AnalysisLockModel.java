@@ -931,14 +931,14 @@ public final class AnalysisLockModel {
   extends LockPreconditionProcessor<NeededLock> {
     private final RequiresLockPromiseDrop requiresLockDrop;
     private final NeededLockFactory lockFactory; 
-    private final Set<LockSpecificationNode> badLocks;
+    private final ImmutableSet.Builder<LockSpecificationNode> badLocks;
     private final Map<IRNode, IRNode> formalToActualMap;
     private final ImmutableSet.Builder<NeededLock> builder;
     
     public PreconditionProcessorNeededLocks(
         final RequiresLockPromiseDrop requiresLockDrop,
         final NeededLockFactory lockFactory, 
-        final Set<LockSpecificationNode> badLocks,
+        final ImmutableSet.Builder<LockSpecificationNode> badLocks,
         final IRNode mdecl, final IRNode source,
         final ImmutableSet.Builder<NeededLock> builder,
         final Map<IRNode, IRNode> formalToActualMap) {
@@ -1032,7 +1032,7 @@ public final class AnalysisLockModel {
       final NeededLockFactory lockFactory, 
       final RequiresLockPromiseDrop requiresLock, final IRNode mcall, 
       final Map<IRNode, IRNode> formalToActualMap,
-      final Set<LockSpecificationNode> badLocks) {
+      final ImmutableSet.Builder<LockSpecificationNode> badLocks) {
     if (requiresLock != null) {
       final ImmutableSet.Builder<NeededLock> builder = ImmutableSet.builder();
       final PreconditionProcessorNeededLocks p = 

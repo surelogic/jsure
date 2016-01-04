@@ -52,7 +52,7 @@ public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<Coll
 	
   private final class CM_Visitor extends AbstractJavaAnalysisDriver<CollectMethodCalls.Query> {
     public CM_Visitor(final IRNode typeDecl) {
-      super(typeDecl, false, true);
+      super(typeDecl, false, true, false);
     }
     
     

@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.collect.Iterables;
+import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.ResultsBuilder;
@@ -25,7 +26,8 @@ import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.EffectEvidenceProcessor;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.Effects.ImplementedEffects;
-import com.surelogic.analysis.effects.InitializationEvidence;
+import com.surelogic.analysis.effects.InitializationEffectEvidence;
+import com.surelogic.analysis.effects.UnresolveableLocksEffectEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EnclosingRefEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
@@ -46,8 +48,11 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 final class NewLockVisitor
 extends FlowUnitVisitor<NewLockVisitor.Queries>
 implements IBinderClient {
+  private static final int PRECONDITION_NOT_ASSURED_CATEGORY = 2007;
+  
+  private static final int UNRESOLVEABLE_LOCK_SPEC = 2018;
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
-  private static final int ANONYMOUS_CLASS_ENCLOSING_REF = 2021;
+  private static final int ANONYMOUS_CLASS_ENCLOSING_REF = 2025;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -231,6 +236,22 @@ implements IBinderClient {
       // ======== DEBUG ========
 
       
+      /* Look for unresolveable locks. */
+      new EffectEvidenceProcessor() {
+        @Override
+        public void visitUnresolveableLocksEffectEvidence(final UnresolveableLocksEffectEvidence e) {
+          for (final LockSpecificationNode lockSpec : e.getUnresolveableSpecs()) {
+            final ResultDrop rd = ResultsBuilder.createResult(
+                false, e.getRequiresLock(), src, 
+                UNRESOLVEABLE_LOCK_SPEC, lockSpec, 
+                DebugUnparser.toString(src));
+            rd.setCategorizingMessage(PRECONDITION_NOT_ASSURED_CATEGORY);
+          }
+        }
+      }.accept(e.getEvidence());
+
+      
+      
       // Show the held locks if the effect has needed locks
       if (!e.getNeededLocks().isEmpty()) {
         final Iterable<HeldLock> heldLocks = queries.getHeldLocks(src);
@@ -262,7 +283,7 @@ implements IBinderClient {
            */
           new EffectEvidenceProcessor() {
             @Override
-            public void visitInitializationEvidence(final InitializationEvidence e) {
+            public void visitInitializationEffectEvidence(final InitializationEffectEvidence e) {
               final IRNode constructorDecl = e.getConstructorDeclaration();
               resultDrop.addInformationHint(
                   constructorDecl, ON_BEHALF_OF_CONSTRUCTOR,
@@ -284,7 +305,6 @@ implements IBinderClient {
             }
           }.accept(e.getTarget().getEvidence());
         }
-        
         
         
         
