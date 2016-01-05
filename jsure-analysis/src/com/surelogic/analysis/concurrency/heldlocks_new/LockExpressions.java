@@ -46,6 +46,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.parse.JJNode;
 
@@ -219,6 +220,17 @@ final class LockExpressions {
    */
   private final SingleThreadedData singleThreadedData;
   
+  /**
+   * The lock, if any, that the method is declared to return.
+   */
+  private final HeldLock returnedLock;
+  
+  /**
+   * The map from return statements to lock sets.  Only meaningful
+   * if the {@link #returnedLock} is not null.
+   */
+  private final Map<IRNode, Set<HeldLock>> returnStatements;
+  
   
   
   /**
@@ -233,7 +245,9 @@ final class LockExpressions {
       final ImmutableSet<HeldLock> jucRequiredLocks,
       final ImmutableSet<HeldLock> jucSingleThreaded,
       final SingleThreadedData singleThreadedData,
-      final ImmutableMap<IRNode, Set<HeldLock>> syncBlocks) {
+      final ImmutableMap<IRNode, Set<HeldLock>> syncBlocks,
+      final HeldLock returnedLock,
+      final Map<IRNode, Set<HeldLock>> returnStatements) {
     this.intrinsicAssumedLocks = intrinsicAssumedLocks;
     this.jucClassInit = jucClassInit;
     this.jucLockExprsToLockSets = jucLockExprsToLockSet;
@@ -241,6 +255,8 @@ final class LockExpressions {
     this.jucSingleThreaded = jucSingleThreaded;
     this.singleThreadedData = singleThreadedData;
     this.syncBlocks = syncBlocks;
+    this.returnedLock = returnedLock;
+    this.returnStatements = returnStatements;
   }
   
   
@@ -255,7 +271,8 @@ final class LockExpressions {
     return new LockExpressions(visitor.intrinsicAssumedLocks.build(),
         visitor.jucClassInit.build(), visitor.jucLockExprsToLockSets.build(),
         visitor.jucRequiredLocks.build(), visitor.jucSingleThreaded.build(),
-        visitor.getSingleThreadedData(), visitor.syncBlocks.build());
+        visitor.getSingleThreadedData(), visitor.syncBlocks.build(),
+        visitor.returnedLock, visitor.returnStatements.build());
   }
   
   
@@ -340,7 +357,13 @@ final class LockExpressions {
     return jucClassInit;
   }
 
+  public HeldLock getReturnedLock() {
+    return returnedLock;
+  }
   
+  public Set<HeldLock> getReturnedLocks(final IRNode rstmt) {
+    return returnStatements.get(rstmt);
+  }
   
   /**
    * A tree visitor that we run over a method/constructor body to find all the
@@ -401,7 +424,10 @@ final class LockExpressions {
      */
     private SingleThreadedData singleThreadedData = null;
     
+    private HeldLock returnedLock;
+    private final ImmutableMap.Builder<IRNode, Set<HeldLock>> returnStatements = ImmutableMap.builder();
 
+    
     
     public LockExpressionVisitor(final IRNode mdecl, 
         final AtomicReference<AnalysisLockModel> analysisLockModel, final LockUtils lu,
@@ -546,6 +572,10 @@ final class LockExpressions {
           requiresLock, mdecl, intrinsicAssumedLocks, jucRequiredLocks, heldLockFactory);
       analysisLockModel.get().getHeldLocksFromSynchronizedMethod(mdecl, intrinsicAssumedLocks, heldLockFactory);
       
+      returnedLock = analysisLockModel.get().getHeldLockFromReturnsLock(
+          LockUtils.getReturnedLock(mdecl), mdecl, true, mdecl,
+          Reason.BOGUS, null, heldLockFactory);
+      
       doAcceptForChildren(mdecl);
     }
     
@@ -576,6 +606,18 @@ final class LockExpressions {
           true, lockExpr, syncBlock, Reason.SYNCHRONIZED_STATEMENT, syncBlock);
       if (locks != null) syncBlocks.put(syncBlock, locks);
       doAcceptForChildren(syncBlock);
+      return null;
+    }
+    
+    @Override
+    public Void visitReturnStatement(final IRNode rstmt) {
+      if (returnedLock != null) {
+        // Convert the return statement as a lock expression so it can be checked later
+        returnStatements.put(
+            rstmt,
+            processLockExpression(
+                true, ReturnStatement.getValue(rstmt), rstmt, Reason.BOGUS, null));
+      }
       return null;
     }
     

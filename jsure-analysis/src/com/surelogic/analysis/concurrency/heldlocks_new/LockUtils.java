@@ -631,9 +631,6 @@ public final class LockUtils {
       for (final ModelLock<?, ?> lock : analysisLockModel.get().getLocksImplementedByThis(
           thisExprBinder.getJavaType(lockExpr))) {
         addInstanceLock(lockExpr, lock, true);
-//        locks.add(heldLockFactory.createInstanceLock(
-//            lockExpr, lock.getImplementation(), src, reason,
-//            lock.getSourceAnnotation(), true, null));
       }
     }
     
@@ -782,5 +779,25 @@ public final class LockUtils {
     final LockExpressionConverter converter = new LockExpressionConverter(
         convertAsIntrinsic, src, reason, heldLockFactory, query, enclosingDecl, locks);
     converter.convertLockExpr(lockExpr, true);
+  }
+
+
+
+  // ========================================================================
+  // == Annotation Getter Methods
+  // ========================================================================
+
+  /**
+   * Get the lock returned by a method.
+   * 
+   * @param mdecl
+   *          A MethodDeclaration node
+   * @return a LockName node or <code>null</code> if the method doesn't return
+   *         a lock.
+   */
+  public static ReturnsLockPromiseDrop getReturnedLock(final IRNode mdecl) {
+    final IRNode returnNode = JavaPromise.getReturnNodeOrNull(mdecl);
+    return (returnNode == null) ? null :
+      LockRules.getReturnsLock(returnNode);
   }
 }

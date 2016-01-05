@@ -781,7 +781,8 @@ public final class AnalysisLockModel {
     
     protected final T processLockSpecification(final LockSpecificationNode lockSpec) {
       final LockModel lockModel = lockSpec.resolveBinding().getModel();
-      final NamedLockImplementation lockImpl = getNamedLockImplementation(lockModel);
+      final NamedLockImplementation lockImpl =
+          getNamedLockImplementation(lockModel);
       final boolean needsWrite = needsWrite(lockSpec);
       
       if (lockModel.isLockStatic()) {
@@ -846,7 +847,7 @@ public final class AnalysisLockModel {
   private final class ReturnsLockProcessorHeldLocks
   extends LockSpecificationProcessor<HeldLock> {
     private HeldLock.Reason reason;
-    private final Map<IRNode, IRNode> formalsToActuals;
+    private final Map<IRNode, IRNode> formalsToActuals; // or null, in the case of checking returns lock annotations
     private final HeldLockFactory heldLockFactory;
     private final boolean isWrite;
     
@@ -890,8 +891,8 @@ public final class AnalysisLockModel {
     protected HeldLock createInstanceLock(
         final IRNode objectRefExpr, final LockImplementation lockImpl,
         final IRNode source, final boolean needsWrite) {
-      // XXX: supporting information drop should be the @RetunrsLock???  Old version doesn't so this so not sure why not
-      final IRNode mappedObjectExpr = formalsToActuals.get(objectRefExpr);
+      final IRNode mappedObjectExpr = 
+          (formalsToActuals == null) ? objectRefExpr : formalsToActuals.get(objectRefExpr);
       if (mappedObjectExpr == null) {
         return null;
       } else {

@@ -134,4 +134,18 @@ public final class LockExpressionManager {
   public Set<HeldLock> getJUCClassInit(final IRNode fu) {
     return getLockExpressionsFor(fu).getJUCClassInit();
   }  
+  
+  /**
+   * Get the lock returned, if any, by the method
+   */
+  public HeldLock getReturnedLock(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).getReturnedLock();
+  }
+  
+  /**
+   * Get map from return statements to returned locks.
+   */
+  public Set<HeldLock> getReturnedLocks(final IRNode mdecl, final IRNode rstmt) {
+    return getLockExpressionsFor(mdecl).getReturnedLocks(rstmt);
+  }
 }

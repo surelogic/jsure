@@ -34,6 +34,7 @@ import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -49,10 +50,15 @@ final class NewLockVisitor
 extends FlowUnitVisitor<NewLockVisitor.Queries>
 implements IBinderClient {
   private static final int PRECONDITION_NOT_ASSURED_CATEGORY = 2007;
+  private static final int RETURNS_LOCK_ASSURED_CATEGORY = 2008;
+  private static final int RETURNS_LOCK_NOT_ASSURED_CATEGORY = 2009;
   
   private static final int UNRESOLVEABLE_LOCK_SPEC = 2018;
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
   private static final int ANONYMOUS_CLASS_ENCLOSING_REF = 2025;
+  
+  private static final int GOOD_RETURN = 2030;
+  private static final int BAD_RETURN = 2031;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -317,6 +323,33 @@ implements IBinderClient {
         // ===============================================================
       }
     }
+  }
+  
+  @Override
+  public Void visitReturnStatement(final IRNode rstmt) {
+    final IRNode mdecl = getEnclosingDecl();
+    final HeldLock returnsLock = lockExprManager.getReturnedLock(mdecl);
+    if (returnsLock != null) {
+      final ReturnsLockPromiseDrop pd = LockUtils.getReturnedLock(mdecl);
+      boolean correct = false;
+      for (final HeldLock lock : lockExprManager.getReturnedLocks(mdecl, rstmt)) {
+        if (returnsLock.mustAlias(lock, thisExprBinder)) {
+          correct = true;
+          break;
+        }
+      }
+      
+      if (correct) {
+        final ResultDrop resultDrop = ResultsBuilder.createResult(
+            true, pd, rstmt, GOOD_RETURN, returnsLock);
+        resultDrop.setCategorizingMessage(RETURNS_LOCK_ASSURED_CATEGORY);
+      } else {
+        final ResultDrop resultDrop = ResultsBuilder.createResult(
+            false, pd, rstmt, BAD_RETURN, returnsLock);
+        resultDrop.setCategorizingMessage(RETURNS_LOCK_NOT_ASSURED_CATEGORY);
+      }
+    }
+    return null;
   }
   
   @Override
