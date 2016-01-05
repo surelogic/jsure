@@ -38,6 +38,7 @@ import com.surelogic.analysis.concurrency.model.implementation.FieldImplementati
 import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
 import com.surelogic.analysis.concurrency.model.implementation.MethodImplementation;
 import com.surelogic.analysis.concurrency.model.implementation.NamedLockImplementation;
+import com.surelogic.analysis.concurrency.model.implementation.QualifiedThisImplementation;
 import com.surelogic.analysis.concurrency.model.implementation.SelfImplementation;
 import com.surelogic.analysis.concurrency.model.implementation.UnnamedLockImplementation;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
@@ -240,6 +241,43 @@ public final class AnalysisLockModel {
   }
   
   /**
+   * Qualified receiver used as lock
+   */
+  private final class QualifiedThis extends IRNodeMember {
+    // typeDecl must be a TypeDeclaration
+    public QualifiedThis(final IRNode typeDecl) {
+      super(typeDecl);
+    }
+    
+    // As in Self 
+    @Override
+    public IJavaType getDeclaredInClass() {
+      return binder.getTypeEnvironment().getObjectType();
+    }
+    
+    @Override
+    public String toString() {
+      return TypeDeclaration.getId(decl) + ".this";
+    }
+    
+    @Override
+    public int hashCode() {
+      return 31 * 17 + decl.hashCode();
+    }
+    
+    @Override
+    public boolean equals(final Object other) {
+      if (other == this) { 
+        return true;
+      } else if (other instanceof QualifiedThis) {
+        return decl.equals(((QualifiedThis) other).decl);
+      } else {
+        return false;
+      }
+    }
+  }
+  
+  /**
    * Receiver used as a lock.  There is only one of these, because we pretend
    * it is a "field" declared in the root class.
    * 
@@ -377,8 +415,7 @@ public final class AnalysisLockModel {
       } else if (exprNode instanceof MethodCallNode) {
         return caseMethodCall((MethodCallNode) exprNode);
       } else if (exprNode instanceof QualifiedThisExpressionNode) {
-        // We don't handle these; the scrubber already put out a warning about this
-        return null;
+        return caseQualifiedThisExpression((QualifiedThisExpressionNode) exprNode);
       } else if (exprNode instanceof ThisExpressionNode) {
         return caseThisExpression((ThisExpressionNode) exprNode);
       }
@@ -390,6 +427,7 @@ public final class AnalysisLockModel {
     protected abstract T caseFieldRef(FieldRefNode exprNode);
     protected abstract T caseItself(ItselfNode exprNode);
     protected abstract T caseMethodCall(MethodCallNode exprNode);
+    protected abstract T caseQualifiedThisExpression(QualifiedThisExpressionNode exprNode);
     protected abstract T caseThisExpression(ThisExpressionNode exprNode);
   }
 
@@ -429,6 +467,13 @@ public final class AnalysisLockModel {
     }
   
     @Override
+    protected UnnamedLockImplementation caseQualifiedThisExpression(
+        final QualifiedThisExpressionNode exprNode) {
+      return new QualifiedThisImplementation(
+          (IJavaDeclaredType) exprNode.resolveType().getJavaType());
+    }
+
+    @Override
     protected UnnamedLockImplementation caseThisExpression(final ThisExpressionNode exprNode) {
       return SelfImplementation.INSTANCE;
     }
@@ -466,7 +511,14 @@ public final class AnalysisLockModel {
     protected Member caseMethodCall(final MethodCallNode exprNode) {
       return new Method(exprNode.resolveBinding().getNode());
     }
-  
+    
+    @Override
+    protected Member caseQualifiedThisExpression(
+        final QualifiedThisExpressionNode exprNode) {
+      return new QualifiedThis(((IJavaDeclaredType) exprNode.getType().resolveType().getJavaType()).getDeclaration());
+      
+    }
+
     @Override
     protected Member caseThisExpression(final ThisExpressionNode exprNode) {
       return selfPrototype;
