@@ -1744,7 +1744,7 @@ public class MethodBinder8 implements IMethodBinder {
     	}
     	
     	static MethodBinding8 create(MethodBinder8 mb, ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		final boolean debug = false;//c.toString().startsWith("Arrays.stream(args, i");
+    		final boolean debug = false; //c.toString().equals("c.asSubclass(clazz)");
     		if (debug) {
     		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
     			System.out.println("Creating boundset: "+b);
@@ -2252,6 +2252,9 @@ public class MethodBinder8 implements IMethodBinder {
 			 *   
 			 *   – Otherwise, the invocation type is the same as the method's type.
 			 */
+			if (call.toString().equals("c.asSubclass(clazz).newInstance")) {
+				System.out.println("What's the problem here?  no receiver added?");
+			}
 			IJavaFunctionType mtype = computeMethodType(/*m*/b, call);
 			// TODO any other way to know unchecked conversion was used?
 			if (b_2 != null && b_2.usedUncheckedConversion()) {
@@ -2302,6 +2305,10 @@ public class MethodBinder8 implements IMethodBinder {
 						if (rec2 == null) {
 							rec2 = getCompileTimeResultType(rec, b, targetType);
 						}
+						if (rec2 == null) {
+							rec2 = getCompileTimeResultType(rec, b, targetType);
+							throw new IllegalStateException("Couldn't compute result type of method: "+b+" for "+targetType);
+						}
 						receiver = rec2;
 					} else {
 						receiver = getCompileTimeResultType(rec, b, targetType); // TODO is this right?
@@ -2331,6 +2338,10 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 		}
 		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), receiver, tEnv.getBinder());
+		String unparse = null;//t.toString();
+		if (unparse != null && m.toString().contains("c.asSubclass(clazz)") && unparse.contains("<null-type,")) {
+		  System.out.println("Introducing capture here?");
+		}
 		//return t;
 		//return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
 		return t.instantiate(t.getTypeFormals(), subst, skipFirstParameter);
