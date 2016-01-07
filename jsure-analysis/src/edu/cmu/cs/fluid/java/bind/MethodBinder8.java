@@ -1750,9 +1750,20 @@ public class MethodBinder8 implements IMethodBinder {
     			System.out.println("Creating boundset: "+b);
     		}
     		IBinding newB;
-    		if (mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
+    		/*
+    		final boolean isPolyCall = mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m);
+    		if (isPolyCall) {
+    			// stExps.stream.flatMap((# # exp) -> #.get#.stream)
+    			// stExps.stream.flatMap((#) -> #.stream#).map((# # pmid) -> #.get(#))
+    			System.out.println("Got poly call for "+c);
+    		}
+    		*/
+    		// Need to check if this is Java 8+ code
+    		if (mb.tEnv.getMajorJavaVersion() >= 8 && mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
         		// Don't include instantiations from computing applicability since they may not be right
     			// TODO what if the return type is a type formal, and needs some kind of substitution?
+    			
+    			//System.out.println("Omitting type substitution since source level is Java 8+");
     			newB = m.bind;
     		} else {
         		final BoundSet result = TypeInference8.resolve(b, null, debug);    		
@@ -2295,9 +2306,11 @@ public class MethodBinder8 implements IMethodBinder {
 					IBinding b = binder.getIBinding(rec);
 					IJavaType targetType = call.getReceiverType();
 					if (targetType instanceof IJavaDeclaredType) {
+						/*
 						if ("<implicit>.setSelector(<implicit>.q, selector)._(cdata)".equals(call.toString())) {
 							System.out.println("Looking at problematic call");
-						}						
+						}
+						*/						
 						// Try with wildcardified, and otherwise use the one without
 						// TODO when shouldn't I do a subst?
 						IJavaType targetType2 = wildcardify(targetType);
