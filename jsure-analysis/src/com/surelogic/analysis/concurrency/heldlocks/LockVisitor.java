@@ -78,8 +78,8 @@ import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
-import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
@@ -1353,12 +1353,15 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			return isSafeCached;
 		} else {
 			boolean isSafe = false;
-			if (type instanceof IJavaSourceRefType) {
-				final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
-				final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+			if (type instanceof IJavaDeclaredType) {
+				final IJavaDeclaredType declaredType = (IJavaDeclaredType) type;
+				final IRNode typeDeclarationNode = declaredType.getDeclaration();
 				final boolean isThreadSafe = LockRules
 						.isThreadSafe(typeDeclarationNode);
 				isSafe = isThreadSafe || classDeclaresLocks(type);
+			} else if (type instanceof IJavaTypeFormal) {
+			  final IJavaTypeFormal jtf = (IJavaTypeFormal) type;
+			  isSafe = isSafeType(jtf.getExtendsBound(thisExprBinder.getTypeEnvironment()));
 			} else if (type instanceof IJavaIntersectionType) {
 				final IJavaIntersectionType iType = (IJavaIntersectionType) type;
 				isSafe = isSafeType(iType.getPrimarySupertype())

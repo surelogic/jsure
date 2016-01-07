@@ -20,6 +20,8 @@ import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLocks;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
+import com.surelogic.analysis.concurrency.model.declared.ModelLock;
+import com.surelogic.analysis.concurrency.model.declared.StateLock;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.analysis.concurrency.model.instantiated.NeededLock;
 import com.surelogic.analysis.effects.Effect;
@@ -30,8 +32,10 @@ import com.surelogic.analysis.effects.InitializationEffectEvidence;
 import com.surelogic.analysis.effects.UnresolveableLocksEffectEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EnclosingRefEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
+import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
@@ -44,6 +48,14 @@ import edu.cmu.cs.fluid.java.analysis.HasSubQuery;
 import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.analysis.QueryTransformer;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
 final class NewLockVisitor
@@ -52,6 +64,7 @@ implements IBinderClient {
   private static final int PRECONDITION_NOT_ASSURED_CATEGORY = 2007;
   private static final int RETURNS_LOCK_ASSURED_CATEGORY = 2008;
   private static final int RETURNS_LOCK_NOT_ASSURED_CATEGORY = 2009;
+  private static final int SHARED_UNPROTECTED_CATEGORY = 2010;
   
   private static final int UNRESOLVEABLE_LOCK_SPEC = 2018;
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
@@ -59,6 +72,8 @@ implements IBinderClient {
   
   private static final int GOOD_RETURN = 2030;
   private static final int BAD_RETURN = 2031;
+  
+  private static final int SHARED_UNPROTECTED_RECEIVER = 2035;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -76,6 +91,7 @@ implements IBinderClient {
   private final ThisExpressionBinder thisExprBinder;
   private final Effects effects;
   
+  private final AtomicReference<AnalysisLockModel> analysisLockModel;
   private final LockUtils lockUtils;
   private final LockExpressionManager lockExprManager;
   
@@ -95,6 +111,7 @@ implements IBinderClient {
     // Don't go inside nested types; skip annotation types
     super(true);
     
+    this.analysisLockModel = analysisLockModel;
     this.thisExprBinder = new ThisExpressionBinder(binder);
     this.effects = new Effects(binder, analysisLockModel);
     
@@ -211,7 +228,7 @@ implements IBinderClient {
   
   
   // ======================================================================
-  // == Visit
+  // == Helpers
   // ======================================================================
   
   private HeldLock isSatisfied(final NeededLock neededLock, final Iterable<HeldLock> heldLocks) {
@@ -227,6 +244,85 @@ implements IBinderClient {
       return null;
     }
   }
+
+  /**
+   * Determine whether a class can be considered to protect itself. Returns
+   * true} if one of the following is true:
+   * <ul>
+   * <li>The class, or one of its ancestors, is annotated with
+   * <code>@ThreadSafe</code>
+   * <li>The class, or one of its ancestors, is annotated with
+   * <code>@Immutable</code>
+   * <li>The class, or one of its ancestors, declares at least one region or
+   * policy lock</code>
+   * </ul>
+   */
+  private boolean isSafeType(final IJavaType type) {
+    boolean isSafe = false;
+    if (type instanceof IJavaDeclaredType) {
+      final IJavaDeclaredType declaredType = (IJavaDeclaredType) type;
+      final IRNode typeDeclarationNode = declaredType.getDeclaration();
+      final boolean isThreadSafe = LockRules
+          .isThreadSafe(typeDeclarationNode);
+      isSafe = isThreadSafe || analysisLockModel.get().classDeclaresLocks(type);
+    } else if (type instanceof IJavaTypeFormal) {
+      final IJavaTypeFormal jtf = (IJavaTypeFormal) type;
+      isSafe = isSafeType(jtf.getExtendsBound(thisExprBinder.getTypeEnvironment()));
+    } else if (type instanceof IJavaIntersectionType) {
+      final IJavaIntersectionType iType = (IJavaIntersectionType) type;
+      isSafe = isSafeType(iType.getPrimarySupertype())
+          || isSafeType(iType.getSecondarySupertype());
+    }
+    return isSafe;
+  }
+  
+  private void receiverIsSafeObject(final IRNode actualRcvr) {
+    // First see if the referenced type is safe
+    if (!isSafeType(thisExprBinder.getJavaType(actualRcvr))) { // not safe
+      if (FieldRef.prototype.includes(actualRcvr)) {
+        final IRNode fieldDecl = this.thisExprBinder.getBinding(actualRcvr);
+        // If the field is unique, it is a safe object
+        if (!UniquenessUtils.isUnique(fieldDecl)) {
+          /* See if the field is protected: either directly, or
+           * because the the field is final or volatile and the class
+           * contains lock annotations.
+           */
+          if (TypeUtil.isJSureFinal(fieldDecl) || TypeUtil.isVolatile(fieldDecl)) {
+            final IJavaType actualRcvrType =
+                thisExprBinder.getJavaType(FieldRef.getObject(actualRcvr));
+            if (analysisLockModel.get().classDeclaresLocks(actualRcvrType)) {
+              /* final/volatile field in a lock protected class, so the
+               * object referenced by the field may be accessed concurrently.
+               */
+              final HintDrop info = HintDrop.newWarning(actualRcvr);
+              info.setCategorizingMessage(SHARED_UNPROTECTED_CATEGORY);
+              info.setMessage(SHARED_UNPROTECTED_RECEIVER, 
+                  DebugUnparser.toString(actualRcvr));
+              for (final ModelLock<?, ?> ml : analysisLockModel.get().getAllDeclaredLocksIn(actualRcvrType, false)) {
+                ml.getSourceAnnotation().addDependent(info);
+              }
+            }
+          } else {
+            final StateLock<?, ?> neededLock =
+                analysisLockModel.get().getLockForFieldRef(actualRcvr);
+            if (neededLock != null) {
+              // Lock protected field
+              final HintDrop info = HintDrop.newWarning(actualRcvr);
+              info.setCategorizingMessage(SHARED_UNPROTECTED_CATEGORY);
+              info.setMessage(SHARED_UNPROTECTED_RECEIVER, DebugUnparser.toString(actualRcvr));
+              neededLock.getSourceAnnotation().addDependent(info);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  
+  
+  // ======================================================================
+  // == The lock-checking magic is here
+  // ======================================================================
   
   private void reportEffects(final IRNode mdecl) {
     final ImplementedEffects implementationEffects = effects.getImplementationEffects(mdecl, bca);
@@ -324,33 +420,12 @@ implements IBinderClient {
       }
     }
   }
+
   
-  @Override
-  public Void visitReturnStatement(final IRNode rstmt) {
-    final IRNode mdecl = getEnclosingDecl();
-    final HeldLock returnsLock = lockExprManager.getReturnedLock(mdecl);
-    if (returnsLock != null) {
-      final ReturnsLockPromiseDrop pd = LockUtils.getReturnedLock(mdecl);
-      boolean correct = false;
-      for (final HeldLock lock : lockExprManager.getReturnedLocks(mdecl, rstmt)) {
-        if (returnsLock.mustAlias(lock, thisExprBinder)) {
-          correct = true;
-          break;
-        }
-      }
-      
-      if (correct) {
-        final ResultDrop resultDrop = ResultsBuilder.createResult(
-            true, pd, rstmt, GOOD_RETURN, returnsLock);
-        resultDrop.setCategorizingMessage(RETURNS_LOCK_ASSURED_CATEGORY);
-      } else {
-        final ResultDrop resultDrop = ResultsBuilder.createResult(
-            false, pd, rstmt, BAD_RETURN, returnsLock);
-        resultDrop.setCategorizingMessage(RETURNS_LOCK_NOT_ASSURED_CATEGORY);
-      }
-    }
-    return null;
-  }
+  
+  // ======================================================================
+  // == Visit
+  // ======================================================================
   
   @Override
   protected void handleMethodDeclaration(final IRNode mdecl) {
@@ -409,5 +484,51 @@ implements IBinderClient {
         // does nothing
       }
     };
+  }
+  
+  @Override
+  public Void visitReturnStatement(final IRNode rstmt) {
+    final IRNode mdecl = getEnclosingDecl();
+    final HeldLock returnsLock = lockExprManager.getReturnedLock(mdecl);
+    if (returnsLock != null) {
+      final ReturnsLockPromiseDrop pd = LockUtils.getReturnedLock(mdecl);
+      boolean correct = false;
+      for (final HeldLock lock : lockExprManager.getReturnedLocks(mdecl, rstmt)) {
+        if (returnsLock.mustAlias(lock, thisExprBinder)) {
+          correct = true;
+          break;
+        }
+      }
+      
+      if (correct) {
+        final ResultDrop resultDrop = ResultsBuilder.createResult(
+            true, pd, rstmt, GOOD_RETURN, returnsLock);
+        resultDrop.setCategorizingMessage(RETURNS_LOCK_ASSURED_CATEGORY);
+      } else {
+        final ResultDrop resultDrop = ResultsBuilder.createResult(
+            false, pd, rstmt, BAD_RETURN, returnsLock);
+        resultDrop.setCategorizingMessage(RETURNS_LOCK_NOT_ASSURED_CATEGORY);
+      }
+    }
+    return null;
+  }
+  
+  @Override
+  public void handleMethodCall(final IRNode expr) {
+    final IRNode methodDecl = this.thisExprBinder.getBinding(expr);
+    final MethodCall call = (MethodCall) JJNode.tree.getOperator(expr);
+    if (!TypeUtil.isStatic(methodDecl)) {
+      /*
+       * Check if the receiver is a "safe" object. This does not apply if
+       * the method call is to a Lock method.
+       */
+      if (!lockUtils.isMethodFromJavaUtilConcurrentLocksLock(expr) &&
+          !lockUtils.isMethodFromJavaUtilConcurrentLocksReadWriteLock(expr)) {
+        receiverIsSafeObject(call.get_Object(expr));
+      }
+    }
+    
+    // Continue into the expression
+    doAcceptForChildren(expr);
   }
 }

@@ -49,6 +49,7 @@ import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.util.AppendIterator;
+import com.surelogic.common.util.EmptyIteratable;
 import com.surelogic.common.util.FilterIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.IteratorUtil;
@@ -358,16 +359,18 @@ public final class AnalysisLockModel {
       };
     }
     
-    public Iteratable<ModelLock<?, ?>> getAllLocksInClass() {
-      if (parent == null) {
+    // if includeMutex is true then the this better not be the class record for java.lang.Object
+    public Iteratable<ModelLock<?, ?>> getAllLocksInClass(final boolean includeMutex) {
+      // If !includeMutex then we skip the class record for java.lang.Object
+      if ((includeMutex ? parent : parent.parent) == null) {
         return getDeclaredLocks();
       } else {
-        return new AppendIterator<>(getDeclaredLocks(), parent.getAllLocksInClass());
+        return new AppendIterator<>(getDeclaredLocks(), parent.getAllLocksInClass(includeMutex));
       }
     }
     
     public Iteratable<StateLock<?, ?>> getAllStateLocksInClass() {
-      return new FilterIterator<ModelLock<?, ?>, StateLock<?, ?>>(getAllLocksInClass()) {
+      return new FilterIterator<ModelLock<?, ?>, StateLock<?, ?>>(getAllLocksInClass(true)) {
         @Override
         protected Object select(final ModelLock<?, ?> lock) {
           if (lock instanceof StateLock) {
@@ -550,11 +553,17 @@ public final class AnalysisLockModel {
 
   /** The Binder. */
   private final IBinder binder;
+  
+  /**
+   * The Clazz object for java.lang.Object
+   */
+  private final Clazz javaLangObject;
 
   // ----------------------------------------------------------------------
   
   public AnalysisLockModel(final IBinder binder) {
     this.binder = binder;
+    this.javaLangObject = getClazzFor(binder.getTypeEnvironment().getObjectType());
   }
 
   private Clazz getClazzFor(final IRNode classDecl) {
@@ -1219,8 +1228,6 @@ public final class AnalysisLockModel {
    * Get the Mutex lock declared in java.lang.Object.
    */
   public LockModel getJavaLangObjectMutex() {
-    final Clazz javaLangObject =
-        getClazzFor(binder.getTypeEnvironment().getObjectType());
     for (final ModelLock<?, ?> lock : javaLangObject.getDeclaredLocks()) {
       if (lock instanceof StateLock) {
         final RegionLock regionLock = (RegionLock) lock;
@@ -1230,5 +1237,30 @@ public final class AnalysisLockModel {
       }
     }
     return null; // Shouldn't happen unless the execution environment is messed up
+  }
+  
+  /**
+   * Does the given class declare any locks (outside of MUTEX)?
+   */
+  public boolean classDeclaresLocks(final IJavaType type) {
+    /* Here we rely on the fact that MUTEX is declared in java.lang.Object
+     * and that java.lang.Object doesn't declare any other locks.
+     */
+    final Clazz current = getClazzFor(type);
+    if (current != javaLangObject) {
+      return current.getAllLocksInClass(false).hasNext();
+    } else {
+      return false;
+    }
+  }
+  
+  public Iteratable<ModelLock<?, ?>> getAllDeclaredLocksIn(
+      final IJavaType type, final boolean includeMutex) {
+    final Clazz current = getClazzFor(type);
+    if (current == javaLangObject && !includeMutex) {
+      return EmptyIteratable.get();
+    } else {
+      return current.getAllLocksInClass(includeMutex);
+    }
   }
 }
