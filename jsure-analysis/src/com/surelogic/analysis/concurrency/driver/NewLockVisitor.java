@@ -4,6 +4,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.collect.Iterables;
+import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
@@ -38,6 +40,7 @@ import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -52,6 +55,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
+import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -74,6 +78,7 @@ implements IBinderClient {
   private static final int BAD_RETURN = 2031;
   
   private static final int SHARED_UNPROTECTED_RECEIVER = 2035;
+  private static final int SHARED_UNPROTECTED_FIELD_REF= 2036;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -318,6 +323,91 @@ implements IBinderClient {
     }
   }
 
+  private void dereferencesSafeObject(
+      final IRNode objExpr, final IRNode fieldRef, final boolean isArrayRef) {
+    /* fieldRef == e.f or e[...] */
+    /* We only continue if fieldRef is e'.f'.f or e'.f'[...] */
+    if (FieldRef.prototype.includes(objExpr)) {
+      /*
+       * Things are only interesting if the outer region f is not protected. So
+       * we don't proceed if f' is unique (and thus f is aggregated into the
+       * state of the referring object), f is protected by a lock or if f is
+       * volatile or final. Array reference is never protected
+       */
+      final IRNode fDecl = thisExprBinder.getBinding(fieldRef);
+      final IRNode fPrimeDecl = thisExprBinder.getBinding(objExpr);
+      if (!UniquenessUtils.isUnique(fPrimeDecl) &&
+          (isArrayRef ||
+              (!TypeUtil.isJSureFinal(fDecl) && !TypeUtil.isVolatile(fDecl) &&
+                  analysisLockModel.get().getLockForFieldRef(fieldRef) == null))) {
+        /*
+         * Now check if f' is in a protected region. There are three cases: (1)
+         * f' is a final or volatile field in a class that contains lock
+         * declarations. (2) f' is a field in a region associated with a lock.
+         * (3) Otherwise, we assume f' is not meant to be accessed concurrently,
+         * so we don't have to issue a warning.
+         * 
+         * In the first case we report the warning under EACH lock that is
+         * declared in the class. In the second case we report the warning under
+         * the lock that protects f'.
+         */
+        final IJavaType ePrimeType = thisExprBinder.getJavaType(FieldRef.getObject(objExpr));
+        if (TypeUtil.isJSureFinal(fPrimeDecl) || TypeUtil.isVolatile(fPrimeDecl)) {
+          // Field is final or volatile, see if the class contains locks
+          if (analysisLockModel.get().classDeclaresLocks(ePrimeType)) {
+            /*
+             * For each lock declared in the class of e'.f', attach a warning
+             * that it is not protecting the field f.
+             * 
+             * Propose that the field be aggregated into those regions. Really
+             * this needs to be an OR. The end user should only be allowed to
+             * choose one of these.
+             */
+            final HintDrop info = HintDrop.newWarning(fieldRef);
+            info.setCategorizingMessage(SHARED_UNPROTECTED_CATEGORY);
+            info.setMessage(SHARED_UNPROTECTED_FIELD_REF, DebugUnparser.toString(fieldRef));
+
+            // Propose the unique annotation
+            for (final ModelLock<?, ?> ml : analysisLockModel.get().getAllDeclaredLocksIn(ePrimeType, false)) {
+              ml.getSourceAnnotation().addDependent(info);
+              
+              if (ml instanceof StateLock) {
+                final String simpleRegionName = ((StateLock<?, ?>) ml).getRegion().getName();
+                if ("Instance".equals(simpleRegionName)) {
+                  info.addProposal(
+                      new Builder(Unique.class, fPrimeDecl, fieldRef).build());
+                } else {
+                  info.addProposal(
+                      new Builder(UniqueInRegion.class, fPrimeDecl, fieldRef).setValue(simpleRegionName).build());
+                }
+              }
+            }
+          }
+        } else { // Field f' is non-final, non-volatile
+          final StateLock<?, ?> fPrimeLock = 
+              analysisLockModel.get().getLockForFieldRef(objExpr);
+          if (fPrimeLock != null) { // Field is non-final, non-volatile, and is associated with a lock
+            final HintDrop info = HintDrop.newWarning(fieldRef);
+            info.setCategorizingMessage(SHARED_UNPROTECTED_CATEGORY);
+            info.setMessage(SHARED_UNPROTECTED_FIELD_REF, DebugUnparser.toString(fieldRef));
+            fPrimeLock.getSourceAnnotation().addDependent(info);
+
+            /*
+             * Propose that the field be @Unique and aggregated.
+             */
+            final String simpleRegionName = fPrimeLock.getRegion().getName();
+            if ("Instance".equals(simpleRegionName)) {
+              info.addProposal(
+                  new Builder(Unique.class, fPrimeDecl, fieldRef).build());
+            } else {
+              info.addProposal(
+                  new Builder(UniqueInRegion.class, fPrimeDecl, fieldRef).setValue(simpleRegionName).build());
+            }
+          }
+        }
+      }
+    }
+  }
   
   
   // ======================================================================
@@ -530,5 +620,23 @@ implements IBinderClient {
     
     // Continue into the expression
     doAcceptForChildren(expr);
+  }
+  
+  @Override
+  public Void visitArrayRefExpression(final IRNode arrayRef) {
+    dereferencesSafeObject(ArrayRefExpression.getArray(arrayRef), arrayRef, true);
+    
+    // continue into the expression
+    doAcceptForChildren(arrayRef);
+    return null;
+  }
+  
+  @Override
+  public Void visitFieldRef(final IRNode fieldRef) {
+    dereferencesSafeObject(FieldRef.getObject(fieldRef), fieldRef, false);
+    
+    // continue into the expression
+    doAcceptForChildren(fieldRef);
+    return null;
   }
 }

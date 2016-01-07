@@ -1235,7 +1235,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		final IRNode objExpr = isArrayRef ? ArrayRefExpression
 				.getArray(fieldRef) : FieldRef.getObject(fieldRef);
 		final Operator op2 = JJNode.tree.getOperator(objExpr);
-
+		
 		/* We only care if fieldRef is e'.f'.f or e'.f'[...] */
 		if (FieldRef.prototype.includes(op2)) {
 			/*
