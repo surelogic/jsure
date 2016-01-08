@@ -434,7 +434,7 @@ public class RegionRules extends AnnotationRules {
     if (neededRegions == null) {
     	neededRegions = new ImplicitRegions();
     } else {
-    	System.out.println("Got ImplicitRegions for "+JavaNames.getTypeName(classDecl));
+    	//System.out.println("Got ImplicitRegions for "+JavaNames.getTypeName(classDecl));
     }
     for (final InRegionNode inRegion : annos) {
       final RegionSpecificationNode parent = inRegion.getSpec();
