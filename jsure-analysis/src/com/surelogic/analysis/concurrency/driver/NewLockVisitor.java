@@ -87,6 +87,7 @@ implements IBinderClient {
   
   private static final int UNIDENTIFIABLE_SYNCHRONIZED_METHOD = 2040;
   private static final int UNIDENTIFIABLE_STATIC_SYNCHRONIZED_METHOD = 2041;
+  private static final int UNIDENTIFIABLE_LOCK_EXPR = 2042;
   
   private static final int REDUNDANT_SYNC = 2045;
   
@@ -680,13 +681,14 @@ implements IBinderClient {
   
   @Override
   public Void visitSynchronizedStatement(final IRNode syncStmt) {
+    final IRNode lockExpr = SynchronizedStatement.getLock(syncStmt);
+    final Set<HeldLock> acquiringLocks =
+        lockExprManager.getSyncBlocks(getEnclosingDecl()).get(syncStmt);
+
     /* Get the locks held at the point of the lock epression, and see if 
      * any of them are also acquired by the sync statement.
      */
-    final Iterable<HeldLock> heldLocks =
-        currentQuery().getHeldLocks(SynchronizedStatement.getLock(syncStmt));
-    final Set<HeldLock> acquiringLocks =
-        lockExprManager.getSyncBlocks(getEnclosingDecl()).get(syncStmt);
+    final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(lockExpr);
     for (final HeldLock heldLock : heldLocks) {
       for (final HeldLock acquiredLock : acquiringLocks) {
         if (acquiredLock.mustAlias(heldLock, thisExprBinder)) {
@@ -696,6 +698,20 @@ implements IBinderClient {
           acquiredLock.getLockPromise().addDependent(info);
         }
       }
+    }
+    
+    /* If the set of acquired locks is empty, or only contains MUTEX, then
+     * we put out an unidentifiable lock warning.
+     */
+    final boolean unidentifiable =
+        (acquiringLocks.size() == 0) ||
+        ((acquiringLocks.size() == 1) &&
+            acquiringLocks.iterator().next().getLockPromise() ==
+            analysisLockModel.get().getJavaLangObjectMutex());
+    if (unidentifiable) {
+      final HintDrop info = HintDrop.newWarning(syncStmt);
+      info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
+      info.setMessage(UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(lockExpr));
     }
     
     // continue into the expression
