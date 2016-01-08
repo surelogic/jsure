@@ -547,13 +547,13 @@ public final class LockUtils {
     private void addInstanceLock(final IRNode objExpr,
         final ModelLock<?, ?> modelLock, final boolean isWrite) {
       locks.add(heldLockFactory.createInstanceLock(
-          objExpr, modelLock.getImplementation(), src, reason, isWrite, null));
+          objExpr, modelLock, src, reason, isWrite, null));
     }
     
     private void addStaticLock(
         final ModelLock<?, ?> modelLock, final boolean isWrite) {
       locks.add(heldLockFactory.createStaticLock(
-          modelLock.getImplementation(), src, reason, isWrite, null));
+          modelLock, src, reason, isWrite, null));
     }
     
     private HeldLock convertReturnedLock(

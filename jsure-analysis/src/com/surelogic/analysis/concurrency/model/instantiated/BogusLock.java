@@ -2,6 +2,7 @@ package com.surelogic.analysis.concurrency.model.instantiated;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.model.SyntacticEquality;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -90,6 +91,11 @@ public final class BogusLock implements HeldLock {
   public boolean holdsWrite() {
     // Doesn't really matter for bogus locks
     return true;
+  }
+  
+  @Override
+  public final PromiseDrop<?> getLockPromise() {
+    return null;
   }
 
   @Override

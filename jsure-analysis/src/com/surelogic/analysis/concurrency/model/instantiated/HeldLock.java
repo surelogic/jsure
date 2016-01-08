@@ -2,6 +2,7 @@ package com.surelogic.analysis.concurrency.model.instantiated;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.model.declared.ModelLock;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -65,6 +66,12 @@ public interface HeldLock extends InstantiatedLock {
    * Is a write lock held?
    */
   public boolean holdsWrite();
+  
+  /**
+   * Get the GuardedBy, RegionLock, or PolicyLock annotation that declares
+   * this lock.
+   */
+  public PromiseDrop<?> getLockPromise();
   
   /**
    * Get the RequiresLockDrop, if any, that supports the holding of this lock,

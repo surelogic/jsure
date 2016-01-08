@@ -847,7 +847,7 @@ public final class AnalysisLockModel {
       final boolean needsWrite = needsWrite(lockSpec);
       
       if (lockModel.isLockStatic()) {
-        return createStaticLock(lockImpl, source, needsWrite);
+        return createStaticLock(lockModel, lockImpl, source, needsWrite);
       } else {
         final LockNameNode lockName = lockSpec.getLock();
         final IRNode objExpr;
@@ -883,7 +883,7 @@ public final class AnalysisLockModel {
           }
         }
         if (objExpr != null) {
-          return createInstanceLock(objExpr, lockImpl, source, needsWrite);
+          return createInstanceLock(lockModel, objExpr, lockImpl, source, needsWrite);
         } else {
           return null;
         }
@@ -895,10 +895,10 @@ public final class AnalysisLockModel {
       return lockType != LockType.READ_LOCK;
     }
     
-    protected abstract T createStaticLock(
+    protected abstract T createStaticLock(LockModel lockModel,
         LockImplementation lockImpl, IRNode source, boolean needsWrite);
     
-    protected abstract T createInstanceLock(
+    protected abstract T createInstanceLock(LockModel lockModel,
         IRNode objectRefExpr, LockImplementation lockImpl, IRNode source,
         boolean needsWrite);
     
@@ -940,16 +940,16 @@ public final class AnalysisLockModel {
     }
     
     @Override
-    protected HeldLock createStaticLock(
+    protected HeldLock createStaticLock(final LockModel lockModel,
         final LockImplementation lockImpl, final IRNode source,
         final boolean needsWrite) {
       // XXX: supporting information drop should be the @RetunrsLock???  Old version doesn't so this so not sure why not
       return heldLockFactory.createStaticLock(
-          lockImpl, source, reason, needsWrite, null);
+          lockImpl, source, reason, needsWrite, lockModel, null);
     }
     
     @Override
-    protected HeldLock createInstanceLock(
+    protected HeldLock createInstanceLock(final LockModel lockModel,
         final IRNode objectRefExpr, final LockImplementation lockImpl,
         final IRNode source, final boolean needsWrite) {
       final IRNode mappedObjectExpr = 
@@ -958,7 +958,7 @@ public final class AnalysisLockModel {
         return null;
       } else {
         return heldLockFactory.createInstanceLock(
-            mappedObjectExpr, lockImpl, source, reason, needsWrite, null);
+            mappedObjectExpr, lockImpl, source, reason, needsWrite, lockModel, null);
       }
     }
   }
@@ -1023,7 +1023,7 @@ public final class AnalysisLockModel {
     }
     
     @Override
-    protected NeededLock createStaticLock(
+    protected NeededLock createStaticLock(final LockModel lockModel,
         final LockImplementation lockImpl, final IRNode source, 
         final boolean needsWrite) {
       return lockFactory.createStaticLock(lockImpl, source,
@@ -1031,7 +1031,7 @@ public final class AnalysisLockModel {
     }
     
     @Override
-    protected NeededLock createInstanceLock(
+    protected NeededLock createInstanceLock(final LockModel lockModel,
         final IRNode objectRefExpr, final LockImplementation lockImpl,
         final IRNode source, final boolean needsWrite) {
       final IRNode mappedObjectExpr = formalToActualMap.get(objectRefExpr);
@@ -1070,20 +1070,20 @@ public final class AnalysisLockModel {
     }
     
     @Override
-    protected HeldLock createStaticLock(
+    protected HeldLock createStaticLock(final LockModel lockModel,
         final LockImplementation lockImpl, final IRNode source,  boolean needsWrite) {
       return heldLockFactory.createStaticLock(
           lockImpl, source, HeldLock.Reason.METHOD_PRECONDITION,
-          needsWrite, supportingDrop);
+          needsWrite, lockModel, supportingDrop);
     }
     
     @Override
-    protected HeldLock createInstanceLock(
+    protected HeldLock createInstanceLock(final LockModel lockModel,
         final IRNode objectRefExpr, final LockImplementation lockImpl,
         final IRNode source, final boolean needsWrite) {
       return heldLockFactory.createInstanceLock(
           objectRefExpr, lockImpl, source, HeldLock.Reason.METHOD_PRECONDITION,
-          needsWrite, supportingDrop);
+          needsWrite, lockModel, supportingDrop);
     }
   }
   
@@ -1149,7 +1149,7 @@ public final class AnalysisLockModel {
         if (!(lockImpl instanceof NamedLockImplementation) ||
             !((NamedLockImplementation) lockImpl).getName().equals(MUTEX_NAME)) {
           final HeldLock heldLock = heldLockFactory.createInstanceLock(
-              rcvr, lockImpl, cdecl, HeldLock.Reason.SINGLE_THREADED, true, null);
+              rcvr, lock, cdecl, HeldLock.Reason.SINGLE_THREADED, true, null);
           (lock.isIntrinsic(binder) ? intrinsicBuilder : jucBuilder).add(heldLock);
         }
       }
@@ -1171,7 +1171,7 @@ public final class AnalysisLockModel {
       if (TypeUtil.isStatic(mdecl)) {
         for (final ModelLock<?, ?> lock : getLocksImplemetedByClass(classDecl)) {
           intrinsicBuilder.add(heldLockFactory.createStaticLock(
-              lock.getImplementation(), mdecl, HeldLock.Reason.STATIC_SYNCHRONIZED_METHOD,
+              lock, mdecl, HeldLock.Reason.STATIC_SYNCHRONIZED_METHOD,
               true, null));
         }
       } else {
@@ -1179,8 +1179,7 @@ public final class AnalysisLockModel {
             JavaTypeFactory.getMyThisType(classDecl))) {
           intrinsicBuilder.add(heldLockFactory.createInstanceLock(
               JavaPromise.getReceiverNodeOrNull(mdecl),
-              lock.getImplementation(), mdecl, HeldLock.Reason.SYNCHRONIZED_METHOD,
-              true, null));
+              lock, mdecl, HeldLock.Reason.SYNCHRONIZED_METHOD, true, null));
         }
       }
     }
@@ -1199,8 +1198,7 @@ public final class AnalysisLockModel {
     for (final StateLock<?, ?> lock : clazz.getDeclaredStateLocks()) {
       if (lock.isStatic()) { // Only want static locks
         final HeldLock heldLock = heldLockFactory.createStaticLock(
-            lock.getImplementation(), classInitDecl,
-            HeldLock.Reason.CLASS_INITIALIZATION, true, null);
+            lock, classInitDecl, HeldLock.Reason.CLASS_INITIALIZATION, true,  null);
         (lock.isIntrinsic(binder) ? intrinsicBuilder : jucBuilder).add(heldLock);
       }
     }

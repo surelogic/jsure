@@ -1,6 +1,7 @@
 package com.surelogic.analysis.concurrency.model.instantiated;
 
 import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -13,6 +14,7 @@ implements HeldLock {
   protected final boolean holdsWrite;
   
   protected final LockImplementation lockImpl;
+  protected final PromiseDrop<?> lockPromise;
 
   /**
    * Promise drop for any supporting annotations. Links the correctness of
@@ -27,11 +29,13 @@ implements HeldLock {
   protected AbstractHeldLock(
       final IRNode source, final Reason reason,
       final boolean holdsWrite, final LockImplementation lockImpl,
+      final PromiseDrop<?> lockPromise,
       final RequiresLockPromiseDrop supportingDrop) {
     super(source);
     this.reason = reason;
     this.holdsWrite = holdsWrite;
     this.lockImpl = lockImpl;
+    this.lockPromise = lockPromise;
     this.supportingDrop = supportingDrop;
   }
   
@@ -43,6 +47,11 @@ implements HeldLock {
   @Override
   public final boolean holdsWrite() {
     return holdsWrite;
+  }
+  
+  @Override
+  public final PromiseDrop<?> getLockPromise() {
+    return lockPromise;
   }
   
   @Override

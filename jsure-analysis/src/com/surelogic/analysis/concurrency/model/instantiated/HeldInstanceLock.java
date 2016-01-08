@@ -3,6 +3,7 @@ package com.surelogic.analysis.concurrency.model.instantiated;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.model.SyntacticEquality;
 import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -15,8 +16,9 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   HeldInstanceLock(
       final IRNode objectRefExpr, final LockImplementation lockImpl,
       final IRNode source, final Reason reason, final boolean needsWrite,
+      final PromiseDrop<?> lockPromise,
       final RequiresLockPromiseDrop supportingDrop) {
-    super(source, reason, needsWrite, lockImpl, supportingDrop);
+    super(source, reason, needsWrite, lockImpl, lockPromise, supportingDrop);
     this.objectRefExpr = objectRefExpr;
   }
 
@@ -55,6 +57,7 @@ public final class HeldInstanceLock extends AbstractHeldLock {
     result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
     result += 31 * objectRefExpr.hashCode();
+    result += 31 * ((lockPromise == null) ? 0 : lockPromise.hashCode());
     result += 31 * ((supportingDrop == null) ? 0 : supportingDrop.hashCode());
     return result;
   }
@@ -70,6 +73,7 @@ public final class HeldInstanceLock extends AbstractHeldLock {
           this.lockImpl.equals(o.lockImpl) && 
           this.objectRefExpr.equals(o.objectRefExpr) &&
           this.source.equals(o.source) &&
+          (this.lockPromise == null ? o.lockPromise == null : this.lockPromise.equals(o.lockPromise)) && 
           (this.supportingDrop == null ? o.supportingDrop == null : this.supportingDrop.equals(o.supportingDrop));
     } else {
       return false;

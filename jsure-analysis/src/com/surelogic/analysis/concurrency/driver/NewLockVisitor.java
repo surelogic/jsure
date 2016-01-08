@@ -59,6 +59,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -72,6 +73,7 @@ implements IBinderClient {
   private static final int RETURNS_LOCK_NOT_ASSURED_CATEGORY = 2009;
   private static final int SHARED_UNPROTECTED_CATEGORY = 2010;
   private static final int UNIDENTIFIABLE_LOCK_CATEGORY = 2011;
+  private static final int REDUNDANT_CATEGORY = 2012;
   
   private static final int UNRESOLVEABLE_LOCK_SPEC = 2018;
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
@@ -85,6 +87,8 @@ implements IBinderClient {
   
   private static final int UNIDENTIFIABLE_SYNCHRONIZED_METHOD = 2040;
   private static final int UNIDENTIFIABLE_STATIC_SYNCHRONIZED_METHOD = 2041;
+  
+  private static final int REDUNDANT_SYNC = 2045;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -671,6 +675,31 @@ implements IBinderClient {
     
     // continue into the expression
     doAcceptForChildren(fieldRef);
+    return null;
+  }
+  
+  @Override
+  public Void visitSynchronizedStatement(final IRNode syncStmt) {
+    /* Get the locks held at the point of the lock epression, and see if 
+     * any of them are also acquired by the sync statement.
+     */
+    final Iterable<HeldLock> heldLocks =
+        currentQuery().getHeldLocks(SynchronizedStatement.getLock(syncStmt));
+    final Set<HeldLock> acquiringLocks =
+        lockExprManager.getSyncBlocks(getEnclosingDecl()).get(syncStmt);
+    for (final HeldLock heldLock : heldLocks) {
+      for (final HeldLock acquiredLock : acquiringLocks) {
+        if (acquiredLock.mustAlias(heldLock, thisExprBinder)) {
+          final HintDrop info = HintDrop.newWarning(syncStmt);
+          info.setCategorizingMessage(REDUNDANT_CATEGORY);
+          info.setMessage(REDUNDANT_SYNC, acquiredLock);
+          acquiredLock.getLockPromise().addDependent(info);
+        }
+      }
+    }
+    
+    // continue into the expression
+    doAcceptForChildren(syncStmt);
     return null;
   }
 }
