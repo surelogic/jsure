@@ -46,6 +46,7 @@ import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.HasSubQuery;
 import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
@@ -59,6 +60,7 @@ import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
@@ -69,6 +71,7 @@ implements IBinderClient {
   private static final int RETURNS_LOCK_ASSURED_CATEGORY = 2008;
   private static final int RETURNS_LOCK_NOT_ASSURED_CATEGORY = 2009;
   private static final int SHARED_UNPROTECTED_CATEGORY = 2010;
+  private static final int UNIDENTIFIABLE_LOCK_CATEGORY = 2011;
   
   private static final int UNRESOLVEABLE_LOCK_SPEC = 2018;
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
@@ -79,6 +82,9 @@ implements IBinderClient {
   
   private static final int SHARED_UNPROTECTED_RECEIVER = 2035;
   private static final int SHARED_UNPROTECTED_FIELD_REF= 2036;
+  
+  private static final int UNIDENTIFIABLE_SYNCHRONIZED_METHOD = 2040;
+  private static final int UNIDENTIFIABLE_STATIC_SYNCHRONIZED_METHOD = 2041;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -524,7 +530,35 @@ implements IBinderClient {
     try {
       receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
       
+      // Check locks
       reportEffects(mdecl);
+      
+      /* If the method is synchronized, but now programmer-declared locks are 
+       * associated with it, then we add a warning.  This check is sleazy because
+       * we count on the fact that non-static methods will always resolve the
+       * receiver to at least the lock MUTEX.  So for static methods, we warn
+       * when there are 0 locks, but for instance methods we warn when there
+       * is only 1 lock.
+       */
+      if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
+        final int numLocks = lockExprManager.getSynchronizedMethodLocks(mdecl).size();
+        if (TypeUtil.isStatic(mdecl)) {
+          if (numLocks == 0) {
+            final HintDrop info = HintDrop.newWarning(mdecl);
+            info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
+            info.setMessage(UNIDENTIFIABLE_STATIC_SYNCHRONIZED_METHOD,
+                JavaNames.genMethodConstructorName(mdecl),
+                JavaNames.getTypeName(VisitUtil.getEnclosingType(mdecl)));
+          }
+        } else {
+          if (numLocks == 1) {
+            final HintDrop info = HintDrop.newWarning(mdecl);
+            info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
+            info.setMessage(UNIDENTIFIABLE_SYNCHRONIZED_METHOD,
+                JavaNames.genMethodConstructorName(mdecl));
+          }
+        }
+      }
 
       doAcceptForChildren(mdecl);
     } finally {

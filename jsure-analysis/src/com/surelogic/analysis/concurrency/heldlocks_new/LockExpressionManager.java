@@ -114,6 +114,10 @@ public final class LockExpressionManager {
     return getLockExpressionsFor(mdecl).getIntrinsicAssumedLocks();
   }
   
+  public Set<HeldLock> getSynchronizedMethodLocks(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).getSynchronizedMethodLocks();
+  }
+
   /**
    * Get the single threaded data block associated with the flow unit.
    */

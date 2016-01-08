@@ -3131,8 +3131,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
   					ctxtTheReceiverNode, ctxtJavaType, ctxtTypeDecl,
   					syncMethodLocks);
   			syncFrame.push(syncMethodLocks);
-  			// convertSynchronizedMethod(mdecl, ctxtJavaType, ctxtTypeDecl,
-  			// syncFrame);
   			syncLockIsPolicyLock = isPolicyLockMethod(mdecl);
   
   			/*

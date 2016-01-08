@@ -213,6 +213,13 @@ final class LockExpressions {
    * they cannot be released during the lifetime of the flow unit.
    */
   private final ImmutableSet<HeldLock> intrinsicAssumedLocks;
+  
+  /**
+   * The set of locks represented by the method begin synchronized.  These
+   * are included in {@link #intrinsicAssumedLocks}, but separated here for 
+   * ease of checking other properties in the lock analysis.
+   */
+  private final ImmutableSet<HeldLock> synchronizedMethodLocks;
  
   /**
    * Information for determining whether a constructor is proven single-threaded.
@@ -240,6 +247,7 @@ final class LockExpressions {
    */
   private LockExpressions(
       final ImmutableSet<HeldLock> intrinsicAssumedLocks,
+      final ImmutableSet<HeldLock> synchronizedMethodLocks,
       final ImmutableSet<HeldLock> jucClassInit,
       final ImmutableMap<IRNode, Set<HeldLock>> jucLockExprsToLockSet,
       final ImmutableSet<HeldLock> jucRequiredLocks,
@@ -249,6 +257,7 @@ final class LockExpressions {
       final HeldLock returnedLock,
       final Map<IRNode, Set<HeldLock>> returnStatements) {
     this.intrinsicAssumedLocks = intrinsicAssumedLocks;
+    this.synchronizedMethodLocks = synchronizedMethodLocks;
     this.jucClassInit = jucClassInit;
     this.jucLockExprsToLockSets = jucLockExprsToLockSet;
     this.jucRequiredLocks = jucRequiredLocks;
@@ -269,6 +278,7 @@ final class LockExpressions {
         new LockExpressionVisitor(mdecl, analysisLockModel, lu, b, bca, da);
     visitor.doAccept(mdecl);
     return new LockExpressions(visitor.intrinsicAssumedLocks.build(),
+        visitor.synchronizedMethodLocks,
         visitor.jucClassInit.build(), visitor.jucLockExprsToLockSets.build(),
         visitor.jucRequiredLocks.build(), visitor.jucSingleThreaded.build(),
         visitor.getSingleThreadedData(), visitor.syncBlocks.build(),
@@ -336,6 +346,9 @@ final class LockExpressions {
     return intrinsicAssumedLocks;
   }
   
+  public Set<HeldLock> getSynchronizedMethodLocks() {
+    return synchronizedMethodLocks;
+  }
   /**
    * Get the single threaded data block for the flow unit.
    */
@@ -418,6 +431,8 @@ final class LockExpressions {
      */
     private final ImmutableSet.Builder<HeldLock> intrinsicAssumedLocks = ImmutableSet.builder();
    
+    private ImmutableSet<HeldLock> synchronizedMethodLocks = ImmutableSet.of();
+    
     /**
      * Information for determining whether a constructor is proven single-threaded.
      * If the flow unit is not a constructor this is {@value null}.
@@ -570,7 +585,11 @@ final class LockExpressions {
       final RequiresLockPromiseDrop requiresLock = LockRules.getRequiresLock(mdecl);
       analysisLockModel.get().getHeldLocksFromRequiresLock(
           requiresLock, mdecl, intrinsicAssumedLocks, jucRequiredLocks, heldLockFactory);
-      analysisLockModel.get().getHeldLocksFromSynchronizedMethod(mdecl, intrinsicAssumedLocks, heldLockFactory);
+      
+      final ImmutableSet.Builder<HeldLock> builder = ImmutableSet.builder();
+      analysisLockModel.get().getHeldLocksFromSynchronizedMethod(mdecl, builder, heldLockFactory);
+      synchronizedMethodLocks = builder.build();
+      intrinsicAssumedLocks.addAll(synchronizedMethodLocks);
       
       returnedLock = analysisLockModel.get().getHeldLockFromReturnsLock(
           LockUtils.getReturnedLock(mdecl), mdecl, true, mdecl,
