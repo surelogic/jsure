@@ -19,6 +19,7 @@ import com.surelogic.analysis.concurrency.heldlocks_new.IntrinsicLockAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExpr;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLocks;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
@@ -685,36 +686,47 @@ implements IBinderClient {
   @Override
   public Void visitSynchronizedStatement(final IRNode syncStmt) {
     final IRNode lockExpr = SynchronizedStatement.getLock(syncStmt);
-    final Set<HeldLock> acquiringLocks =
-        lockExprManager.getSyncBlocks(getEnclosingDecl()).get(syncStmt);
+    final LockExpr acquiringLocks =
+        lockExprManager.getSyncBlock(getEnclosingDecl(), syncStmt);
 
-    /* Get the locks held at the point of the lock epression, and see if 
-     * any of them are also acquired by the sync statement.
-     */
-    final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(lockExpr);
-    for (final HeldLock heldLock : heldLocks) {
-      for (final HeldLock acquiredLock : acquiringLocks) {
-        if (acquiredLock.mustAlias(heldLock, thisExprBinder)) {
-          final HintDrop info = HintDrop.newWarning(syncStmt);
-          info.setCategorizingMessage(REDUNDANT_CATEGORY);
-          info.setMessage(REDUNDANT_SYNC, acquiredLock);
-          acquiredLock.getLockPromise().addDependent(info);
+    if (acquiringLocks.isFinal()) {
+      final Set<HeldLock> lockSet = acquiringLocks.getLocks();
+      
+      /* Get the locks held at the point of the lock epression, and see if 
+       * any of them are also acquired by the sync statement.
+       */
+      final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(lockExpr);
+      for (final HeldLock heldLock : heldLocks) {
+        for (final HeldLock acquiredLock : lockSet) {
+          if (acquiredLock.mustAlias(heldLock, thisExprBinder)) {
+            final HintDrop info = HintDrop.newWarning(syncStmt);
+            info.setCategorizingMessage(REDUNDANT_CATEGORY);
+            info.setMessage(REDUNDANT_SYNC, acquiredLock);
+            acquiredLock.getLockPromise().addDependent(info);
+          }
         }
       }
-    }
-    
-    /* If the set of acquired locks is empty, or only contains MUTEX, then
-     * we put out an unidentifiable lock warning.
-     */
-    final boolean unidentifiable =
-        (acquiringLocks.size() == 0) ||
-        ((acquiringLocks.size() == 1) &&
-            acquiringLocks.iterator().next().getLockPromise() ==
-            analysisLockModel.get().getJavaLangObjectMutex());
-    if (unidentifiable) {
-      final HintDrop info = HintDrop.newWarning(syncStmt);
-      info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
-      info.setMessage(UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+      
+      /* If the set of acquired locks is empty, or only contains MUTEX, then
+       * we put out an unidentifiable lock warning.
+       */
+      final boolean unidentifiable =
+          (lockSet.size() == 0) ||
+          ((lockSet.size() == 1) &&
+              lockSet.iterator().next().getLockPromise() ==
+              analysisLockModel.get().getJavaLangObjectMutex());
+      if (unidentifiable) {
+        final HintDrop info = HintDrop.newWarning(lockExpr);
+        info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
+        info.setMessage(UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+      }
+    } else {
+      final HintDrop info = HintDrop.newWarning(lockExpr);
+      info.setCategorizingMessage(NON_FINAL_CATEGORY);
+      info.setMessage(NON_FINAL_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+      for (final HeldLock l : acquiringLocks.getLocks()) {
+        l.getLockPromise().addDependent(info);
+      }
     }
     
     // continue into the expression

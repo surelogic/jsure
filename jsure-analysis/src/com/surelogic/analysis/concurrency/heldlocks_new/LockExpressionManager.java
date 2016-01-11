@@ -14,6 +14,21 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public final class LockExpressionManager {
+  public final static class LockExpr {
+    private final boolean isFinal;
+    private final Set<HeldLock> locks;
+    
+    public LockExpr(final boolean isFinal, final Set<HeldLock> locks) {
+      this.isFinal = isFinal;
+      this.locks = locks;
+    }
+    
+    public boolean isFinal() { return isFinal; }
+    public Set<HeldLock> getLocks() { return locks; }
+  }
+  
+  
+  
   private final Map<IRNode, LockExpressions> lockExpressions = new HashMap<IRNode, LockExpressions>();
   private final LockUtils lockUtils;
   private final IBinder binder;
@@ -95,8 +110,12 @@ public final class LockExpressionManager {
   /**
    * Get the map of synchronized blocks to intrinsic locks.
    */
-  public Map<IRNode, Set<HeldLock>> getSyncBlocks(final IRNode mdecl) {
-    return getLockExpressionsFor(mdecl).getSyncBlocks();
+  public LockExpr getSyncBlock(final IRNode mdecl, final IRNode syncBlock) {
+    return getLockExpressionsFor(mdecl).getSyncBlock(syncBlock);
+  }
+  
+  public Map<IRNode, Set<HeldLock>> getFinalSyncBlocks(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).getFinalSyncBlocks();
   }
   
   /**

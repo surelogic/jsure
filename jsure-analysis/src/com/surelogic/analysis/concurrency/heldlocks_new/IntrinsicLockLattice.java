@@ -93,7 +93,7 @@ final class IntrinsicLockLattice extends
   
   public static IntrinsicLockLattice createForFlowUnit(
       final IRNode flowUnit, final LockExpressionManager lockExprManager) {
-    final Map<IRNode, Set<HeldLock>> map = lockExprManager.getSyncBlocks(flowUnit);
+    final Map<IRNode, Set<HeldLock>> map = lockExprManager.getFinalSyncBlocks(flowUnit);
     final IRNode[] syncBlocks = new IRNode[map.keySet().size()];
     @SuppressWarnings("unchecked")
     final Set<HeldLock>[] locks = new Set[syncBlocks.length];

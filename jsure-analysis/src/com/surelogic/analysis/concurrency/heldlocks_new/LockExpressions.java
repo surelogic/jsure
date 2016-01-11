@@ -14,6 +14,7 @@ import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.driver.Messages;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExpr;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLockFactory;
@@ -202,7 +203,7 @@ final class LockExpressions {
    * Map from the synchronized blocks found in the flow unit to the 
    * set of locks acquired by each block.
    */
-  private final ImmutableMap<IRNode, Set<HeldLock>> syncBlocks;
+  private final ImmutableMap<IRNode, LockExpr> syncBlocks;
   
   /**
    * The set of intrinsic locks that are held throughout the scope of the
@@ -253,7 +254,7 @@ final class LockExpressions {
       final ImmutableSet<HeldLock> jucRequiredLocks,
       final ImmutableSet<HeldLock> jucSingleThreaded,
       final SingleThreadedData singleThreadedData,
-      final ImmutableMap<IRNode, Set<HeldLock>> syncBlocks,
+      final ImmutableMap<IRNode, LockExpr> syncBlocks,
       final HeldLock returnedLock,
       final Map<IRNode, Set<HeldLock>> returnStatements) {
     this.intrinsicAssumedLocks = intrinsicAssumedLocks;
@@ -327,8 +328,18 @@ final class LockExpressions {
     return jucLockExprsToLockSets;
   }
   
-  public Map<IRNode, Set<HeldLock>> getSyncBlocks() {
-    return syncBlocks;
+  public LockExpr getSyncBlock(final IRNode syncBlock) {
+    return syncBlocks.get(syncBlock);
+  }
+  
+  public Map<IRNode, Set<HeldLock>> getFinalSyncBlocks() {
+    final ImmutableMap.Builder<IRNode, Set<HeldLock>> builder = ImmutableMap.builder();
+    for (final Map.Entry<IRNode, LockExpr> entry : syncBlocks.entrySet()) {
+      if (entry.getValue().isFinal()) {
+        builder.put(entry.getKey(), entry.getValue().getLocks());
+      }
+    }
+    return builder.build();
   }
   
   /**
@@ -419,7 +430,7 @@ final class LockExpressions {
      * Map from the synchronized blocks found in the flow unit to the 
      * set of locks acquired by each block.
      */
-    private final ImmutableMap.Builder<IRNode, Set<HeldLock>> syncBlocks = ImmutableMap.builder();
+    private final ImmutableMap.Builder<IRNode, LockExpr> syncBlocks = ImmutableMap.builder();
     
     /**
      * The set of intrinsic locks that are held throughout the scope of the
@@ -611,9 +622,9 @@ final class LockExpressions {
       if (lockUtils.isMethodFromJavaUtilConcurrentLocksLock(mcall)) {
         final MethodCall call = (MethodCall) JJNode.tree.getOperator(mcall);
         final IRNode lockExpr = call.get_Object(mcall);
-        final Set<HeldLock> locks = processLockExpression(
+        final LockExpr locks = processLockExpression(
             false, lockExpr, lockExpr, Reason.JUC_LOCK_CALL, null);
-        if (locks != null) jucLockExprsToLockSets.put(lockExpr, locks);
+        if (locks.isFinal()) jucLockExprsToLockSets.put(lockExpr, locks.getLocks());
       }
       doAcceptForChildren(mcall);
     }
@@ -621,9 +632,9 @@ final class LockExpressions {
     @Override
     public Void visitSynchronizedStatement(final IRNode syncBlock) {
       final IRNode lockExpr = SynchronizedStatement.getLock(syncBlock);
-      final Set<HeldLock> locks = processLockExpression(
+      final LockExpr locks = processLockExpression(
           true, lockExpr, syncBlock, Reason.SYNCHRONIZED_STATEMENT, syncBlock);
-      if (locks != null) syncBlocks.put(syncBlock, locks);
+      syncBlocks.put(syncBlock, locks);
       doAcceptForChildren(syncBlock);
       return null;
     }
@@ -632,32 +643,36 @@ final class LockExpressions {
     public Void visitReturnStatement(final IRNode rstmt) {
       if (returnedLock != null) {
         // Convert the return statement as a lock expression so it can be checked later
-        returnStatements.put(
-            rstmt,
-            processLockExpression(
-                true, ReturnStatement.getValue(rstmt), rstmt, Reason.BOGUS, null));
+        final LockExpr retLocks = processLockExpression(
+            true, ReturnStatement.getValue(rstmt), rstmt, Reason.BOGUS, null);
+        returnStatements.put(rstmt, retLocks.isFinal() ? retLocks.getLocks() : ImmutableSet.<HeldLock>of());
       }
       return null;
     }
     
-    private Set<HeldLock> processLockExpression(
+    private LockExpr processLockExpression(
         final boolean convertAsIntrinsic, final IRNode lockExpr,
         final IRNode src, final Reason reason, final IRNode syncBlock) {
-      if (lockUtils.isFinalExpression(
+      final boolean isFinal = lockUtils.isFinalExpression(
           lockExpr, thisExprBinder.enclosingFlowUnit, syncBlock,
-          currentQuery().first(), currentQuery().second())) {
-        // Get the locks for the lock expression
-        final ImmutableSet.Builder<HeldLock> lockSet = ImmutableSet.builder();
-        lockUtils.convertLockExpr(
-            convertAsIntrinsic, lockExpr, heldLockFactory, src, reason,
-            currentQuery().second(), enclosingMethodDecl, lockSet);
-        final Set<HeldLock> result = lockSet.build();
+          currentQuery().first(), currentQuery().second());
+
+      // Get the locks for the lock expression
+      final ImmutableSet.Builder<HeldLock> lockSet = ImmutableSet.builder();
+      lockUtils.convertLockExpr(
+          convertAsIntrinsic, lockExpr, heldLockFactory, src, reason,
+          currentQuery().second(), enclosingMethodDecl, lockSet);
+      final Set<HeldLock> result = lockSet.build();
+      
+      if (!isFinal) {
+        return new LockExpr(false, result);
+      } else {
         if (result.isEmpty() && !convertAsIntrinsic) {
-          return ImmutableSet.<HeldLock>of(heldLockFactory.createBogusLock(lockExpr));
+          return new LockExpr(true, ImmutableSet.<HeldLock>of(heldLockFactory.createBogusLock(lockExpr)));
+        } else {
+          return new LockExpr(true, result);
         }
-        return result;
       }
-      return null;
     }    
   }
 }
