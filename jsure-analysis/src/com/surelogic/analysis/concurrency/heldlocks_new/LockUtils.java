@@ -34,6 +34,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
@@ -289,69 +290,22 @@ public final class LockUtils {
       return ReadWriteLockMethods.NOT_A_READWRITELOCK_METHOD;
     }
   }
-//  /**
-//   * Return which method from {@code java.util.concurrent.locks.Lock} is
-//   * being called.
-//   */
-//  public LockMethods whichLockMethod(final IRNode mcall) {
-//    final LockMethods method = LockMethods.whichLockMethod(MethodCall.getMethod(mcall));
-//    if (isMethodFromJavaUtilConcurrentLocksLock(mcall)) {
-//      return method;
-//    } else {
-//      return method == LockMethods.NOT_A_LOCK_METHOD ? method : LockMethods.IDENTICALLY_NAMED_METHOD;
-//    }
-//  }
-  
-//  /**
-//   * Return which method from {@code java.util.concurrent.locks.Lock} is
-//   * being called.
-//   */
-//  public ReadWriteLockMethods whichReadWriteLockMethod(final IRNode mcall) {
-//    final ReadWriteLockMethods method = ReadWriteLockMethods.whichReadWriteLockMethod(MethodCall.getMethod(mcall));
-//    if (isMethodFromJavaUtilConcurrentLocksReadWriteLock(mcall)) {
-//      return method;
-//    } else {
-//      return method == ReadWriteLockMethods.NOT_A_READWRITELOCK_METHOD ? method : ReadWriteLockMethods.IDENTICALLY_NAMED_METHOD;
-//    }
-//  }
-  
-//  /**
-//   * Test if a class implements {@code java.util.concurrent.locks.Lock}.
-//   * 
-//   * @param type
-//   *          The java type to test
-//   */
-//  public boolean implementsLock(final IJavaType type) {
-//  	if (lockType == null) {
-//  	    // Probably running on pre-1.5 code
-//  		return false;
-//  	}
-//    if (type instanceof IJavaDeclaredType) {
-//      return thisExprBinder.getTypeEnvironment().isRawSubType(type, lockType);
-//    } else {
-//      // Arrays and primitives are not lock types
-//      return false;
-//    }
-//  }
-//
-//  /**
-//   * Test if a class implements {@code java.util.concurrent.locks.ReadWriteLock}.
-//   * 
-//   * @param type
-//   *          The java type to test
-//   */
-//  public boolean implementsReadWriteLock(final IJavaType type) {
-//  	if (readWriteLockType == null) {
-//  	    // Probably running on pre-1.5 code
-//  		return false;
-//  	}
-//    if (type instanceof IJavaDeclaredType) {
-//      return thisExprBinder.getTypeEnvironment().isRawSubType(type, readWriteLockType);
-//    } else {
-//      // Arrays and primitives are not lock types
-//      return false;
-//    }
-//  }
+
+  public boolean isJavaUtilConcurrentLockObject(final IRNode lockExpr) {
+    final IJavaType typeOfLockExpr = thisExprBinder.getJavaType(lockExpr);
+
+    boolean isJavaUtilConcurrentLockObject = false;
+    final ITypeEnvironment typeEnv = thisExprBinder.getTypeEnvironment();
+    if (lockType != null) {
+      isJavaUtilConcurrentLockObject =
+          typeEnv.isRawSubType(typeOfLockExpr, lockType);
+    }
+    if (!isJavaUtilConcurrentLockObject && readWriteLockType != null) {
+      isJavaUtilConcurrentLockObject = 
+          typeEnv.isRawSubType(typeOfLockExpr, readWriteLockType);
+    }
+    return isJavaUtilConcurrentLockObject;
+  }
 
   
   

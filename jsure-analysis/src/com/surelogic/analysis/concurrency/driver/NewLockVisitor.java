@@ -77,6 +77,7 @@ implements IBinderClient {
   private static final int UNIDENTIFIABLE_LOCK_CATEGORY = 2011;
   private static final int REDUNDANT_CATEGORY = 2012;
   private static final int NON_FINAL_CATEGORY = 2013;
+  private static final int MIXED_JUC_INTRINSIC = 2014;
   
   private static final int UNRESOLVEABLE_LOCK_SPEC = 2018;
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
@@ -95,6 +96,8 @@ implements IBinderClient {
   private static final int REDUNDANT_SYNC = 2045;
   
   private static final int NON_FINAL_LOCK_EXPR = 2050;
+  
+  private static final int SYNCED_LOCK_OBJECT = 2055;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
@@ -703,43 +706,49 @@ implements IBinderClient {
     final LockExpr acquiringLocks =
         lockExprManager.getSyncBlock(getEnclosingDecl(), syncStmt);
 
-    if (acquiringLocks.isFinal()) {
-      final Set<HeldLock> lockSet = acquiringLocks.getLocks();
-      
-      /* Get the locks held at the point of the lock epression, and see if 
-       * any of them are also acquired by the sync statement.
-       */
-      final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(lockExpr);
-      for (final HeldLock heldLock : heldLocks) {
-        for (final HeldLock acquiredLock : lockSet) {
-          if (acquiredLock.mustAlias(heldLock, thisExprBinder)) {
-            final HintDrop info = HintDrop.newWarning(syncStmt);
-            info.setCategorizingMessage(REDUNDANT_CATEGORY);
-            info.setMessage(REDUNDANT_SYNC, acquiredLock);
-            acquiredLock.getLockPromise().addDependent(info);
+    if (lockUtils.isJavaUtilConcurrentLockObject(lockExpr)) {
+      final HintDrop info = HintDrop.newWarning(lockExpr);
+      info.setCategorizingMessage(MIXED_JUC_INTRINSIC);
+      info.setMessage(SYNCED_LOCK_OBJECT, DebugUnparser.toString(lockExpr));
+    } else {
+      if (acquiringLocks.isFinal()) {
+        final Set<HeldLock> lockSet = acquiringLocks.getLocks();
+        
+        /* Get the locks held at the point of the lock expression, and see if 
+         * any of them are also acquired by the sync statement.
+         */
+        final Iterable<HeldLock> heldLocks = currentQuery().getHeldLocks(lockExpr);
+        for (final HeldLock heldLock : heldLocks) {
+          for (final HeldLock acquiredLock : lockSet) {
+            if (acquiredLock.mustAlias(heldLock, thisExprBinder)) {
+              final HintDrop info = HintDrop.newWarning(syncStmt);
+              info.setCategorizingMessage(REDUNDANT_CATEGORY);
+              info.setMessage(REDUNDANT_SYNC, acquiredLock);
+              acquiredLock.getLockPromise().addDependent(info);
+            }
           }
         }
-      }
-      
-      /* If the set of acquired locks is empty, or only contains MUTEX, then
-       * we put out an unidentifiable lock warning.
-       */
-      final boolean unidentifiable =
-          (lockSet.size() == 0) ||
-          ((lockSet.size() == 1) &&
-              lockSet.iterator().next().getLockPromise() ==
-              analysisLockModel.get().getJavaLangObjectMutex());
-      if (unidentifiable) {
+        
+        /* If the set of acquired locks is empty, or only contains MUTEX, then
+         * we put out an unidentifiable lock warning.
+         */
+        final boolean unidentifiable =
+            (lockSet.size() == 0) ||
+            ((lockSet.size() == 1) &&
+                lockSet.iterator().next().getLockPromise() ==
+                analysisLockModel.get().getJavaLangObjectMutex());
+        if (unidentifiable) {
+          final HintDrop info = HintDrop.newWarning(lockExpr);
+          info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
+          info.setMessage(UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+        }
+      } else { // Non-final lock expression
         final HintDrop info = HintDrop.newWarning(lockExpr);
-        info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
-        info.setMessage(UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(lockExpr));
-      }
-    } else {
-      final HintDrop info = HintDrop.newWarning(lockExpr);
-      info.setCategorizingMessage(NON_FINAL_CATEGORY);
-      info.setMessage(NON_FINAL_LOCK_EXPR, DebugUnparser.toString(lockExpr));
-      for (final HeldLock l : acquiringLocks.getLocks()) {
-        l.getLockPromise().addDependent(info);
+        info.setCategorizingMessage(NON_FINAL_CATEGORY);
+        info.setMessage(NON_FINAL_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+        for (final HeldLock l : acquiringLocks.getLocks()) {
+          l.getLockPromise().addDependent(info);
+        }
       }
     }
     
