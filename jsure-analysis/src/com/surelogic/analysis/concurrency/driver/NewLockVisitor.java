@@ -74,6 +74,7 @@ implements IBinderClient {
   private static final int SHARED_UNPROTECTED_CATEGORY = 2010;
   private static final int UNIDENTIFIABLE_LOCK_CATEGORY = 2011;
   private static final int REDUNDANT_CATEGORY = 2012;
+  private static final int NON_FINAL_CATEGORY = 2013;
   
   private static final int UNRESOLVEABLE_LOCK_SPEC = 2018;
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
@@ -90,6 +91,8 @@ implements IBinderClient {
   private static final int UNIDENTIFIABLE_LOCK_EXPR = 2042;
   
   private static final int REDUNDANT_SYNC = 2045;
+  
+  private static final int NON_FINAL_LOCK_EXPR = 2050;
   
   public static final int DSC_EFFECTS = 550;
   public static final int EFFECT = 550;
