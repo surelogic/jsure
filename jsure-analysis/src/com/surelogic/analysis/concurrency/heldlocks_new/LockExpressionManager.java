@@ -168,7 +168,7 @@ public final class LockExpressionManager {
   /**
    * Get map from return statements to returned locks.
    */
-  public Set<HeldLock> getReturnedLocks(final IRNode mdecl, final IRNode rstmt) {
+  public LockExpr getReturnedLocks(final IRNode mdecl, final IRNode rstmt) {
     return getLockExpressionsFor(mdecl).getReturnedLocks(rstmt);
   }
 }

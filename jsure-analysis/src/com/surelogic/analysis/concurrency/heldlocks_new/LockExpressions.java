@@ -237,7 +237,7 @@ final class LockExpressions {
    * The map from return statements to lock sets.  Only meaningful
    * if the {@link #returnedLock} is not null.
    */
-  private final Map<IRNode, Set<HeldLock>> returnStatements;
+  private final Map<IRNode, LockExpr> returnStatements;
   
   
   
@@ -256,7 +256,7 @@ final class LockExpressions {
       final SingleThreadedData singleThreadedData,
       final ImmutableMap<IRNode, LockExpr> syncBlocks,
       final HeldLock returnedLock,
-      final Map<IRNode, Set<HeldLock>> returnStatements) {
+      final Map<IRNode, LockExpr> returnStatements) {
     this.intrinsicAssumedLocks = intrinsicAssumedLocks;
     this.synchronizedMethodLocks = synchronizedMethodLocks;
     this.jucClassInit = jucClassInit;
@@ -385,7 +385,7 @@ final class LockExpressions {
     return returnedLock;
   }
   
-  public Set<HeldLock> getReturnedLocks(final IRNode rstmt) {
+  public LockExpr getReturnedLocks(final IRNode rstmt) {
     return returnStatements.get(rstmt);
   }
   
@@ -451,7 +451,7 @@ final class LockExpressions {
     private SingleThreadedData singleThreadedData = null;
     
     private HeldLock returnedLock;
-    private final ImmutableMap.Builder<IRNode, Set<HeldLock>> returnStatements = ImmutableMap.builder();
+    private final ImmutableMap.Builder<IRNode, LockExpr> returnStatements = ImmutableMap.builder();
 
     
     
@@ -645,7 +645,7 @@ final class LockExpressions {
         // Convert the return statement as a lock expression so it can be checked later
         final LockExpr retLocks = processLockExpression(
             true, ReturnStatement.getValue(rstmt), rstmt, Reason.BOGUS, null);
-        returnStatements.put(rstmt, retLocks.isFinal() ? retLocks.getLocks() : ImmutableSet.<HeldLock>of());
+        returnStatements.put(rstmt, retLocks);
       }
       return null;
     }

@@ -60,6 +60,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -623,24 +624,37 @@ implements IBinderClient {
   public Void visitReturnStatement(final IRNode rstmt) {
     final IRNode mdecl = getEnclosingDecl();
     final HeldLock returnsLock = lockExprManager.getReturnedLock(mdecl);
-    if (returnsLock != null) {
+    if (returnsLock != null) { // Method as a @ReturnsLock annotation
       final ReturnsLockPromiseDrop pd = LockUtils.getReturnedLock(mdecl);
-      boolean correct = false;
-      for (final HeldLock lock : lockExprManager.getReturnedLocks(mdecl, rstmt)) {
-        if (returnsLock.mustAlias(lock, thisExprBinder)) {
-          correct = true;
-          break;
+      final LockExpr lockExprInfo = lockExprManager.getReturnedLocks(mdecl, rstmt);
+      if (lockExprInfo.isFinal()) {
+        boolean correct = false;
+        for (final HeldLock lock : lockExprInfo.getLocks()) {
+          if (returnsLock.mustAlias(lock, thisExprBinder)) {
+            correct = true;
+            break;
+          }
         }
-      }
-      
-      if (correct) {
-        final ResultDrop resultDrop = ResultsBuilder.createResult(
-            true, pd, rstmt, GOOD_RETURN, returnsLock);
-        resultDrop.setCategorizingMessage(RETURNS_LOCK_ASSURED_CATEGORY);
-      } else {
-        final ResultDrop resultDrop = ResultsBuilder.createResult(
-            false, pd, rstmt, BAD_RETURN, returnsLock);
-        resultDrop.setCategorizingMessage(RETURNS_LOCK_NOT_ASSURED_CATEGORY);
+        
+        if (correct) {
+          final ResultDrop resultDrop = ResultsBuilder.createResult(
+              true, pd, rstmt, GOOD_RETURN, returnsLock);
+          resultDrop.setCategorizingMessage(RETURNS_LOCK_ASSURED_CATEGORY);
+        } else {
+          final ResultDrop resultDrop = ResultsBuilder.createResult(
+              false, pd, rstmt, BAD_RETURN, returnsLock);
+          resultDrop.setCategorizingMessage(RETURNS_LOCK_NOT_ASSURED_CATEGORY);
+        }
+      } else { // Non-final lock expression
+        final IRNode lockExpr = ReturnStatement.getValue(rstmt);
+        final HintDrop info = HintDrop.newWarning(lockExpr);
+        info.setCategorizingMessage(NON_FINAL_CATEGORY);
+        info.setMessage(NON_FINAL_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+        
+        pd.addDependent(info);
+        for (final HeldLock l : lockExprInfo.getLocks()) {
+          l.getLockPromise().addDependent(info);
+        }
       }
     }
     return null;
