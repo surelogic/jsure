@@ -227,9 +227,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		if (project != null) {
 			int level = project.getConfig().getIntOption(Config.SOURCE_LEVEL);
 			if (level != 0) {
+				System.out.println("Setting project "+project.getName()+" to Java "+level);
 				return level;
 			}
 		}
+		System.out.println("Defaulting project "+project.getName()+" to Java "+getMajorJavaVersion());
 		return super.getMajorJavaVersion();
 	}
 

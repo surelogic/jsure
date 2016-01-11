@@ -1885,6 +1885,9 @@ public class TypeUtils {
         computeInvocationTypeForCall(p, targs, args, eliminateTypeVars);
         throw new IllegalStateException();
       }
+      if (ftype.getParameterTypes().size() == 0) {
+    	computeInvocationTypeForCall(p, targs, args, eliminateTypeVars);
+      }
       return ftype.getParameterTypes().get(0);
     } else if (ArrayInitializer.prototype.includes(op)) {
       // Only appearing in Initialization or ArrayCreationExpression

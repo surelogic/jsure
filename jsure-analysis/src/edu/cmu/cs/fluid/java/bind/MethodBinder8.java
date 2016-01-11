@@ -1744,15 +1744,26 @@ public class MethodBinder8 implements IMethodBinder {
     	}
     	
     	static MethodBinding8 create(MethodBinder8 mb, ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		final boolean debug = false;//c.toString().startsWith("Arrays.stream(args, i");
+    		final boolean debug = false; //c.toString().equals("c.asSubclass(clazz)");
     		if (debug) {
     		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
     			System.out.println("Creating boundset: "+b);
     		}
     		IBinding newB;
-    		if (mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
+    		/*
+    		final boolean isPolyCall = mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m);
+    		if (isPolyCall) {
+    			// stExps.stream.flatMap((# # exp) -> #.get#.stream)
+    			// stExps.stream.flatMap((#) -> #.stream#).map((# # pmid) -> #.get(#))
+    			System.out.println("Got poly call for "+c);
+    		}
+    		*/
+    		// Need to check if this is Java 8+ code
+    		if (mb.tEnv.getMajorJavaVersion() >= 8 && mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
         		// Don't include instantiations from computing applicability since they may not be right
     			// TODO what if the return type is a type formal, and needs some kind of substitution?
+    			
+    			//System.out.println("Omitting type substitution since source level is Java 8+");
     			newB = m.bind;
     		} else {
         		final BoundSet result = TypeInference8.resolve(b, null, debug);    		
@@ -2252,6 +2263,9 @@ public class MethodBinder8 implements IMethodBinder {
 			 *   
 			 *   – Otherwise, the invocation type is the same as the method's type.
 			 */
+			if (call.toString().equals("c.asSubclass(clazz).newInstance")) {
+				System.out.println("What's the problem here?  no receiver added?");
+			}
 			IJavaFunctionType mtype = computeMethodType(/*m*/b, call);
 			// TODO any other way to know unchecked conversion was used?
 			if (b_2 != null && b_2.usedUncheckedConversion()) {
@@ -2292,15 +2306,21 @@ public class MethodBinder8 implements IMethodBinder {
 					IBinding b = binder.getIBinding(rec);
 					IJavaType targetType = call.getReceiverType();
 					if (targetType instanceof IJavaDeclaredType) {
+						/*
 						if ("<implicit>.setSelector(<implicit>.q, selector)._(cdata)".equals(call.toString())) {
 							System.out.println("Looking at problematic call");
-						}						
+						}
+						*/						
 						// Try with wildcardified, and otherwise use the one without
 						// TODO when shouldn't I do a subst?
 						IJavaType targetType2 = wildcardify(targetType);
 						IJavaType rec2 = getCompileTimeResultType(rec, b, targetType2);
 						if (rec2 == null) {
 							rec2 = getCompileTimeResultType(rec, b, targetType);
+						}
+						if (rec2 == null) {
+							rec2 = getCompileTimeResultType(rec, b, targetType);
+							throw new IllegalStateException("Couldn't compute result type of method: "+b+" for "+targetType);
 						}
 						receiver = rec2;
 					} else {
@@ -2331,6 +2351,10 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 		}
 		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), receiver, tEnv.getBinder());
+		String unparse = null;//t.toString();
+		if (unparse != null && m.toString().contains("c.asSubclass(clazz)") && unparse.contains("<null-type,")) {
+		  System.out.println("Introducing capture here?");
+		}
 		//return t;
 		//return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
 		return t.instantiate(t.getTypeFormals(), subst, skipFirstParameter);
