@@ -1648,6 +1648,12 @@ public class LockRules extends AnnotationRules {
            * If VariableDeclarator, we have to check that the field is 
            * a final instance field. whose type is a user-declared type.
            */
+          if (ParameterDeclaration.prototype.includes(n)) {
+            if (!TypeUtil.isJSureFinal(n) ) {
+              report.reportError("Parameter must be final", base);
+              isBad = true;
+            }
+          }
           if (VariableDeclarator.prototype.includes(n)) {
             if (TypeUtil.isStatic(n)) {
               report.reportError("Field cannot be static", base);
