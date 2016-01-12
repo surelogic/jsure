@@ -214,12 +214,22 @@ public final class LockUtils {
   }
   
   public enum LockMethods {
-    LOCK,
-    LOCKINTERRUPTIBLY,
-    TRYLOCK,
-    UNLOCK,
-    NOT_A_LOCK_METHOD,
-    IDENTICALLY_NAMED_METHOD; 
+    LOCK(true),
+    LOCKINTERRUPTIBLY(true),
+    TRYLOCK(true),
+    UNLOCK(false),
+    NOT_A_LOCK_METHOD(false),
+    IDENTICALLY_NAMED_METHOD(false); 
+    
+    private boolean isLock;
+    
+    LockMethods(final boolean isLock) {
+      this.isLock = isLock;
+    }
+    
+    public boolean isLock() {
+      return isLock;
+    }
     
     public static LockMethods whichLockMethod(final String mname) {
       final String internedName = CommonStrings.intern(mname);
@@ -243,8 +253,9 @@ public final class LockUtils {
    */
   public boolean isMethodFromJavaUtilConcurrentLocksLock(final IRNode mcall) {
     final String internedName = CommonStrings.intern(MethodCall.getMethod(mcall));
-    return (internedName == LOCK || internedName == UNLOCK || internedName == LOCKINTERRUPTIBLY) &&
-        isMethodFrom(mcall, lockType);
+    return (internedName == LOCK || internedName == TRYLOCK ||
+        internedName == UNLOCK || internedName == LOCKINTERRUPTIBLY) &&
+          isMethodFrom(mcall, lockType);
   }
   
   public LockMethods whichLockMethod(final IRNode mcall) {

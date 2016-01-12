@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.collect.ImmutableSet;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
@@ -28,6 +29,9 @@ public final class LockExpressionManager {
     public boolean isFinal() { return isFinal; }
     public boolean isBogus() { return isBogus; }
     public Set<HeldLock> getLocks() { return locks; }
+    public Set<HeldLock> getRealLocks() {
+      return isBogus ? ImmutableSet.<HeldLock>of() : locks;
+    }
   }
   
   

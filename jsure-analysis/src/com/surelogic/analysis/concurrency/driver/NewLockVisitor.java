@@ -18,6 +18,7 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.IntrinsicLockAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils.LockMethods;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLocks;
@@ -39,6 +40,7 @@ import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.annotation.rules.LockRules;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
@@ -107,7 +109,7 @@ implements IBinderClient {
   private static final int LOCK_NO_MATCHES = 2061;
   private static final int LOCK_MATCH = 2062;
   private static final int UNLOCK_DIFFERENT_NUMBER = 2063;
-  private static final int UNLCOK_NO_MATCHES = 2064;
+  private static final int UNLOCK_NO_MATCHES = 2064;
   private static final int UNLOCK_MATCH = 2065;
 
   /**
@@ -194,6 +196,14 @@ implements IBinderClient {
     @Override
     public Queries getSubAnalysisQuery(final IRNode caller) {
       return new Queries(this, caller);
+    }
+    
+    public Set<IRNode> getUnlocksFor(final IRNode lockCall) {
+      return unlockCalls.getResultFor(lockCall);
+    }
+    
+    public Set<IRNode> getLocksFor(final IRNode unlockCall) {
+      return lockCalls.getResultFor(unlockCall);
     }
     
     public Iterable<HeldLock> getHeldLocks(final IRNode node) {
@@ -693,6 +703,65 @@ implements IBinderClient {
           HintDrop.newWarning(
               rcvrObject, UNIDENTIFIABLE_LOCK_CATEGORY,
               UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(rcvrObject));
+        }
+        
+        final String methodName = MethodCall.getMethod(expr);
+        final LockMethods whichMethod = LockMethods.whichLockMethod(methodName);
+        if (whichMethod.isLock()) { // lock(), tryLock(), or lockInterruptably()
+          final Set<IRNode> unlocks = currentQuery().getUnlocksFor(expr);
+          if (unlocks == null) {
+            final HintDrop hint = HintDrop.newWarning(
+                expr, LOCK_UNLOCK_MATCHES, LOCK_DIFFERENT_NUMBER, methodName);
+            for (final HeldLock lock : lockExprInfo.getRealLocks()) {
+              lock.getLockPromise().addDependent(hint);
+            }
+          } else if (unlocks.isEmpty()) {
+            final HintDrop hint = HintDrop.newWarning(
+                expr, LOCK_UNLOCK_MATCHES, LOCK_NO_MATCHES, methodName);
+            for (final HeldLock lock : lockExprInfo.getRealLocks()) {
+              lock.getLockPromise().addDependent(hint);
+            }
+          } else {
+            for (final IRNode where : unlocks) {
+              int lineNumber = -1;
+              final IJavaRef javaRef = JavaNode.getJavaRef(where);
+              if (javaRef != null) lineNumber = javaRef.getLineNumber();
+              final HintDrop hint = HintDrop.newInformation(
+                  expr, LOCK_UNLOCK_MATCHES, LOCK_MATCH, methodName, lineNumber);
+              for (final HeldLock lock : lockExprInfo.getRealLocks()) {
+                lock.getLockPromise().addDependent(hint);
+              }
+            }
+          }
+        } else {
+          /* unlock() [LockExpressions already filtered out
+           * NOT_A_LOCK_METHOD and IDENTICALLY_NAMED_METHOD] 
+           */
+          final Set<IRNode> locks = currentQuery().getLocksFor(expr);
+          if (locks == null) {
+            final HintDrop hint = HintDrop.newWarning(
+                expr, LOCK_UNLOCK_MATCHES, UNLOCK_DIFFERENT_NUMBER, methodName);
+            for (final HeldLock lock : lockExprInfo.getRealLocks()) {
+              lock.getLockPromise().addDependent(hint);
+            }
+          } else if (locks.isEmpty()) {
+            final HintDrop hint = HintDrop.newWarning(
+                expr, LOCK_UNLOCK_MATCHES, UNLOCK_NO_MATCHES, methodName);
+            for (final HeldLock lock : lockExprInfo.getRealLocks()) {
+              lock.getLockPromise().addDependent(hint);
+            }
+          } else {
+            for (final IRNode where : locks) {
+              int lineNumber = -1;
+              final IJavaRef javaRef = JavaNode.getJavaRef(where);
+              if (javaRef != null) lineNumber = javaRef.getLineNumber();
+              final HintDrop hint = HintDrop.newInformation(
+                  expr, LOCK_UNLOCK_MATCHES, UNLOCK_MATCH, methodName, lineNumber);
+              for (final HeldLock lock : lockExprInfo.getRealLocks()) {
+                lock.getLockPromise().addDependent(hint);
+              }
+            }
+          }
         }
       }
     } else {
