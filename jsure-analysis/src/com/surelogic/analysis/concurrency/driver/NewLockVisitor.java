@@ -318,10 +318,9 @@ implements IBinderClient {
               /* final/volatile field in a lock protected class, so the
                * object referenced by the field may be accessed concurrently.
                */
-              final HintDrop info = HintDrop.newWarning(actualRcvr);
-              info.setCategorizingMessage(SHARED_UNPROTECTED_CATEGORY);
-              info.setMessage(SHARED_UNPROTECTED_RECEIVER, 
-                  DebugUnparser.toString(actualRcvr));
+              final HintDrop info = HintDrop.newWarning(
+                  actualRcvr, SHARED_UNPROTECTED_CATEGORY,
+                  SHARED_UNPROTECTED_RECEIVER, DebugUnparser.toString(actualRcvr));
               for (final ModelLock<?, ?> ml : analysisLockModel.get().getAllDeclaredLocksIn(actualRcvrType, false)) {
                 ml.getSourceAnnotation().addDependent(info);
               }
@@ -331,9 +330,9 @@ implements IBinderClient {
                 analysisLockModel.get().getLockForFieldRef(actualRcvr);
             if (neededLock != null) {
               // Lock protected field
-              final HintDrop info = HintDrop.newWarning(actualRcvr);
-              info.setCategorizingMessage(SHARED_UNPROTECTED_CATEGORY);
-              info.setMessage(SHARED_UNPROTECTED_RECEIVER, DebugUnparser.toString(actualRcvr));
+              final HintDrop info = HintDrop.newWarning(
+                  actualRcvr, SHARED_UNPROTECTED_CATEGORY,
+                  SHARED_UNPROTECTED_RECEIVER, DebugUnparser.toString(actualRcvr));
               neededLock.getSourceAnnotation().addDependent(info);
             }
           }
@@ -382,9 +381,9 @@ implements IBinderClient {
              * this needs to be an OR. The end user should only be allowed to
              * choose one of these.
              */
-            final HintDrop info = HintDrop.newWarning(fieldRef);
-            info.setCategorizingMessage(SHARED_UNPROTECTED_CATEGORY);
-            info.setMessage(SHARED_UNPROTECTED_FIELD_REF, DebugUnparser.toString(fieldRef));
+            final HintDrop info = HintDrop.newWarning(
+                fieldRef, SHARED_UNPROTECTED_CATEGORY,
+                SHARED_UNPROTECTED_FIELD_REF, DebugUnparser.toString(fieldRef));
 
             // Propose the unique annotation
             for (final ModelLock<?, ?> ml : analysisLockModel.get().getAllDeclaredLocksIn(ePrimeType, false)) {
@@ -406,9 +405,9 @@ implements IBinderClient {
           final StateLock<?, ?> fPrimeLock = 
               analysisLockModel.get().getLockForFieldRef(objExpr);
           if (fPrimeLock != null) { // Field is non-final, non-volatile, and is associated with a lock
-            final HintDrop info = HintDrop.newWarning(fieldRef);
-            info.setCategorizingMessage(SHARED_UNPROTECTED_CATEGORY);
-            info.setMessage(SHARED_UNPROTECTED_FIELD_REF, DebugUnparser.toString(fieldRef));
+            final HintDrop info = HintDrop.newWarning(
+                fieldRef, SHARED_UNPROTECTED_CATEGORY,
+                SHARED_UNPROTECTED_FIELD_REF, DebugUnparser.toString(fieldRef));
             fPrimeLock.getSourceAnnotation().addDependent(info);
 
             /*
@@ -441,9 +440,7 @@ implements IBinderClient {
       final Queries queries = qt.transform(currentQuery());
       
       // ======== DEBUG ========
-      final HintDrop drop = HintDrop.newInformation(src);
-      drop.setCategorizingMessage(DSC_EFFECTS);
-      drop.setMessage(EFFECT, e.toString());
+      HintDrop.newInformation(src, DSC_EFFECTS, EFFECT, e.toString());
       // ======== DEBUG ========
 
       
@@ -521,9 +518,8 @@ implements IBinderClient {
         
         // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
         for (final HeldLock heldLock : heldLocks) {
-          final HintDrop lockDrop = HintDrop.newInformation(src);
-          lockDrop.setCategorizingMessage(DSC_EFFECTS);
-          lockDrop.setMessage(551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
+          HintDrop.newInformation(src, DSC_EFFECTS,
+              551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
         }
         // ===============================================================
       }
@@ -557,17 +553,17 @@ implements IBinderClient {
         final int numLocks = lockExprManager.getSynchronizedMethodLocks(mdecl).size();
         if (TypeUtil.isStatic(mdecl)) {
           if (numLocks == 0) {
-            final HintDrop info = HintDrop.newWarning(mdecl);
-            info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
-            info.setMessage(UNIDENTIFIABLE_STATIC_SYNCHRONIZED_METHOD,
+            HintDrop.newWarning(
+                mdecl, UNIDENTIFIABLE_LOCK_CATEGORY,
+                UNIDENTIFIABLE_STATIC_SYNCHRONIZED_METHOD,
                 JavaNames.genMethodConstructorName(mdecl),
                 JavaNames.getTypeName(VisitUtil.getEnclosingType(mdecl)));
           }
         } else {
           if (numLocks == 1) {
-            final HintDrop info = HintDrop.newWarning(mdecl);
-            info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
-            info.setMessage(UNIDENTIFIABLE_SYNCHRONIZED_METHOD,
+            HintDrop.newWarning(
+                mdecl, UNIDENTIFIABLE_LOCK_CATEGORY,
+                UNIDENTIFIABLE_SYNCHRONIZED_METHOD,
                 JavaNames.genMethodConstructorName(mdecl));
           }
         }
@@ -650,9 +646,9 @@ implements IBinderClient {
         }
       } else { // Non-final lock expression
         final IRNode lockExpr = ReturnStatement.getValue(rstmt);
-        final HintDrop info = HintDrop.newWarning(lockExpr);
-        info.setCategorizingMessage(NON_FINAL_CATEGORY);
-        info.setMessage(NON_FINAL_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+        final HintDrop info = HintDrop.newWarning(
+            lockExpr, NON_FINAL_CATEGORY, NON_FINAL_LOCK_EXPR,
+            DebugUnparser.toString(lockExpr));
         
         pd.addDependent(info);
         for (final HeldLock l : lockExprInfo.getLocks()) {
@@ -707,9 +703,8 @@ implements IBinderClient {
         lockExprManager.getSyncBlock(getEnclosingDecl(), syncStmt);
 
     if (lockUtils.isJavaUtilConcurrentLockObject(lockExpr)) {
-      final HintDrop info = HintDrop.newWarning(lockExpr);
-      info.setCategorizingMessage(MIXED_JUC_INTRINSIC);
-      info.setMessage(SYNCED_LOCK_OBJECT, DebugUnparser.toString(lockExpr));
+      HintDrop.newWarning(
+          lockExpr, MIXED_JUC_INTRINSIC, SYNCED_LOCK_OBJECT, DebugUnparser.toString(lockExpr));
     } else {
       if (acquiringLocks.isFinal()) {
         final Set<HeldLock> lockSet = acquiringLocks.getLocks();
@@ -721,9 +716,8 @@ implements IBinderClient {
         for (final HeldLock heldLock : heldLocks) {
           for (final HeldLock acquiredLock : lockSet) {
             if (acquiredLock.mustAlias(heldLock, thisExprBinder)) {
-              final HintDrop info = HintDrop.newWarning(syncStmt);
-              info.setCategorizingMessage(REDUNDANT_CATEGORY);
-              info.setMessage(REDUNDANT_SYNC, acquiredLock);
+              final HintDrop info = HintDrop.newWarning(
+                  syncStmt, REDUNDANT_CATEGORY, REDUNDANT_SYNC, acquiredLock);
               acquiredLock.getLockPromise().addDependent(info);
             }
           }
@@ -738,14 +732,14 @@ implements IBinderClient {
                 lockSet.iterator().next().getLockPromise() ==
                 analysisLockModel.get().getJavaLangObjectMutex());
         if (unidentifiable) {
-          final HintDrop info = HintDrop.newWarning(lockExpr);
-          info.setCategorizingMessage(UNIDENTIFIABLE_LOCK_CATEGORY);
-          info.setMessage(UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+          HintDrop.newWarning(
+              lockExpr, UNIDENTIFIABLE_LOCK_CATEGORY,
+              UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(lockExpr));
         }
       } else { // Non-final lock expression
-        final HintDrop info = HintDrop.newWarning(lockExpr);
-        info.setCategorizingMessage(NON_FINAL_CATEGORY);
-        info.setMessage(NON_FINAL_LOCK_EXPR, DebugUnparser.toString(lockExpr));
+        final HintDrop info = HintDrop.newWarning(
+            lockExpr, NON_FINAL_CATEGORY, 
+            NON_FINAL_LOCK_EXPR, DebugUnparser.toString(lockExpr));
         for (final HeldLock l : acquiringLocks.getLocks()) {
           l.getLockPromise().addDependent(info);
         }

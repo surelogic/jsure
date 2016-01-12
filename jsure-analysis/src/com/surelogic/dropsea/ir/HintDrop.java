@@ -29,6 +29,14 @@ public final class HintDrop extends Drop implements IHintDrop {
     return new HintDrop(node, HintType.INFORMATION);
   }
 
+  public static HintDrop newInformation(
+      final IRNode node, final int category, final int msg, final Object... args) {
+    final HintDrop hint = new HintDrop(node, HintType.INFORMATION);
+    hint.setCategorizingMessage(category);
+    hint.setMessage(msg, args);
+    return hint;
+  }
+
   /**
    * Constructs a new warning drop pointing to the passed node.
    * 
@@ -40,6 +48,16 @@ public final class HintDrop extends Drop implements IHintDrop {
     return new HintDrop(node, HintType.WARNING);
   }
 
+  public static HintDrop newWarning(
+      final IRNode node, final int category, final int msg, final Object... args) {
+    final HintDrop hint = new HintDrop(node, HintType.WARNING);
+    hint.setCategorizingMessage(category);
+    hint.setMessage(msg, args);
+    return hint;
+  }
+  
+  
+  
   HintDrop(IRNode node, HintType level) {
     super(node);
     f_type = level == null ? HintType.INFORMATION : level;
@@ -47,6 +65,7 @@ public final class HintDrop extends Drop implements IHintDrop {
 
   private final HintType f_type;
 
+  @Override
   @NonNull
   public final DropType getDropType() {
     return DropType.HINT;
