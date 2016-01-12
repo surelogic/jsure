@@ -19,7 +19,7 @@ import com.surelogic.analysis.concurrency.heldlocks_new.IntrinsicLockAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
-import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExpr;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLocks;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
@@ -78,6 +78,7 @@ implements IBinderClient {
   private static final int REDUNDANT_CATEGORY = 2012;
   private static final int NON_FINAL_CATEGORY = 2013;
   private static final int MIXED_JUC_INTRINSIC = 2014;
+  private static final int LOCK_UNLOCK_MATCHES = 2015;
   
   private static final int UNRESOLVEABLE_LOCK_SPEC = 2018;
   private static final int ON_BEHALF_OF_CONSTRUCTOR = 2020;
@@ -99,8 +100,15 @@ implements IBinderClient {
   
   private static final int SYNCED_LOCK_OBJECT = 2055;
   
-  public static final int DSC_EFFECTS = 550;
-  public static final int EFFECT = 550;
+  private static final int DSC_EFFECTS = 550;
+  private static final int EFFECT = 550;
+  
+  private static final int LOCK_DIFFERENT_NUMBER = 2060;
+  private static final int LOCK_NO_MATCHES = 2061;
+  private static final int LOCK_MATCH = 2062;
+  private static final int UNLOCK_DIFFERENT_NUMBER = 2063;
+  private static final int UNLCOK_NO_MATCHES = 2064;
+  private static final int UNLOCK_MATCH = 2065;
 
   /**
    * The receiver declaration of the current instance method or constructor
@@ -625,7 +633,7 @@ implements IBinderClient {
     final HeldLock returnsLock = lockExprManager.getReturnedLock(mdecl);
     if (returnsLock != null) { // Method as a @ReturnsLock annotation
       final ReturnsLockPromiseDrop pd = LockUtils.getReturnedLock(mdecl);
-      final LockExpr lockExprInfo = lockExprManager.getReturnedLocks(mdecl, rstmt);
+      final LockExprInfo lockExprInfo = lockExprManager.getReturnedLocks(mdecl, rstmt);
       if (lockExprInfo.isFinal()) {
         boolean correct = false;
         for (final HeldLock lock : lockExprInfo.getLocks()) {
@@ -663,14 +671,39 @@ implements IBinderClient {
   public void handleMethodCall(final IRNode expr) {
     final IRNode methodDecl = this.thisExprBinder.getBinding(expr);
     final MethodCall call = (MethodCall) JJNode.tree.getOperator(expr);
-    if (!TypeUtil.isStatic(methodDecl)) {
-      /*
-       * Check if the receiver is a "safe" object. This does not apply if
-       * the method call is to a Lock method.
-       */
-      if (!lockUtils.isMethodFromJavaUtilConcurrentLocksLock(expr) &&
-          !lockUtils.isMethodFromJavaUtilConcurrentLocksReadWriteLock(expr)) {
-        receiverIsSafeObject(call.get_Object(expr));
+    final IRNode rcvrObject = call.get_Object(expr);
+    
+    /* Check if the call is to a JUC lock()/unlock().  The map returned by
+     * LockExpressionManager only has lock-expressions from lock()/unlock() 
+     * calls in it, so if the rcvrObject is not in the map then it is "regular"
+     * method call.
+     */
+    final LockExprInfo lockExprInfo =
+        lockExprManager.getJUCLockExprsToLockSets(getEnclosingDecl()).get(rcvrObject);
+    if (lockExprInfo != null) { // JUC Lock call
+      if (!lockExprInfo.isFinal()) { // non-final lock expression
+        final HintDrop info = HintDrop.newWarning(
+            rcvrObject, NON_FINAL_CATEGORY, NON_FINAL_LOCK_EXPR,
+            DebugUnparser.toString(rcvrObject));
+        for (final HeldLock l : lockExprInfo.getLocks()) {
+          l.getLockPromise().addDependent(info);
+        }
+      } else {
+        if (lockExprInfo.isBogus()) { // unidentifiable lock
+          HintDrop.newWarning(
+              rcvrObject, UNIDENTIFIABLE_LOCK_CATEGORY,
+              UNIDENTIFIABLE_LOCK_EXPR, DebugUnparser.toString(rcvrObject));
+        }
+      }
+    } else {
+      if (!TypeUtil.isStatic(methodDecl)) {
+        /*
+         * Check if the receiver is a "safe" object. Already weeded out
+         * lock()/unlock().  Still need to rule out readLock()/writeLock().
+         */
+        if (!lockUtils.isMethodFromJavaUtilConcurrentLocksReadWriteLock(expr)) {
+          receiverIsSafeObject(rcvrObject);
+        }
       }
     }
     
@@ -699,7 +732,7 @@ implements IBinderClient {
   @Override
   public Void visitSynchronizedStatement(final IRNode syncStmt) {
     final IRNode lockExpr = SynchronizedStatement.getLock(syncStmt);
-    final LockExpr acquiringLocks =
+    final LockExprInfo acquiringLocks =
         lockExprManager.getSyncBlock(getEnclosingDecl(), syncStmt);
 
     if (lockUtils.isJavaUtilConcurrentLockObject(lockExpr)) {

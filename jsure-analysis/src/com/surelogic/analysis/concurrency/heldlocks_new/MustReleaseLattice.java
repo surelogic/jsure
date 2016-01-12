@@ -60,7 +60,7 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
   public static MustReleaseLattice createForFlowUnit(
       final IRNode flowUnit, final ThisExpressionBinder thisExprBinder, 
       final LockExpressionManager lockExprManager) {    
-    final Map<IRNode, Set<HeldLock>> map = lockExprManager.getJUCLockExprsToLockSets(flowUnit);
+    final Map<IRNode, Set<HeldLock>> map = lockExprManager.getFinalJUCLockExprs(flowUnit);
     return new MustReleaseLattice(
         thisExprBinder, getLocksFromMap(map, thisExprBinder), map);
   }

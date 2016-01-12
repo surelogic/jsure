@@ -14,7 +14,7 @@ import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.driver.Messages;
-import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExpr;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLockFactory;
@@ -183,7 +183,7 @@ final class LockExpressions {
    * Map from final lock expressions used as the object expressions to lock() or
    * unlock() calls to the JUC locks they resolve to.
    */
-  private final ImmutableMap<IRNode, Set<HeldLock>> jucLockExprsToLockSets;
+  private final ImmutableMap<IRNode, LockExprInfo> jucLockExprsToLockSets;
 
   /** Any JUC locks that are declared in a lock precondition */
   private final ImmutableSet<HeldLock> jucRequiredLocks;
@@ -203,7 +203,7 @@ final class LockExpressions {
    * Map from the synchronized blocks found in the flow unit to the 
    * set of locks acquired by each block.
    */
-  private final ImmutableMap<IRNode, LockExpr> syncBlocks;
+  private final ImmutableMap<IRNode, LockExprInfo> syncBlocks;
   
   /**
    * The set of intrinsic locks that are held throughout the scope of the
@@ -237,7 +237,7 @@ final class LockExpressions {
    * The map from return statements to lock sets.  Only meaningful
    * if the {@link #returnedLock} is not null.
    */
-  private final Map<IRNode, LockExpr> returnStatements;
+  private final Map<IRNode, LockExprInfo> returnStatements;
   
   
   
@@ -250,13 +250,13 @@ final class LockExpressions {
       final ImmutableSet<HeldLock> intrinsicAssumedLocks,
       final ImmutableSet<HeldLock> synchronizedMethodLocks,
       final ImmutableSet<HeldLock> jucClassInit,
-      final ImmutableMap<IRNode, Set<HeldLock>> jucLockExprsToLockSet,
+      final ImmutableMap<IRNode, LockExprInfo> jucLockExprsToLockSet,
       final ImmutableSet<HeldLock> jucRequiredLocks,
       final ImmutableSet<HeldLock> jucSingleThreaded,
       final SingleThreadedData singleThreadedData,
-      final ImmutableMap<IRNode, LockExpr> syncBlocks,
+      final ImmutableMap<IRNode, LockExprInfo> syncBlocks,
       final HeldLock returnedLock,
-      final Map<IRNode, LockExpr> returnStatements) {
+      final Map<IRNode, LockExprInfo> returnStatements) {
     this.intrinsicAssumedLocks = intrinsicAssumedLocks;
     this.synchronizedMethodLocks = synchronizedMethodLocks;
     this.jucClassInit = jucClassInit;
@@ -324,17 +324,27 @@ final class LockExpressions {
   /**
    * Get the map of lock expressions to JUC locks.
    */
-  public Map<IRNode, Set<HeldLock>> getJUCLockExprsToLockSets() {
+  public Map<IRNode, LockExprInfo> getJUCLockExprsToLockSets() {
     return jucLockExprsToLockSets;
   }
   
-  public LockExpr getSyncBlock(final IRNode syncBlock) {
+  public Map<IRNode, Set<HeldLock>> getFinalJUCLockExpr() {
+    final ImmutableMap.Builder<IRNode, Set<HeldLock>> builder = ImmutableMap.builder();
+    for (final Map.Entry<IRNode, LockExprInfo> entry : jucLockExprsToLockSets.entrySet()) {
+      if (entry.getValue().isFinal()) {
+        builder.put(entry.getKey(), entry.getValue().getLocks());
+      }
+    }
+    return builder.build();
+  }
+  
+  public LockExprInfo getSyncBlock(final IRNode syncBlock) {
     return syncBlocks.get(syncBlock);
   }
   
   public Map<IRNode, Set<HeldLock>> getFinalSyncBlocks() {
     final ImmutableMap.Builder<IRNode, Set<HeldLock>> builder = ImmutableMap.builder();
-    for (final Map.Entry<IRNode, LockExpr> entry : syncBlocks.entrySet()) {
+    for (final Map.Entry<IRNode, LockExprInfo> entry : syncBlocks.entrySet()) {
       if (entry.getValue().isFinal()) {
         builder.put(entry.getKey(), entry.getValue().getLocks());
       }
@@ -385,7 +395,7 @@ final class LockExpressions {
     return returnedLock;
   }
   
-  public LockExpr getReturnedLocks(final IRNode rstmt) {
+  public LockExprInfo getReturnedLocks(final IRNode rstmt) {
     return returnStatements.get(rstmt);
   }
   
@@ -409,7 +419,7 @@ final class LockExpressions {
      * Map from final lock expressions used as the object expressions to lock() or
      * unlock() calls to the JUC locks they resolve to.
      */
-    private final ImmutableMap.Builder<IRNode, Set<HeldLock>> jucLockExprsToLockSets = ImmutableMap.builder();
+    private final ImmutableMap.Builder<IRNode, LockExprInfo> jucLockExprsToLockSets = ImmutableMap.builder();
 
     /** Any JUC locks that are declared in a lock precondition */
     private final ImmutableSet.Builder<HeldLock> jucRequiredLocks = ImmutableSet.builder(); 
@@ -430,7 +440,7 @@ final class LockExpressions {
      * Map from the synchronized blocks found in the flow unit to the 
      * set of locks acquired by each block.
      */
-    private final ImmutableMap.Builder<IRNode, LockExpr> syncBlocks = ImmutableMap.builder();
+    private final ImmutableMap.Builder<IRNode, LockExprInfo> syncBlocks = ImmutableMap.builder();
     
     /**
      * The set of intrinsic locks that are held throughout the scope of the
@@ -451,7 +461,7 @@ final class LockExpressions {
     private SingleThreadedData singleThreadedData = null;
     
     private HeldLock returnedLock;
-    private final ImmutableMap.Builder<IRNode, LockExpr> returnStatements = ImmutableMap.builder();
+    private final ImmutableMap.Builder<IRNode, LockExprInfo> returnStatements = ImmutableMap.builder();
 
     
     
@@ -622,9 +632,9 @@ final class LockExpressions {
       if (lockUtils.isMethodFromJavaUtilConcurrentLocksLock(mcall)) {
         final MethodCall call = (MethodCall) JJNode.tree.getOperator(mcall);
         final IRNode lockExpr = call.get_Object(mcall);
-        final LockExpr locks = processLockExpression(
+        final LockExprInfo locks = processLockExpression(
             false, lockExpr, lockExpr, Reason.JUC_LOCK_CALL, null);
-        if (locks.isFinal()) jucLockExprsToLockSets.put(lockExpr, locks.getLocks());
+        jucLockExprsToLockSets.put(lockExpr, locks);
       }
       doAcceptForChildren(mcall);
     }
@@ -632,7 +642,7 @@ final class LockExpressions {
     @Override
     public Void visitSynchronizedStatement(final IRNode syncBlock) {
       final IRNode lockExpr = SynchronizedStatement.getLock(syncBlock);
-      final LockExpr locks = processLockExpression(
+      final LockExprInfo locks = processLockExpression(
           true, lockExpr, syncBlock, Reason.SYNCHRONIZED_STATEMENT, syncBlock);
       syncBlocks.put(syncBlock, locks);
       doAcceptForChildren(syncBlock);
@@ -643,14 +653,14 @@ final class LockExpressions {
     public Void visitReturnStatement(final IRNode rstmt) {
       if (returnedLock != null) {
         // Convert the return statement as a lock expression so it can be checked later
-        final LockExpr retLocks = processLockExpression(
+        final LockExprInfo retLocks = processLockExpression(
             true, ReturnStatement.getValue(rstmt), rstmt, Reason.BOGUS, null);
         returnStatements.put(rstmt, retLocks);
       }
       return null;
     }
     
-    private LockExpr processLockExpression(
+    private LockExprInfo processLockExpression(
         final boolean convertAsIntrinsic, final IRNode lockExpr,
         final IRNode src, final Reason reason, final IRNode syncBlock) {
       final boolean isFinal = lockUtils.isFinalExpression(
@@ -665,12 +675,12 @@ final class LockExpressions {
       final Set<HeldLock> result = lockSet.build();
       
       if (!isFinal) {
-        return new LockExpr(false, result);
+        return new LockExprInfo(false, false, result);
       } else {
         if (result.isEmpty() && !convertAsIntrinsic) {
-          return new LockExpr(true, ImmutableSet.<HeldLock>of(heldLockFactory.createBogusLock(lockExpr)));
+          return new LockExprInfo(true, true, ImmutableSet.<HeldLock>of(heldLockFactory.createBogusLock(lockExpr)));
         } else {
-          return new LockExpr(true, result);
+          return new LockExprInfo(true, false, result);
         }
       }
     }    

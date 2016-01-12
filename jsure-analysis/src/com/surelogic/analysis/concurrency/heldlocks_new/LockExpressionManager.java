@@ -14,16 +14,19 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public final class LockExpressionManager {
-  public final static class LockExpr {
+  public final static class LockExprInfo {
     private final boolean isFinal;
+    private final boolean isBogus;
     private final Set<HeldLock> locks;
     
-    public LockExpr(final boolean isFinal, final Set<HeldLock> locks) {
+    public LockExprInfo(final boolean isFinal, final boolean isBogus, final Set<HeldLock> locks) {
       this.isFinal = isFinal;
+      this.isBogus = isBogus;
       this.locks = locks;
     }
     
     public boolean isFinal() { return isFinal; }
+    public boolean isBogus() { return isBogus; }
     public Set<HeldLock> getLocks() { return locks; }
   }
   
@@ -103,14 +106,18 @@ public final class LockExpressionManager {
   /**
    * Get the map of lock expressions to JUC locks.
    */
-  public Map<IRNode, Set<HeldLock>> getJUCLockExprsToLockSets(final IRNode mdecl) {
+  public Map<IRNode, LockExprInfo> getJUCLockExprsToLockSets(final IRNode mdecl) {
     return getLockExpressionsFor(mdecl).getJUCLockExprsToLockSets();
+  }
+  
+  public Map<IRNode, Set<HeldLock>> getFinalJUCLockExprs(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).getFinalJUCLockExpr();
   }
 
   /**
    * Get the map of synchronized blocks to intrinsic locks.
    */
-  public LockExpr getSyncBlock(final IRNode mdecl, final IRNode syncBlock) {
+  public LockExprInfo getSyncBlock(final IRNode mdecl, final IRNode syncBlock) {
     return getLockExpressionsFor(mdecl).getSyncBlock(syncBlock);
   }
   
@@ -168,7 +175,7 @@ public final class LockExpressionManager {
   /**
    * Get map from return statements to returned locks.
    */
-  public LockExpr getReturnedLocks(final IRNode mdecl, final IRNode rstmt) {
+  public LockExprInfo getReturnedLocks(final IRNode mdecl, final IRNode rstmt) {
     return getLockExpressionsFor(mdecl).getReturnedLocks(rstmt);
   }
 }
