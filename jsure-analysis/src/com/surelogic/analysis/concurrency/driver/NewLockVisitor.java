@@ -452,7 +452,6 @@ implements IBinderClient {
   // ======================================================================
   
   private void reportEffects(final IRNode mdecl) {
-    final SingleThreadedData singleThreaded = lockExprManager.getSingleThreadedData(mdecl);
     final ImplementedEffects implementationEffects = effects.getImplementationEffects(mdecl, bca);
     for (final Effect e : implementationEffects) {
       final IRNode src = e.getSource();
@@ -498,6 +497,14 @@ implements IBinderClient {
            */
           
           // Thread-confined constructor information
+          /* Cannot get this at the top of the method before the loop because
+           * in cases where the flow-unit is an init-block, the queries in the
+           * lockExprManager are not set up correctly (not sure why).  We need
+           * to have the LockExpressiosn object created by the flow analyses that
+           * occur when we query the held locks (via the transformed query),
+           * and then everything works okay.
+           */
+          final SingleThreadedData singleThreaded = lockExprManager.getSingleThreadedData(mdecl);
           if (singleThreaded != null) {
             singleThreaded.addSingleThreadedEvidence(resultDrop);
           }
