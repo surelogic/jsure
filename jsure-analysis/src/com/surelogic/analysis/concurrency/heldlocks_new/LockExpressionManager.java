@@ -8,8 +8,18 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.collect.ImmutableSet;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.KeyValueUtility;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -31,6 +41,77 @@ public final class LockExpressionManager {
     public Set<HeldLock> getLocks() { return locks; }
     public Set<HeldLock> getRealLocks() {
       return isBogus ? ImmutableSet.<HeldLock>of() : locks;
+    }
+  }
+  
+  
+  
+  public final static class SingleThreadedData {
+    private final IRNode cdecl;
+    
+    private final BorrowedPromiseDrop bDrop;
+    private final UniquePromiseDrop uDrop;
+    
+    private final boolean isEffects;
+    private final RegionEffectsPromiseDrop eDrop;
+    private final StartsPromiseDrop teDrop;
+    
+    private final boolean isThreadConfined;
+    
+    public SingleThreadedData(
+        final IRNode cdecl, final BorrowedPromiseDrop bDrop, final UniquePromiseDrop uDrop,
+        final boolean isEffects, final RegionEffectsPromiseDrop eDrop, final StartsPromiseDrop teDrop) {
+      this.cdecl = cdecl;
+      this.bDrop = bDrop;
+      this.uDrop = uDrop;
+      this.isEffects = isEffects;
+      this.eDrop = eDrop;
+      this.teDrop = teDrop;
+      
+      this.isThreadConfined = bDrop != null || uDrop != null || isEffects;
+    }
+    
+    public boolean isSingleThreaded() {
+      return isThreadConfined;
+    }
+    
+    public void addSingleThreadedEvidence(final ResultDrop result) {
+      if (isThreadConfined) {
+        final ResultFolderDrop f = ResultFolderDrop.newOrFolder(result.getNode());
+        result.addTrusted(f);
+        
+        // Copy diff hint if any
+        String diffHint = result.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
+        if (diffHint != null) {
+          final IKeyValue diffInfo = KeyValueUtility.getStringInstance(DiffHeuristics.ANALYSIS_DIFF_HINT, diffHint);         
+          f.addOrReplaceDiffInfo(diffInfo);
+        }
+        f.setMessagesByJudgement(
+            Messages.CONSTRUCTOR_IS_THREADCONFINED,
+            Messages.CONSTRUCTOR_IS_NOT_THREADCONFINED);
+         if (uDrop != null) {
+           final ResultDrop r = new ResultDrop(cdecl);
+           r.setMessage(Messages.RECEIVER_IS_NOT_ALIASED);
+           r.setConsistent();
+           f.addTrusted(r);
+           r.addTrusted(uDrop);
+         }
+         if (bDrop != null) {
+           final ResultDrop r = new ResultDrop(cdecl);
+           r.setMessage(Messages.RECEIVER_IS_NOT_ALIASED);
+           r.setConsistent();
+           f.addTrusted(r);
+           r.addTrusted(bDrop);
+         }
+         if (isEffects) {
+           final ResultDrop r = new ResultDrop(cdecl);
+           r.setMessage(Messages.STARTS_NO_THREADS_ETC);
+           r.setConsistent();
+           r.addTrusted(eDrop);
+           r.addTrusted(teDrop);
+           f.addTrusted(r);
+         }
+      }
     }
   }
   
@@ -151,7 +232,7 @@ public final class LockExpressionManager {
   /**
    * Get the single threaded data block associated with the flow unit.
    */
-  public LockExpressions.SingleThreadedData getSingleThreadedData(final IRNode cdecl) {
+  public SingleThreadedData getSingleThreadedData(final IRNode cdecl) {
     return getLockExpressionsFor(cdecl).getSingleThreadedData();
   }
   

@@ -17,6 +17,7 @@ import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuer
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.IntrinsicLockAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.SingleThreadedData;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils.LockMethods;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
@@ -451,6 +452,7 @@ implements IBinderClient {
   // ======================================================================
   
   private void reportEffects(final IRNode mdecl) {
+    final SingleThreadedData singleThreaded = lockExprManager.getSingleThreadedData(mdecl);
     final ImplementedEffects implementationEffects = effects.getImplementationEffects(mdecl, bca);
     for (final Effect e : implementationEffects) {
       final IRNode src = e.getSource();
@@ -494,6 +496,11 @@ implements IBinderClient {
           /* XXX: Too many sources of evidence.  Why should I have to look at
            * XXX: the lock, the effect, and the target???
            */
+          
+          // Thread-confined constructor information
+          if (singleThreaded != null) {
+            singleThreaded.addSingleThreadedEvidence(resultDrop);
+          }
           
           // Add held locks as supporting information
           for (final HeldLock heldLock : heldLocks) {

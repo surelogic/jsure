@@ -13,8 +13,8 @@ import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.SingleThreadedData;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLockFactory;
@@ -31,17 +31,12 @@ import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.Pair;
-import com.surelogic.dropsea.IKeyValue;
-import com.surelogic.dropsea.KeyValueUtility;
-import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
-import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -109,75 +104,7 @@ final class LockExpressions {
     }    
   }
 
-  
-  
-  public final static class SingleThreadedData {
-    public final IRNode cdecl;
-    
-    public final boolean isBorrowedThis;
-    public final BorrowedPromiseDrop bDrop;
 
-    public final boolean isUniqueReturn;
-    public final UniquePromiseDrop uDrop;
-    
-    public final boolean isEffects;
-    public final RegionEffectsPromiseDrop eDrop;
-    public final StartsPromiseDrop teDrop;
-    
-    public final boolean isSingleThreaded;
-    
-    public SingleThreadedData(final IRNode cdecl,
-        final boolean isBorrowedThis, final BorrowedPromiseDrop bDrop,
-        final boolean isUniqueReturn, final UniquePromiseDrop uDrop,
-        final boolean isEffects,
-        final RegionEffectsPromiseDrop eDrop, final StartsPromiseDrop teDrop) {
-      this.cdecl = cdecl;
-      this.isBorrowedThis = isBorrowedThis;
-      this.bDrop = bDrop;
-      this.isUniqueReturn = isUniqueReturn;
-      this.uDrop = uDrop;
-      this.isEffects = isEffects;
-      this.eDrop = eDrop;
-      this.teDrop = teDrop;
-      this.isSingleThreaded = isUniqueReturn || isBorrowedThis || isEffects;
-    }
-    
-    public void addSingleThreadedEvidence(final ResultDrop result) {
-     final ResultFolderDrop f = ResultFolderDrop.newOrFolder(result.getNode());
-     result.addTrusted(f);
-     
-     // Copy diff hint if any
-     String diffHint = result.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
-     if (diffHint != null) {
-    	 final IKeyValue diffInfo = KeyValueUtility.getStringInstance(DiffHeuristics.ANALYSIS_DIFF_HINT, diffHint);         
-    	 f.addOrReplaceDiffInfo(diffInfo);
-     }
-     f.setMessagesByJudgement(Messages.CONSTRUCTOR_IS_THREADCONFINED,
-         Messages.CONSTRUCTOR_IS_NOT_THREADCONFINED);
-      if (isUniqueReturn) {
-        final ResultDrop r = new ResultDrop(cdecl);
-        r.setMessage(Messages.RECEIVER_IS_NOT_ALIASED);
-        r.setConsistent();
-        f.addTrusted(r);
-        r.addTrusted(uDrop);
-      }
-      if (isBorrowedThis) {
-        final ResultDrop r = new ResultDrop(cdecl);
-        r.setMessage(Messages.RECEIVER_IS_NOT_ALIASED);
-        r.setConsistent();
-        f.addTrusted(r);
-        r.addTrusted(bDrop);
-      }
-      if (isEffects) {
-        final ResultDrop r = new ResultDrop(cdecl);
-        r.setMessage(Messages.STARTS_NO_THREADS_ETC);
-        r.setConsistent();
-        r.addTrusted(eDrop);
-        r.addTrusted(teDrop);
-        f.addTrusted(r);
-      }
-    }
-  }
   
   /**
    * Map from final lock expressions used as the object expressions to lock() or
@@ -490,20 +417,14 @@ final class LockExpressions {
      *          The receiver declaration node associated with the constructor
      *          declaration.
      */
-    /* Could move this to LockExpressions, but I like it better here because
-     * LockUtils contains all the methods for complex operations involving lock
-     * semantics.
-     */
-    private LockExpressions.SingleThreadedData isConstructorSingleThreaded(
+    private SingleThreadedData isConstructorSingleThreaded(
         final IRNode cdecl, final IRNode rcvrDecl) {
       // get the receiver and see if it is declared to be borrowed
       final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(rcvrDecl);
-      final boolean isBorrowedThis = bDrop != null;
       
       // See if the return value is declared to be unique
       final IRNode returnNode = JavaPromise.getReturnNodeOrNull(cdecl);
       final UniquePromiseDrop uDrop = UniquenessRules.getUnique(returnNode);
-      final boolean isUniqueReturn = uDrop != null;
 
       /*
        * See if the declared *write* effects are < "writes this.Instance" (Can
@@ -530,8 +451,7 @@ final class LockExpressions {
           }
         }
       }
-      return new SingleThreadedData(cdecl, isBorrowedThis, bDrop,
-          isUniqueReturn, uDrop, isEffectsWork, eDrop, teDrop);
+      return new SingleThreadedData(cdecl, bDrop, uDrop, isEffectsWork, eDrop, teDrop);
     }
 
     
@@ -593,7 +513,7 @@ final class LockExpressions {
       
       final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(cdecl);
       singleThreadedData = isConstructorSingleThreaded(cdecl, rcvr);
-      if (singleThreadedData.isSingleThreaded) {
+      if (singleThreadedData.isSingleThreaded()) {
         analysisLockModel.get().getHeldLocksFromSingleThreadedConstructor(cdecl, intrinsicAssumedLocks, jucSingleThreaded, heldLockFactory);
       }
       
