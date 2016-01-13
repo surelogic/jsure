@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.collect.ImmutableSet;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.dropsea.IKeyValue;
@@ -47,6 +46,11 @@ public final class LockExpressionManager {
   
   
   public final static class SingleThreadedData {
+    private static final int CONSTRUCTOR_IS_THREAD_CONFINED = 2070;
+    private static final int CONSTRUCTOR_IS_NOT_THREAD_CONFINED = 2071;
+    private static final int RECEIVER_IS_NOT_ALIASED = 2072;
+    private static final int STARTS_NO_THREADS_ETC = 2073;
+    
     private final IRNode cdecl;
     
     private final BorrowedPromiseDrop bDrop;
@@ -87,25 +91,25 @@ public final class LockExpressionManager {
           f.addOrReplaceDiffInfo(diffInfo);
         }
         f.setMessagesByJudgement(
-            Messages.CONSTRUCTOR_IS_THREADCONFINED,
-            Messages.CONSTRUCTOR_IS_NOT_THREADCONFINED);
+            CONSTRUCTOR_IS_THREAD_CONFINED,
+            CONSTRUCTOR_IS_NOT_THREAD_CONFINED);
          if (uDrop != null) {
            final ResultDrop r = new ResultDrop(cdecl);
-           r.setMessage(Messages.RECEIVER_IS_NOT_ALIASED);
+           r.setMessage(RECEIVER_IS_NOT_ALIASED);
            r.setConsistent();
            f.addTrusted(r);
            r.addTrusted(uDrop);
          }
          if (bDrop != null) {
            final ResultDrop r = new ResultDrop(cdecl);
-           r.setMessage(Messages.RECEIVER_IS_NOT_ALIASED);
+           r.setMessage(RECEIVER_IS_NOT_ALIASED);
            r.setConsistent();
            f.addTrusted(r);
            r.addTrusted(bDrop);
          }
          if (isEffects) {
            final ResultDrop r = new ResultDrop(cdecl);
-           r.setMessage(Messages.STARTS_NO_THREADS_ETC);
+           r.setMessage(STARTS_NO_THREADS_ETC);
            r.setConsistent();
            r.addTrusted(eDrop);
            r.addTrusted(teDrop);
