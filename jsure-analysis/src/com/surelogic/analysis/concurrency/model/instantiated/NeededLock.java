@@ -4,6 +4,7 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.analysis.MethodCallUtils.EnclosingRefs;
 import com.surelogic.analysis.concurrency.model.declared.ModelLock;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -92,4 +93,10 @@ public interface NeededLock extends InstantiatedLock {
   public NeededLock getDerivedFrom();
   
   public String unparseForMessage();
+  
+  /**
+   * Get the proposed RequiresLock annotation that would make this lock
+   * satisfied, or null if there isn't one.
+   */
+  public ProposedPromiseDrop getProposedRequiresLock(IRNode mdecl, IRNode src);
 }

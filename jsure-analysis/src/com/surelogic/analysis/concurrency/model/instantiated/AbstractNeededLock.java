@@ -1,8 +1,12 @@
 package com.surelogic.analysis.concurrency.model.instantiated;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.analysis.concurrency.model.implementation.LockImplementation;
+import com.surelogic.analysis.concurrency.model.implementation.NamedLockImplementation;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -29,6 +33,11 @@ implements NeededLock {
   }
   
   
+  
+  @Override
+  public final boolean isStatic() {
+    return lockImpl.isStatic();
+  }
   
   @Override
   public final boolean isIntrinsic(final IBinder binder) {
@@ -58,5 +67,17 @@ implements NeededLock {
   @Override
   public final boolean needsWrite() {
     return needsWrite;
+  }
+  
+  @Override
+  public ProposedPromiseDrop getProposedRequiresLock(
+      final IRNode mdecl, final IRNode src) {
+    if (lockImpl instanceof NamedLockImplementation) {
+      final Builder b = new Builder(RequiresLock.class, mdecl, src);
+      b.setValue(((NamedLockImplementation) lockImpl).getName());
+      return b.build();
+    } else {
+      return null;
+    }
   }
 }

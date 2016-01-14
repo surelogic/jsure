@@ -105,6 +105,11 @@ public final class BogusLock implements HeldLock {
   }
   
   @Override
+  public final boolean isStatic() {
+    return false;
+  }
+  
+  @Override
   public final boolean isIntrinsic(final IBinder binder) {
     return false;
   }

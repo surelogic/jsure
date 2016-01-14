@@ -60,6 +60,11 @@ implements HeldLock {
   }
   
   @Override
+  public final boolean isStatic() {
+    return lockImpl.isStatic();
+  }
+  
+  @Override
   public final boolean isIntrinsic(final IBinder binder) {
     return lockImpl.isIntrinsic(binder);
   }

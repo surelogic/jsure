@@ -20,6 +20,11 @@ public interface InstantiatedLock {
    */
   public IRNode getSource();
   
+  /**
+   * Is the lock static?
+   */
+  public boolean isStatic();
+  
   /** 
    * Returns whether the lock is an intrinsic Java lock, that is one that
    * is acquired using <code>synchronized</code> blocks.  This is mutually 

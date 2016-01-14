@@ -492,9 +492,7 @@ implements IBinderClient {
           resultDrop.setCategorizingMessage(
               neededLock.getReason().getCategory(success));
           
-          /* XXX: Too many sources of evidence.  Why should I have to look at
-           * XXX: the lock, the effect, and the target???
-           */
+          // ==== Add evidence and supporting information ====
           
           // Thread-confined constructor information
           /* Cannot get this at the top of the method before the loop because
@@ -544,6 +542,23 @@ implements IBinderClient {
                   EnclosingRefEvidence.unparseRef(ere.getEnclosingRef()));
             }
           }.accept(e.getTarget().getEvidence());
+          
+          // ==== Add proposals ==== 
+          
+          if (!success) {
+            if (singleThreaded == null) { // method
+              resultDrop.addProposal(
+                  neededLock.getProposedRequiresLock(getEnclosingDecl(), src));
+            } else { // constructor
+              if (neededLock.isStatic()) {
+                resultDrop.addProposal(
+                    neededLock.getProposedRequiresLock(getEnclosingDecl(), src));
+              } else {
+                resultDrop.addProposal(
+                    new Builder(Unique.class, getEnclosingDecl(), src).setValue("return").build());
+              }
+            }
+          }
         }
         
         
