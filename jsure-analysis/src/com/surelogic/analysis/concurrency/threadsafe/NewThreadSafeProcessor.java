@@ -53,7 +53,7 @@ public final class NewThreadSafeProcessor extends TypeImplementationProcessor {
   private static final int FIELD_IS_NOT_FINAL = 409;
   private static final int FIELD_IS_VOLATILE = 410;
   private static final int FIELD_IS_NOT_VOLATILE = 411;
-  private static final int FIELD_IS_PROTECTED = 412;
+  private static final int FIELD_IS_PROTECTED = 440;
   private static final int FIELD_IS_NOT_PROTECTED = 413;
   private static final int OBJECT_IS_PROTECTED = 414;
   private static final int OBJECT_IS_NOT_PROTECTED = 415;
@@ -68,7 +68,7 @@ public final class NewThreadSafeProcessor extends TypeImplementationProcessor {
   private static final int TYPE_IS_NOT_CONTAINABLE = 424;
   private static final int FIELD_IS_UNIQUE = 425;
   private static final int FIELD_IS_NOT_UNIQUE = 426;
-  private static final int DEST_REGION_PROTECTED = 427;
+  private static final int DEST_REGION_PROTECTED = 441;
   private static final int DEST_REGION_UNPROTECTED = 428;
   private static final int CONTAINABLE_IMPL = 429;
   private static final int TRIVIALLY_THREADSAFE_STATIC_ONLY = 430;
@@ -219,7 +219,7 @@ public final class NewThreadSafeProcessor extends TypeImplementationProcessor {
           getLockForRegion(stateLocks, RegionModel.getInstance(varDecl));
       if (fieldLock != null) {
         final ResultDrop result = ResultsBuilder.createResult(
-            true, part1Folder, varDecl, FIELD_IS_PROTECTED, "*REPLACE LATER*");
+            true, part1Folder, varDecl, FIELD_IS_PROTECTED);
         result.addTrusted(fieldLock.getSourceAnnotation());
       } else {
         ResultsBuilder.createResult(false, part1Folder, varDecl, FIELD_IS_NOT_PROTECTED);
@@ -353,7 +353,7 @@ public final class NewThreadSafeProcessor extends TypeImplementationProcessor {
           if (lock != null) {
             final ResultDrop aggResult = ResultsBuilder.createResult(
                 true, containableFolder, varDecl, DEST_REGION_PROTECTED,
-                destRegion.getName(), "*REPLACE LATER*");
+                destRegion.getName());
             aggResult.addTrusted(lock.getSourceAnnotation());
           } else {
             ResultsBuilder.createResult(false, containableFolder, varDecl,

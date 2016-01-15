@@ -70,6 +70,7 @@ import com.surelogic.annotation.scrub.AnnotationScrubberContext;
 import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.util.*;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
@@ -1649,9 +1650,13 @@ public class LockRules extends AnnotationRules {
            * a final instance field. whose type is a user-declared type.
            */
           if (ParameterDeclaration.prototype.includes(n)) {
-            if (!TypeUtil.isJSureFinal(n) ) {
-              report.reportError("Parameter must be final", base);
-              isBad = true;
+            if (!TypeUtil.isJSureFinal(n)) {
+              final IJavaRef srcRef = JavaNode.getJavaRef(n);
+              // only complain if the annotation is in real source code.  
+              if (srcRef != null && srcRef.isFromSource()) {
+                report.reportError("Parameter must be final", base);
+                isBad = true;
+              }
             }
           }
           if (VariableDeclarator.prototype.includes(n)) {
