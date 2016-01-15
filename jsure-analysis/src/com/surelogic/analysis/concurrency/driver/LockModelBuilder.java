@@ -85,14 +85,6 @@ extends AbstractWholeIRAnalysis<IBinderClient, CUDrop> {
         newLockModel.addGuardedByDelaration(guardedByDrop);
       }
     }		
-//
-//    try {
-//      final PrintWriter pw = new PrintWriter("/Users/aarong/model.txt");
-//      newLockModel.dumpModel(pw);
-//      pw.close();
-//    } catch (IOException e) {
-//      // eat it
-//    }
     
 		// Share the new global lock model with the lock visitor, and other
 		// helpers

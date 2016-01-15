@@ -56,6 +56,10 @@ public final class AnalysisDefaults {
 		    init("com.surelogic.analysis.concurrency.driver.LockModelBuilder",
 		        "com.surelogic.jsure.client.eclipse.LockModelBuilder", true,
 		        "Lock Model Builder");
+		init("com.surelogic.analysis.concurrency.driver.ThreadSafeAnalysis",
+		    "com.surelogic.jsure.client.eclipse.ThreadSafe", false,
+		    "ThreadSafe / Containable / Immutable", lockBuilder, annoBoundsChecking);
+		
     init("com.surelogic.analysis.concurrency.driver.NewLockAnalysis",
         "com.surelogic.jsure.client.eclipse.LockAssurance4", false, "New Lock policy",
         lockBuilder);
@@ -98,19 +102,6 @@ public final class AnalysisDefaults {
 		init("com.surelogic.analysis.testing.FinalModule", "com.surelogic.jsure.client.eclipse.Final", false, "Final Declarations (for reg tests only)");
 
 		init("com.surelogic.analysis.jtb.TestFunctionalInterfacePseudoAnalysis","com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
-		/*
-		AnalysisInfo[] deps = new AnalysisInfo[3];
-		deps[0] = init(Module_IRAnalysis.class, 
-				"com.surelogic.jsure.client.eclipse.ModuleAnalysis2", false, "");
-		deps[1] = init(ThreadRoleZerothPass.class,
-				"com.surelogic.jsure.client.eclipse.ThreadRoleZerothPass1", false, "", 
-				deps[0]);
-		deps[2] = init(ManageThreadRoleAnnos.class,
-				"com.surelogic.jsure.client.eclipse.ManageThreadRoleAnnos1", false, "", 
-				deps[0], deps[1]);
-		init(ThreadRoleAssurance.class,
-				"com.surelogic.jsure.client.eclipse.ThreadRoleAssurance1", false, "", deps);
-		 */
 	}
 	
 	private AnalysisDefaults() {

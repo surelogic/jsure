@@ -1261,4 +1261,12 @@ public final class AnalysisLockModel {
       return current.getAllLocksInClass(includeMutex);
     }
   }
+  
+  public Set<StateLock<?, ?>> getAllStateLocksIn(final IJavaType type) {
+    final ImmutableSet.Builder<StateLock<?, ?>> builder = ImmutableSet.builder();
+    for (final StateLock<?, ?> lock : getClazzFor(type).getAllStateLocksInClass()) {
+      builder.add(lock);
+    }
+    return builder.build();
+  }
 }

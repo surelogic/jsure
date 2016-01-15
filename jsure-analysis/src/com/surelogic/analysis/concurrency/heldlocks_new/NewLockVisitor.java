@@ -1,4 +1,4 @@
-package com.surelogic.analysis.concurrency.driver;
+package com.surelogic.analysis.concurrency.heldlocks_new;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -15,15 +15,10 @@ import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.concurrency.heldlocks_new.IntrinsicLockAnalysis;
-import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager;
-import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.SingleThreadedData;
-import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils;
-import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils.LockMethods;
-import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.SingleThreadedData;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils.LockMethods;
 import com.surelogic.analysis.concurrency.heldlocks_new.MustHoldAnalysis.HeldLocks;
-import com.surelogic.analysis.concurrency.heldlocks_new.MustReleaseAnalysis;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.declared.ModelLock;
 import com.surelogic.analysis.concurrency.model.declared.StateLock;
@@ -70,7 +65,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
-final class NewLockVisitor
+public final class NewLockVisitor
 extends FlowUnitVisitor<NewLockVisitor.Queries>
 implements IBinderClient {
   private static final int PRECONDITION_NOT_ASSURED_CATEGORY = 2007;

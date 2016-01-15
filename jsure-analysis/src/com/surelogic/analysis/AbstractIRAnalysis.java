@@ -153,6 +153,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
     throw new NotImplemented();
   }
 
+  @Override
   public boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud) {
     return doAnalysisOnAFile(env, cud, cud.getCompilationUnitIRNode());
   }

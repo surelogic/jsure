@@ -8,6 +8,7 @@ import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.driver.LockModelBuilder;
+import com.surelogic.analysis.concurrency.heldlocks_new.NewLockVisitor;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.SuperVisitor;
@@ -44,7 +45,6 @@ extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, NewLockVisitor, 
 	    final IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
     final Driver driver = new Driver();
     driver.doAccept(compUnit);
-//    getAnalysis().clear();
     return true;
 	}
 	
