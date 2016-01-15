@@ -27,14 +27,10 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
-		runOverFile(compUnit);
+		final LV_Visitor v = new LV_Visitor();
+    v.doAccept(compUnit);
 		return true;
 	}
-
-	protected void runOverFile(final IRNode compUnit) {
-	  final LV_Visitor v = new LV_Visitor();
-	  v.doAccept(compUnit);
-	}	
 	
 	@Override
 	protected void clearCaches() {

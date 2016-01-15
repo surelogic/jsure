@@ -13,7 +13,6 @@ import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.assigned.DefiniteAssignment;
-import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.SingleThreadedData;
@@ -98,8 +97,8 @@ implements IBinderClient {
   
   private static final int SYNCED_LOCK_OBJECT = 2055;
   
-  private static final int DSC_EFFECTS = 550;
-  private static final int EFFECT = 550;
+//  private static final int DSC_EFFECTS = 550;
+//  private static final int EFFECT = 550;
   
   private static final int LOCK_DIFFERENT_NUMBER = 2060;
   private static final int LOCK_NO_MATCHES = 2061;
@@ -127,8 +126,8 @@ implements IBinderClient {
   
   /* Analyses for creating queries */
   private final BindingContextAnalysis bca;
-  private final SimpleNonnullAnalysis simpleNonNull; // no queries needed for this one
-  private final DefiniteAssignment definiteAssignment;
+//  private final SimpleNonnullAnalysis simpleNonNull; // no queries needed for this one
+//  private final DefiniteAssignment definiteAssignment;
   private final IntrinsicLockAnalysis intrinsicLocks;
   private final MustHoldAnalysis mustHold;
   private final MustReleaseAnalysis mustRelease;
@@ -146,10 +145,13 @@ implements IBinderClient {
     this.effects = new Effects(binder, analysisLockModel);
     
     this.bca = bca;
-    this.simpleNonNull = new SimpleNonnullAnalysis(binder);
-    this.definiteAssignment = new DefiniteAssignment(binder);
+//    this.simpleNonNull = new SimpleNonnullAnalysis(binder);
+//    this.definiteAssignment = new DefiniteAssignment(binder);
     
+    final SimpleNonnullAnalysis simpleNonNull = new SimpleNonnullAnalysis(binder);
+    final DefiniteAssignment definiteAssignment = new DefiniteAssignment(binder);
     final IMayAlias mayAlias = new TypeBasedMayAlias(binder);
+    
     this.lockUtils = new LockUtils(analysisLockModel, thisExprBinder, effects, mayAlias);
     this.lockExprManager = new LockExpressionManager(lockUtils, binder, analysisLockModel, bca, definiteAssignment);
     this.intrinsicLocks = new IntrinsicLockAnalysis(binder, lockUtils, lockExprManager, simpleNonNull);
@@ -164,16 +166,16 @@ implements IBinderClient {
   // ======================================================================
   
   final class Queries implements HasSubQuery {
-    private final BindingContextAnalysis.Query exprObjects;
-    private final ProvablyUnassignedQuery provablyUnassigned;
+//    private final BindingContextAnalysis.Query exprObjects;
+//    private final ProvablyUnassignedQuery provablyUnassigned;
     private final IntrinsicLockAnalysis.Query heldIntrinsicLocks;
     private final JavaFlowAnalysisQuery<HeldLocks> heldJUCLocks;
     private final MustHoldAnalysis.LocksForQuery lockCalls;
     private final MustReleaseAnalysis.Query unlockCalls;
 
     public Queries(final IRNode decl) {
-      exprObjects = bca.getExpressionObjectsQuery(decl);
-      provablyUnassigned = definiteAssignment.getProvablyUnassignedQuery(decl);
+//      exprObjects = bca.getExpressionObjectsQuery(decl);
+//      provablyUnassigned = definiteAssignment.getProvablyUnassignedQuery(decl);
       heldIntrinsicLocks = intrinsicLocks.getHeldLocksQuery(decl);
       heldJUCLocks = mustHold.getHeldLocksQuery(decl);
       lockCalls = mustHold.getLocksForQuery(decl);
@@ -181,8 +183,8 @@ implements IBinderClient {
     }
     
     private Queries(final Queries q, final IRNode caller) {
-      exprObjects = q.exprObjects.getSubAnalysisQuery(caller);
-      provablyUnassigned = q.provablyUnassigned.getSubAnalysisQuery(caller);
+//      exprObjects = q.exprObjects.getSubAnalysisQuery(caller);
+//      provablyUnassigned = q.provablyUnassigned.getSubAnalysisQuery(caller);
       heldIntrinsicLocks = q.heldIntrinsicLocks.getSubAnalysisQuery(caller);
       heldJUCLocks = q.heldJUCLocks.getSubAnalysisQuery(caller);
       lockCalls = q.lockCalls.getSubAnalysisQuery(caller);
@@ -447,15 +449,16 @@ implements IBinderClient {
   // ======================================================================
   
   private void reportEffects(final IRNode mdecl) {
-    final ImplementedEffects implementationEffects = effects.getImplementationEffects(mdecl, bca);
+    final ImplementedEffects implementationEffects =
+        effects.getImplementationEffects(mdecl, bca);
     for (final Effect e : implementationEffects) {
       final IRNode src = e.getSource();
       final QueryTransformer qt = implementationEffects.getTransformerFor(src);
       final Queries queries = qt.transform(currentQuery());
       
-      // ======== DEBUG ========
-      HintDrop.newInformation(src, DSC_EFFECTS, EFFECT, e.toString());
-      // ======== DEBUG ========
+//      // ======== DEBUG ========
+//      HintDrop.newInformation(src, DSC_EFFECTS, EFFECT, e.toString());
+//      // ======== DEBUG ========
 
       
       /* Look for unresolveable locks. */
@@ -558,12 +561,12 @@ implements IBinderClient {
         
         
         
-        // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
-        for (final HeldLock heldLock : heldLocks) {
-          HintDrop.newInformation(src, DSC_EFFECTS,
-              551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
-        }
-        // ===============================================================
+//        // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
+//        for (final HeldLock heldLock : heldLocks) {
+//          HintDrop.newInformation(src, DSC_EFFECTS,
+//              551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
+//        }
+//        // ===============================================================
       }
     }
   }

@@ -31,4 +31,5 @@ final class Messages {
   public static final int ALIASED_PARAMETERS = 540;
 
   public static final int EFFECT = 550;
+  public static final int HOLDS_LOCKS = 551;
 }
