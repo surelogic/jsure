@@ -1417,6 +1417,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 					  return false;
 				  }				  
 			  }
+			  return true;
 		  }
 	  }
 	  return false;
