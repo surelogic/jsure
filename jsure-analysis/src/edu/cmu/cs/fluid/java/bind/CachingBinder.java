@@ -68,6 +68,12 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 			}
 			activeCUs.add(tree);
 		}
+		// Moved up to cache as we go
+		if (isUJB) {
+			UnversionedJavaBinder ub = (UnversionedJavaBinder) orig;
+			//ub.getBindings(bindingCache, tree);
+			ub.setBinderCache(this);
+		}
 		for(IRNode n : JJNode.tree.bottomUp(tree)) {
 			final Operator op = JJNode.tree.getOperator(n);
 			/*
@@ -96,12 +102,6 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 					typeCache.put(n, t);
 				}
 			}
-		}
-		
-		if (isUJB) {
-			UnversionedJavaBinder ub = (UnversionedJavaBinder) orig;
-			//ub.getBindings(bindingCache, tree);
-			ub.setBinderCache(this);
 		}
 	}
 
