@@ -767,13 +767,13 @@ implements IBinderClient {
           final Set<IRNode> locks = currentQuery().getLocksFor(expr);
           if (locks == null) {
             final HintDrop hint = HintDrop.newWarning(
-                expr, LOCK_UNLOCK_MATCHES, UNLOCK_DIFFERENT_NUMBER, methodName);
+                expr, LOCK_UNLOCK_MATCHES, UNLOCK_DIFFERENT_NUMBER);
             for (final HeldLock lock : lockExprInfo.getRealLocks()) {
               lock.getLockPromise().addDependent(hint);
             }
           } else if (locks.isEmpty()) {
             final HintDrop hint = HintDrop.newWarning(
-                expr, LOCK_UNLOCK_MATCHES, UNLOCK_NO_MATCHES, methodName);
+                expr, LOCK_UNLOCK_MATCHES, UNLOCK_NO_MATCHES);
             for (final HeldLock lock : lockExprInfo.getRealLocks()) {
               lock.getLockPromise().addDependent(hint);
             }
@@ -783,7 +783,8 @@ implements IBinderClient {
               final IJavaRef javaRef = JavaNode.getJavaRef(where);
               if (javaRef != null) lineNumber = javaRef.getLineNumber();
               final HintDrop hint = HintDrop.newInformation(
-                  expr, LOCK_UNLOCK_MATCHES, UNLOCK_MATCH, methodName, lineNumber);
+                  expr, LOCK_UNLOCK_MATCHES, UNLOCK_MATCH,
+                  MethodCall.getMethod(where), lineNumber);
               for (final HeldLock lock : lockExprInfo.getRealLocks()) {
                 lock.getLockPromise().addDependent(hint);
               }

@@ -524,8 +524,7 @@ public final class LockUtils {
     private HeldLock convertReturnedLock(
         final IRNode methodCall, final boolean isWrite) {
       final IRNode methodDecl = thisExprBinder.getBinding(methodCall);
-      final IRNode returnNode = JavaPromise.getReturnNodeOrNull(methodDecl);
-      final ReturnsLockPromiseDrop returnsLock = LockRules.getReturnedLock(returnNode);
+      final ReturnsLockPromiseDrop returnsLock = LockRules.getReturnedLock(methodDecl);
       if (returnsLock != null) {
         final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
             thisExprBinder, methodCall, methodDecl, enclosingDecl);
