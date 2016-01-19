@@ -1759,11 +1759,12 @@ public class MethodBinder8 implements IMethodBinder {
     		}
     		*/
     		// Need to check if this is Java 8+ code
-    		if (mb.tEnv.getMajorJavaVersion() >= 8 && mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
+    		//if (false && mb.tEnv.getMajorJavaVersion() >= 8 && mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
+    		if (mb.typeInfer.isGenericMethodRef(m)) {
         		// Don't include instantiations from computing applicability since they may not be right
     			// TODO what if the return type is a type formal, and needs some kind of substitution?
     			
-    			//System.out.println("Omitting type substitution since source level is Java 8+");
+    			//System.out.println("Omitting type substitution since source level is Java 8+: "+mb.tEnv);
     			newB = m.bind;
     		} else {
         		final BoundSet result = TypeInference8.resolve(b, null, debug);    		
