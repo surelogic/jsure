@@ -41,7 +41,7 @@ public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<Defi
   
   private final class DefinitelyAssignedVisitor extends AbstractJavaAnalysisDriver<AllResultsQuery> {
     public DefinitelyAssignedVisitor() {
-      super(true, false);
+      super(SkipAnnotations.YES, CreateTransformer.NO);
     }
     
     @Override

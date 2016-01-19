@@ -13,7 +13,7 @@ public abstract class SuperVisitor extends FlowUnitFinder {
   
   
   
-  protected SuperVisitor(final boolean skipA) {
+  protected SuperVisitor(final SkipAnnotations skipA) {
     super(skipA);
     subVisitors = createSubVisitors();
   }

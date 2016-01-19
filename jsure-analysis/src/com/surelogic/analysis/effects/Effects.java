@@ -44,6 +44,7 @@ import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver.CreateTransformer;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
@@ -53,6 +54,7 @@ import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDro
 import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.analysis.QueryTransformer;
@@ -222,7 +224,7 @@ public final class Effects implements IBinderClient {
   public ImplementedEffects getImplementationEffects(
       final IRNode flowUnit, final BindingContextAnalysis bca) {
     final EffectsVisitor visitor = new EffectsVisitor(
-        flowUnit, bca.getExpressionObjectsQuery(flowUnit), true);
+        flowUnit, bca.getExpressionObjectsQuery(flowUnit), CreateTransformer.YES);
     visitor.doAccept(flowUnit);
     return visitor.getResult();
   }
@@ -761,8 +763,8 @@ public final class Effects implements IBinderClient {
      */
     public EffectsVisitor(final IRNode flowUnit,
         final BindingContextAnalysis.Query query,
-        final boolean createTransformers) {
-      super(false, flowUnit, true, createTransformers);
+        final CreateTransformer createTransformers) {
+      super(VisitInsideTypes.NO, flowUnit, SkipAnnotations.YES, createTransformers);
       thisExprBinder = new EVThisExpressionBinder(binder);
       lockFactory = new NeededLockFactory(thisExprBinder);
       INSTANCE_REGION = RegionModel.getInstanceRegion(flowUnit);    
@@ -1040,6 +1042,7 @@ public final class Effects implements IBinderClient {
 
     @Override
     public Void visitFieldRef(final IRNode expr) {
+      final String xxx = DebugUnparser.toString(expr);
       final boolean isRead = context.isRead();    
       final IRNode id = thisExprBinder.getBinding(expr);
       
@@ -1497,7 +1500,7 @@ public final class Effects implements IBinderClient {
     @Override
     public Set<Effect> getResultFor(final IRNode expr) {
       final EffectsVisitor visitor =
-          new EffectsVisitor(flowUnit, bcaQuery, false);
+          new EffectsVisitor(flowUnit, bcaQuery, CreateTransformer.NO);
       visitor.doAccept(expr);
       return visitor.getResult().effects();
     }

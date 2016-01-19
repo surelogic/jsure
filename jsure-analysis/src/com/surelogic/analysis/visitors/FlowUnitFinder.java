@@ -19,13 +19,13 @@ public abstract class FlowUnitFinder extends JavaSemanticsVisitor {
   
   
   
-  protected FlowUnitFinder(final boolean skipA) {
+  protected FlowUnitFinder(final SkipAnnotations skipA) {
     /* Want to go into nested classes to find the methods, etc. of them.  But
      * until today (2015-12-02) the methods handleClassInitDeclaration(), etc.,
      * below were wrong.  I forgot to continue the visitation by calling 
      * the super implementation!
      */
-    super(true, skipA);
+    super(VisitInsideTypes.YES, skipA);
     callback = createCallback();
   }
   

@@ -49,12 +49,10 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
 	
   static final class TypesVisitor extends JavaSemanticsVisitor implements IBinderClient {
     private final IBinder binder;
-//    private final TypesModule tm;
     
     public TypesVisitor(final IBinder b, final TypesModule tm) {
-      super(true, false);
+      super(VisitInsideTypes.YES, SkipAnnotations.NO);
       this.binder = b;
-//      this.tm = tm;
     }
 
     private void showType(final IRNode e) {

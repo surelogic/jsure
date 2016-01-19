@@ -173,7 +173,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   
   private final class Driver extends SuperVisitor {
     public Driver() {
-      super(true);
+      super(SkipAnnotations.YES);
     }
     
     @Override
@@ -205,7 +205,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     private final AnalysisBundle bundle;
     
     public DetailVisitor(final AnalysisBundle b) {
-      super(true);
+      super(SkipAnnotations.YES);
       bundle = b;
     }
     

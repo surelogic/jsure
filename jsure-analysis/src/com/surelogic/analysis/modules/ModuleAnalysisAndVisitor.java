@@ -9,7 +9,6 @@ package com.surelogic.analysis.modules;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +18,7 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.IBinderClient;
 //import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor.VisitInsideTypes;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -30,15 +30,13 @@ import com.surelogic.dropsea.ir.drops.modules.ModulePromiseDrop;
 import com.surelogic.dropsea.ir.drops.modules.VisibilityDrop;
 //import com.surelogic.dropsea.ir.drops.threadroles.SimpleCallGraphDrop;
 
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
@@ -104,12 +102,12 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
   
   public class JavaSemanticsMAVisitor extends JavaSemanticsVisitor {
 
-	  protected JavaSemanticsMAVisitor(boolean goInside) {
-		  super(goInside, false);
+	  protected JavaSemanticsMAVisitor(VisitInsideTypes goInside) {
+		  super(goInside, SkipAnnotations.NO);
 	  }
 
-	  protected JavaSemanticsMAVisitor(boolean goInside, IRNode flowUnit) {
-		  super(goInside, false, flowUnit);
+	  protected JavaSemanticsMAVisitor(VisitInsideTypes goInside, IRNode flowUnit) {
+		  super(goInside, SkipAnnotations.NO, flowUnit);
 	  }
 
 	  public JavaSemanticsMAVisitor getInstance() {
@@ -977,7 +975,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     // to always run it.
     
     binder = useThisBinder;
-    JavaSemanticsMAVisitor mav = new JavaSemanticsMAVisitor(true);
+    JavaSemanticsMAVisitor mav = new JavaSemanticsMAVisitor(VisitInsideTypes.YES);
     mav.currMod = ModuleModel.getModuleDrop(cu);
     mav.doAccept(cu);
   }

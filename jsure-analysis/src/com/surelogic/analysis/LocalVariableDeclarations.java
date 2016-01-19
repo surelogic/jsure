@@ -128,7 +128,7 @@ public final class LocalVariableDeclarations {
      */
     private LocalDeclarationsVisitor(final IRNode mdecl,
         final List<IRNode> d, final List<IRNode> r) {
-      super(false, true, mdecl);
+      super(VisitInsideTypes.NO, SkipAnnotations.YES, mdecl);
       declarations = d;
       receivers = r;
     }

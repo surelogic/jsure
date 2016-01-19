@@ -39,7 +39,7 @@ public final class BinderModule extends AbstractWholeIRAnalysis<IBinderClient, C
 	
 	private final class TestConstantExpressions extends JavaSemanticsVisitor {
 		public TestConstantExpressions() {
-			super(true, false);
+			super(VisitInsideTypes.YES, SkipAnnotations.NO);
 		}
 		
 		@Override

@@ -355,7 +355,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
     
     
     public NewShouldAnalyzeVisitor(final IBinder binder) {
-      super(true, false);
+      super(VisitInsideTypes.YES, SkipAnnotations.NO);
       this.binder = binder;
     }
 

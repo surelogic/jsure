@@ -17,6 +17,8 @@ import com.surelogic.analysis.uniqueness.classic.sideeffecting.Messages;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysis;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor.SkipAnnotations;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor.VisitInsideTypes;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
@@ -970,7 +972,7 @@ extends TripleLattice<Element<Integer>,
                     }
                   } else { // return
                     final Set<IRNode> srcs = new HashSet<IRNode>();
-                    new JavaSemanticsVisitor(false, true, JJNode.tree.getParent(srcOp)) {
+                    new JavaSemanticsVisitor(VisitInsideTypes.NO, SkipAnnotations.YES, JJNode.tree.getParent(srcOp)) {
                       @Override
                       public Void visitReturnStatement(final IRNode s) {
                         srcs.addAll(bcaQuery.getResultFor(

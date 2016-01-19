@@ -41,7 +41,7 @@ public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBin
 	  final ConstantExpressionVisitor ceVisitor;
 	  
 		public TestConstantExpressions() {
-			super(true, false);
+			super(VisitInsideTypes.YES, SkipAnnotations.NO); 
 			ceVisitor = new ConstantExpressionVisitor(getBinder());
 		}
 		

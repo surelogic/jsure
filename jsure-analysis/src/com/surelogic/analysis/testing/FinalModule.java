@@ -46,7 +46,7 @@ public final class FinalModule extends AbstractWholeIRAnalysis<DefiniteAssignmen
     final DefiniteAssignment defAssign;
     
     public TestFinalDeclarations(final IBinder b, final DefiniteAssignment da) {
-      super(true);
+      super(SkipAnnotations.YES);
       binder = b;
       defAssign = da;
     }

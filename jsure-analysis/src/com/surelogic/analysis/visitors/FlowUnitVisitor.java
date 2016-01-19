@@ -13,7 +13,7 @@ package com.surelogic.analysis.visitors;
  * be <code>null</code>.
  */
 public abstract class FlowUnitVisitor<Q> extends AbstractJavaAnalysisDriver<Q> {
-  protected FlowUnitVisitor(final boolean skipA) {
-    super(false, skipA);
+  protected FlowUnitVisitor(final SkipAnnotations skipA) {
+    super(VisitInsideTypes.NO, skipA, CreateTransformer.NO);
   }
 }

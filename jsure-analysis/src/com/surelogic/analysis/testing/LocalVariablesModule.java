@@ -39,7 +39,7 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 	
 	private final class LV_Visitor extends JavaSemanticsVisitor {
 		public LV_Visitor() {
-			super(true, true);
+		  super(VisitInsideTypes.YES, SkipAnnotations.YES);
 		}
 		
 		private void reportLocalVariables(final IRNode mdecl) {

@@ -395,7 +395,7 @@ final class LockExpressions {
     public LockExpressionVisitor(final IRNode mdecl, 
         final AtomicReference<AnalysisLockModel> analysisLockModel, final LockUtils lu,
         final IBinder b, final BindingContextAnalysis bca, final DefiniteAssignment da) {
-      super(false, mdecl, true, false);
+      super(VisitInsideTypes.NO, mdecl, SkipAnnotations.YES, CreateTransformer.NO);
       this.analysisLockModel = analysisLockModel;
       this.enclosingMethodDecl = mdecl;
       this.bca = bca;

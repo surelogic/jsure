@@ -53,6 +53,16 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 // TODO: Expand to deal with LValue
 public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
+  /*
+   * There is much confusion caused by using boolean parameters in the
+   * constructor for Skipping annotations and going inside nested types. I have
+   * replaced those booleans with new specific enum types.
+   */
+  public enum SkipAnnotations { NO, YES }
+  public enum VisitInsideTypes { NO, YES }
+  
+  
+  
   private static enum VisitTypeAction {
     ANNOTATION {
       @Override
@@ -167,7 +177,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * {@link #visitAnonClassExpression(IRNode)}, and 
    * {@link #visitEnumConstantClassDeclaration(IRNode)}.
    */
-  private final boolean visitInsideTypes;
+  private final VisitInsideTypes visitInsideTypes;
   
   /**
    * Should we skip going inside of annotations?  Annotations do not have 
@@ -177,7 +187,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * {@link #visitMarkerAnnotation(IRNode)}, and
    * {@link #visitSingleElementAnnotation(IRNode)}.
    */
-  private final boolean skipAnnotations;
+  private final SkipAnnotations skipAnnotations;
   
   /**
    * The current type declaration we are inside of.
@@ -231,7 +241,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @param skipAnnos
    *          <code>true</code> if annotations should not be visited.          
    */
-  protected JavaSemanticsVisitor(final boolean goInside, final boolean skipAnnos) {
+  protected JavaSemanticsVisitor(
+      final VisitInsideTypes goInside, final SkipAnnotations skipAnnos) {
     this(goInside, skipAnnos, null, null);
   }
 
@@ -257,7 +268,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *          <code>true</code> if annotations should not be visited.          
    */
   protected JavaSemanticsVisitor(final IRNode typeDecl,
-      final boolean goInside, final boolean skipAnnos) {
+      final VisitInsideTypes goInside, final SkipAnnotations skipAnnos) {
     this(goInside, skipAnnos, typeDecl, null);
   }
   
@@ -283,7 +294,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *          InitDeclaration, or ClassInitDeclaration.
    */
   protected JavaSemanticsVisitor(
-      final boolean goInside, final boolean skipAnnos, final IRNode flowUnit) {
+      final VisitInsideTypes goInside, final SkipAnnotations skipAnnos, final IRNode flowUnit) {
     this(goInside, skipAnnos, getInitialEnclosingType(flowUnit), flowUnit);
   }
   
@@ -309,7 +320,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *          {@code JavaPromise.getPromisedFor(eDecl)} must be {@code eType}.
    */
   private JavaSemanticsVisitor(
-      final boolean goInside, final boolean skipAnnos,
+      final VisitInsideTypes goInside, final SkipAnnotations skipAnnos,
       final IRNode eType, final IRNode eDecl) {
     super();
     visitInsideTypes = goInside;
@@ -531,7 +542,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   private void visitTypeDeclaration(
       final IRNode typeDecl, final VisitTypeAction action) {
-    if (visitInsideTypes) {
+    if (visitInsideTypes == VisitInsideTypes.YES) {
       final IRNode prevEnclosingType = enclosingType;
       final IRNode prevEnclosingDecl = enclosingDecl;
       final boolean prevInsideConstructor = insideConstructor;
@@ -876,7 +887,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       // Still inside the anonymous class expression
         
       // Visit the type body if required
-      if (visitInsideTypes) {
+      if (visitInsideTypes == VisitInsideTypes.YES) {
         try {
           insideConstructor = false;
           insideInstanceInitialization = false;
@@ -1518,7 +1529,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitMarkerAnnotation(final IRNode n) {
-    if (!skipAnnotations) {
+    if (skipAnnotations == SkipAnnotations.NO) {
       handleMarkerAnnotation(n);
     }
     return null;
@@ -1741,7 +1752,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitNormalAnnotation(final IRNode n) {
-    if (!skipAnnotations) {
+    if (skipAnnotations == SkipAnnotations.NO) {
       handleNormalAnnotation(n);
     }
     return null;
@@ -1877,7 +1888,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitSingleElementAnnotation(final IRNode n) {
-    if (!skipAnnotations) {
+    if (skipAnnotations == SkipAnnotations.NO) {
       handleSingleElementAnnotation(n);
     }
     return null;

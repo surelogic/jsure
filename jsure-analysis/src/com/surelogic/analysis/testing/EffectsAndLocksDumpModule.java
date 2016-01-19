@@ -70,7 +70,7 @@ extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, MainVisitor, CUD
   
   private final class Driver extends SuperVisitor {
     public Driver() {
-      super(true);
+      super(SkipAnnotations.YES);
     }
     
     @Override
@@ -128,7 +128,7 @@ implements IBinderClient {
       final IBinder binder, final BindingContextAnalysis bca,
       final AtomicReference<AnalysisLockModel> analysisLockModel) {
     // Don't go inside nested types; skip annotation types
-    super(true);
+    super(SkipAnnotations.YES);
     
     this.thisExprBinder = new ThisExpressionBinder(binder);
     this.effects = new Effects(binder, analysisLockModel);

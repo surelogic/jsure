@@ -248,7 +248,7 @@ public class TypeUtil implements JavaGlobals {
       private boolean isEffectivelyFinal = true;
 
       public Visitor(final IRNode blockStmt) {
-        super(false, false, PromiseUtil.getEnclosingMethod(blockStmt));
+        super(VisitInsideTypes.NO, SkipAnnotations.NO, PromiseUtil.getEnclosingMethod(blockStmt));
       }
       
       @Override

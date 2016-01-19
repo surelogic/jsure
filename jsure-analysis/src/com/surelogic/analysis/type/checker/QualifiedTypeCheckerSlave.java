@@ -38,7 +38,7 @@ public abstract class QualifiedTypeCheckerSlave<B extends IBinder, Q> extends Fl
   
   
   protected QualifiedTypeCheckerSlave(final IBinder b) {
-    super(true);
+    super(SkipAnnotations.YES);
     binder = initBinder(b);
   }
 

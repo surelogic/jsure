@@ -45,7 +45,7 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
   
   
   public NullablePreprocessor(final IBinder b) {
-    super(true, true);
+    super(VisitInsideTypes.YES, SkipAnnotations.YES);
     binder = b;
     javaLangEnum = b.getTypeEnvironment().findNamedType(JAVA_LANG_ENUM);
   }

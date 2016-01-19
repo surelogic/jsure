@@ -20,6 +20,10 @@ import edu.cmu.cs.fluid.java.analysis.QueryTransformer;
  * the query can be a record of many {@link AnalysisQuery} objects.
  */
 public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor {
+  public enum CreateTransformer { NO, YES }
+  
+  
+  
   /**
    * The current query record.  Keep this private to that subclasses cannot change it.
    * use {@link #currentQuery()} to get the value.  
@@ -27,33 +31,33 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   private Q currentQuery = null;
   private final LinkedList<Q> oldQueries = new LinkedList<>();
   
-  private final boolean createTransformers;
+  private final CreateTransformer createTransformers;
   private QueryTransformer currentTransformer = null;
   private final LinkedList<QueryTransformer> oldTransformers = new LinkedList<>();
 
   
   
-  protected AbstractJavaAnalysisDriver(final boolean skipA, final boolean create) {
-    super(true, skipA);
+  protected AbstractJavaAnalysisDriver(final SkipAnnotations skipA, final CreateTransformer create) {
+    super(VisitInsideTypes.YES, skipA);
     createTransformers = create;
   }
   
   protected AbstractJavaAnalysisDriver(
-      final boolean goInside, final boolean skipA, final boolean create) {
+      final VisitInsideTypes goInside, final SkipAnnotations skipA, final CreateTransformer create) {
     super(goInside, skipA);
     createTransformers = create;
   }
   
   protected AbstractJavaAnalysisDriver(
-      final IRNode typeDecl, final boolean goInside,
-      final boolean skipA, final boolean create) {
+      final IRNode typeDecl, final VisitInsideTypes goInside,
+      final SkipAnnotations skipA, final CreateTransformer create) {
     super(typeDecl, goInside, skipA);
     createTransformers = create;
   }
   
   protected AbstractJavaAnalysisDriver(
-      final boolean goInside, final IRNode flowUnit,
-      final boolean skipA, final boolean create) {
+      final VisitInsideTypes goInside, final IRNode flowUnit,
+      final SkipAnnotations skipA, final CreateTransformer create) {
     super(goInside, skipA, flowUnit);
     createTransformers = create;
   }
@@ -72,7 +76,7 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
     oldQueries.addFirst(currentQuery);
     currentQuery = createNewQuery(mdecl);
     
-    if (createTransformers) {
+    if (createTransformers == CreateTransformer.YES) {
       oldTransformers.addFirst(currentTransformer);
       currentTransformer = QueryTransformer.get();
     }
@@ -82,7 +86,7 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
     oldQueries.addFirst(currentQuery);
     currentQuery = createSubQuery(caller);
 
-    if (createTransformers) {
+    if (createTransformers == CreateTransformer.YES) {
       oldTransformers.addFirst(currentTransformer);
       currentTransformer = currentTransformer.addCaller(caller);
     }
@@ -90,7 +94,7 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
     
   private void popQuery() {
     currentQuery = oldQueries.removeFirst();
-    if (createTransformers) {
+    if (createTransformers == CreateTransformer.YES) {
       currentTransformer = oldTransformers.removeFirst();
     }
   }

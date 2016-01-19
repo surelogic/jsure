@@ -17,6 +17,9 @@ import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLockFactory;
 import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.visitors.InstanceInitAction;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver.CreateTransformer;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor.SkipAnnotations;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor.VisitInsideTypes;
 import com.surelogic.common.Pair;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.KeyValueUtility;
@@ -333,7 +336,7 @@ final class LockExpressions {
     
     public LockExpressionVisitor(final IRNode mdecl, final LockUtils lu,
         final IBinder b, final BindingContextAnalysis bca, final DefiniteAssignment da) {
-      super(false, mdecl, true, false);
+      super(VisitInsideTypes.NO, mdecl, SkipAnnotations.YES, CreateTransformer.NO);
       this.bca = bca;
       definiteAssignment = da;
       lockUtils = lu;

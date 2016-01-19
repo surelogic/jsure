@@ -57,7 +57,7 @@ extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, NewLockVisitor, 
   
   private final class Driver extends SuperVisitor {
     public Driver() {
-      super(true);
+      super(SkipAnnotations.YES);
     }
     
     @Override

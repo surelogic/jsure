@@ -45,7 +45,7 @@ public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnaly
 	
   private final class BCAVisitor extends AbstractJavaAnalysisDriver<BindingContextAnalysis.Query> {
     public BCAVisitor() {
-      super(true, false);
+      super(SkipAnnotations.YES, CreateTransformer.NO);
     }
     
     @Override

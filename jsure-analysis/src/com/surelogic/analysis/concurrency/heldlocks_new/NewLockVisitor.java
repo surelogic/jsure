@@ -97,8 +97,8 @@ implements IBinderClient {
   
   private static final int SYNCED_LOCK_OBJECT = 2055;
   
-//  private static final int DSC_EFFECTS = 550;
-//  private static final int EFFECT = 550;
+  private static final int DSC_EFFECTS = 550;
+  private static final int EFFECT = 550;
   
   private static final int LOCK_DIFFERENT_NUMBER = 2060;
   private static final int LOCK_NO_MATCHES = 2061;
@@ -138,7 +138,7 @@ implements IBinderClient {
       final IBinder binder, final BindingContextAnalysis bca,
       final AtomicReference<AnalysisLockModel> analysisLockModel) {
     // Don't go inside nested types; skip annotation types
-    super(true);
+    super(SkipAnnotations.YES);
     
     this.analysisLockModel = analysisLockModel;
     this.thisExprBinder = new ThisExpressionBinder(binder);
@@ -453,12 +453,14 @@ implements IBinderClient {
         effects.getImplementationEffects(mdecl, bca);
     for (final Effect e : implementationEffects) {
       final IRNode src = e.getSource();
+      @SuppressWarnings("unused")
+      final String xxx = DebugUnparser.toString(src);
       final QueryTransformer qt = implementationEffects.getTransformerFor(src);
       final Queries queries = qt.transform(currentQuery());
       
-//      // ======== DEBUG ========
-//      HintDrop.newInformation(src, DSC_EFFECTS, EFFECT, e.toString());
-//      // ======== DEBUG ========
+      // ======== DEBUG ========
+      HintDrop.newInformation(src, DSC_EFFECTS, EFFECT, e.toString());
+      // ======== DEBUG ========
 
       
       /* Look for unresolveable locks. */
@@ -561,12 +563,12 @@ implements IBinderClient {
         
         
         
-//        // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
-//        for (final HeldLock heldLock : heldLocks) {
-//          HintDrop.newInformation(src, DSC_EFFECTS,
-//              551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
-//        }
-//        // ===============================================================
+        // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
+        for (final HeldLock heldLock : heldLocks) {
+          HintDrop.newInformation(src, DSC_EFFECTS,
+              551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
+        }
+        // ===============================================================
       }
     }
   }

@@ -1323,7 +1323,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private final List<IRNode> refs;
     
     private ReceiverSnatcher(final IRNode flowUnit, final List<IRNode> refs) {
-      super(false, true, flowUnit);
+      super(VisitInsideTypes.NO, SkipAnnotations.YES, flowUnit);
       this.refs = refs;
     }
     

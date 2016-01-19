@@ -33,7 +33,7 @@ public final class FlowUnitGranulator extends AbstractGranulator<FlowUnitGranule
     private final List<FlowUnitGranule> granules;
     
     public GranuleFinder(final List<FlowUnitGranule> list) {
-      super(true);
+      super(SkipAnnotations.YES);
       granules = list;
     }
 
