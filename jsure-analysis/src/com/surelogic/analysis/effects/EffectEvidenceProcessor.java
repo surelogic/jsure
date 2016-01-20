@@ -22,6 +22,11 @@ public abstract class EffectEvidenceProcessor implements EffectEvidenceVisitor {
   }
   
   @Override
+  public void visitMaskedEffectEvidence(MaskedEffectEvidence e) {
+    visit(e);
+  }
+  
+  @Override
   public void visitNoEffectEvidence(NoEffectEvidence e) {
     visit(e);
   }

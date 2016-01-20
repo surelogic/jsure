@@ -310,7 +310,8 @@ public abstract class Effect {
       } else if (maskedTarget == target) {
         return this;        
       } else {
-        return effect(source, isRead, maskedTarget, evidence, neededLocks);
+        return effect(source, isRead, maskedTarget, new MaskedEffectEvidence(this), neededLocks);
+//        return effect(source, isRead, maskedTarget, evidence, neededLocks);
       }
     }
 

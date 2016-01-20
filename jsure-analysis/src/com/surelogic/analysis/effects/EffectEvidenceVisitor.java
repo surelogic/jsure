@@ -5,6 +5,7 @@ public interface EffectEvidenceVisitor {
   public void accept(EffectEvidence e);
 
   public void visitInitializationEffectEvidence(InitializationEffectEvidence e);
+  public void visitMaskedEffectEvidence(MaskedEffectEvidence e);
   public void visitNoEffectEvidence(NoEffectEvidence e);
   public void visitNoPromisedEffectEvidence(NoPromisedEffectEvidence e);
   public void visitPromisedEffectEvidence(PromisedEffectEvidence e);

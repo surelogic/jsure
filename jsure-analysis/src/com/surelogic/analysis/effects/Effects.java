@@ -54,7 +54,6 @@ import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDro
 import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.analysis.QueryTransformer;
@@ -897,7 +896,7 @@ public final class Effects implements IBinderClient {
        * elaborated. They will then need to be masked (including the special case
        * for constructors, masking out the effects on the receiver of the new
        * object), instantiated based on the current enclosing instances, and then
-       * have any "dangling" instance effects turned into any instance effects.
+       * have any "dangling" instance effects turned into any-instance effects.
        * 
        * We have to do this because there is no named constructor being called
        * that can be annotated with the effects of the initialization.  Instead
@@ -934,9 +933,18 @@ public final class Effects implements IBinderClient {
            * the lock and evidence information for the effects.
            */
           for (final Effect e : newContext.theEffects.build()) {
-            final Effect maskedEffect = e.mask(thisExprBinder);
-            if (maskedEffect != null
-                && !maskedEffect.affectsReceiver(newContext.theReceiverNode)) {
+            Effect maskedEffect = e.mask(thisExprBinder);
+            if (maskedEffect != null) {
+              // Mask again if the effect is on the receiver of the anonymous class
+              if (maskedEffect.affectsReceiver(newContext.theReceiverNode)) {
+                maskedEffect = Effect.effect(
+                    maskedEffect.getSource(), maskedEffect.isRead(),
+                    new EmptyTarget(new EmptyEvidence(Reason.UNDER_CONSTRUCTION)),
+                    new MaskedEffectEvidence(maskedEffect),
+                    maskedEffect.getNeededLocks());
+              }
+
+              @SuppressWarnings("null")
               final Target target = maskedEffect.getTarget();
               if (target instanceof InstanceTarget) {
                 final IRNode ref = target.getReference();
@@ -1042,7 +1050,6 @@ public final class Effects implements IBinderClient {
 
     @Override
     public Void visitFieldRef(final IRNode expr) {
-      final String xxx = DebugUnparser.toString(expr);
       final boolean isRead = context.isRead();    
       final IRNode id = thisExprBinder.getBinding(expr);
       
