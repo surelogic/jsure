@@ -97,8 +97,8 @@ implements IBinderClient {
   
   private static final int SYNCED_LOCK_OBJECT = 2055;
   
-  private static final int DSC_EFFECTS = 550;
-  private static final int EFFECT = 550;
+//  private static final int DSC_EFFECTS = 550;
+//  private static final int EFFECT = 550;
   
   private static final int LOCK_DIFFERENT_NUMBER = 2060;
   private static final int LOCK_NO_MATCHES = 2061;
@@ -458,9 +458,9 @@ implements IBinderClient {
       final QueryTransformer qt = implementationEffects.getTransformerFor(src);
       final Queries queries = qt.transform(currentQuery());
       
-      // ======== DEBUG ========
-      HintDrop.newInformation(src, DSC_EFFECTS, EFFECT, e.toString());
-      // ======== DEBUG ========
+//      // ======== DEBUG ========
+//      HintDrop.newInformation(src, DSC_EFFECTS, EFFECT, e.toString());
+//      // ======== DEBUG ========
 
       
       /* Look for unresolveable locks. */
@@ -563,12 +563,12 @@ implements IBinderClient {
         
         
         
-        // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
-        for (final HeldLock heldLock : heldLocks) {
-          HintDrop.newInformation(src, DSC_EFFECTS,
-              551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
-        }
-        // ===============================================================
+//        // ======== TESTING & DEBUGGING --- GET RID OF THIS LATER ========
+//        for (final HeldLock heldLock : heldLocks) {
+//          HintDrop.newInformation(src, DSC_EFFECTS,
+//              551, heldLock.toString(), DebugUnparser.toString(heldLock.getSource()));
+//        }
+//        // ===============================================================
       }
     }
   }
@@ -703,6 +703,10 @@ implements IBinderClient {
         }
       }
     }
+    
+    // Continue into the expression
+    doAcceptForChildren(rstmt);
+
     return null;
   }
   
