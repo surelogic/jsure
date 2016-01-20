@@ -1815,7 +1815,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         LOG.warning("contructor reference must have a functional type, not: " + targetType.toSourceText());
         return null;
       }
-      IJavaType ownerT = getJavaType(ConstructorReference.getReceiver(node));
+      IJavaType ownerT = getJavaType(ConstructorReference.getType(node));
       if (ownerT instanceof IJavaArrayType) {
         // check that ft can accept a function type
         // that (int -> ownerT) is applicable.

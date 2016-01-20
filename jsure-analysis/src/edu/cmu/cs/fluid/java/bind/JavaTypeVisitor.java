@@ -69,6 +69,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitAnnotatedType(IRNode node) {
+	return doAccept(AnnotatedType.getBase(node));
+  }
+  
+  @Override
   public IJavaType visitAnnotation(IRNode node) {      
 	  /*
 	  if ("Override".equals(Annotation.getId(node))) {

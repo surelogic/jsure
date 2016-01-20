@@ -432,7 +432,7 @@ public class TypeInference8 {
       while (formals.hasNext()) {
     	final IJavaTypeFormal t = formals.next();
     	if (typeFormalEnclosesCall(t, call)) {
-    	  System.out.println("Not replacing "+t+" for "+call);
+    	  //System.out.println("Not replacing "+t+" for "+call);
     	  formals.remove();
     	}
       }
@@ -4705,7 +4705,7 @@ public class TypeInference8 {
       name = MethodReference.getMethod(e);
       targs = MethodReference.getTypeArgs(e);
     } else {
-      recv = ConstructorReference.getReceiver(e);
+      recv = ConstructorReference.getType(e);
       name = "new";
       targs = ConstructorReference.getTypeArgs(e);
     }
