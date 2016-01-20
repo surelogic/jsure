@@ -414,14 +414,18 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
         System.out.println("Adapting " + cut.getSourceFile().getName());
       }
       // PlainIRNode.setCurrentRegion(new IRRegion());
-
-      JCCompilationUnit jcu = (JCCompilationUnit) cut;
-      JavaSourceFile file = sources.get(jcu.sourcefile);
-      CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);
-      // cus.add(info);
-      Projects.setProject(info.getNode(), jp);
-      // System.out.println("Done adapting "+info.getFileName());
-      return info;
+      try {
+        JCCompilationUnit jcu = (JCCompilationUnit) cut;
+        JavaSourceFile file = sources.get(jcu.sourcefile);
+        CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);
+        // cus.add(info);
+        Projects.setProject(info.getNode(), jp);
+        // System.out.println("Done adapting "+info.getFileName());
+        return info;
+      } catch(RuntimeException ex) {
+    	ex.printStackTrace();
+    	throw ex;
+      }
     }
 
 	void clearRefs() {
