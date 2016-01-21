@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ArrayType.op,v 1.6 2006/05/12 13:51:19 chance Exp $
+public operator AnnotatedType extends ReferenceType {
+  syntax {
+    annos:Annotations base:ReferenceType
+  }
+  
+  public Operator getResultOp() {
+    return ReferenceType.prototype;
+  }
+}

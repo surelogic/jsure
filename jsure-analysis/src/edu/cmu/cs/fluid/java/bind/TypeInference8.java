@@ -73,6 +73,7 @@ public class TypeInference8 {
     final IRNode formal;
     private int index;
     private int lowlink;
+    //private final Throwable trace = new Throwable("For stack trace");
 
     InferenceVariable(IRNode tf) {
       formal = tf;
@@ -91,7 +92,19 @@ public class TypeInference8 {
       if (formal == null) {
         return '@' + alpha;
       }
-      return alpha + "@ " + JavaNames.getRelativeTypeName(formal).replaceAll(" extends java.lang.Object", "");
+      final StringBuilder sb = new StringBuilder();
+      sb.append(alpha).append("@ ");
+      
+      final IRNode decl = VisitUtil.getEnclosingDecl(formal);
+      if (TypeDeclaration.prototype.includes(decl)) {
+        sb.append(JavaNames.getRelativeTypeName(formal).replaceAll(" extends java.lang.Object", ""));
+      } else { // Assume it's a method/constructor
+    	final IRNode type = VisitUtil.getEnclosingType(decl);
+    	sb.append(JavaNames.getRelativeTypeName(type)).append('.');
+    	sb.append(JJNode.getInfoOrNull(decl)).append('.'); 
+    	sb.append(JJNode.getInfoOrNull(formal));  
+      }      
+      return sb.toString();
     }
 
     public IJavaReferenceType getLowerBound() {
@@ -413,6 +426,17 @@ public class TypeInference8 {
       final TypeFormalCollector v = new TypeFormalCollector(true/*all formals*/);
       m.getReceiverType().visit(v);
 
+      // Remove any type formals that enclose the call,
+      // since they're really constants
+      final Iterator<IJavaTypeFormal> formals = v.formals.iterator();
+      while (formals.hasNext()) {
+    	final IJavaTypeFormal t = formals.next();
+    	if (typeFormalEnclosesCall(t, call)) {
+    	  //System.out.println("Not replacing "+t+" for "+call);
+    	  formals.remove();
+    	}
+      }
+      
       if (!v.formals.isEmpty()) {
         hack = constructInitialSet(v.formals, IJavaTypeSubstitution.NULL);
         call = new CallState((CallState) call, Util.subst(call.getReceiverType(), hack.getInitialVarSubst()));
@@ -549,6 +573,20 @@ public class TypeInference8 {
       return b_2;
     }
     return null;
+  }
+
+  private boolean typeFormalEnclosesCall(IJavaTypeFormal t, ICallState call) {
+	final IRNode enclosingDecl = VisitUtil.getEnclosingDecl(t.getDeclaration());
+	if (!TypeDeclaration.prototype.includes(enclosingDecl)) {
+	  return false;
+	}
+	// it's from a type
+	for(IRNode td : VisitUtil.getEnclosingTypes(call.getNode(), false)) {
+	  if (td == enclosingDecl) {
+		return true;
+	  }
+	}
+	return false;
   }
 
   static class TypeFormalCollector extends IJavaType.BooleanVisitor {
@@ -744,7 +782,7 @@ public class TypeInference8 {
         }
       }
       //if ("strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(unparse)) {
-      if (unparse != null && unparse.equals("gpes.stream.map((#) -> #.gpe#).collect(Collectors.toList)")) {
+      if (unparse != null && unparse.equals("Collectors.groupingBy((# # str) -> <implicit>.getCell(#, #), <implicit>.toCollection(#:: # new))")) {
       //if (unparse.startsWith("strings.map(")) {      
     	  System.out.println("Looking at map()");
       }
@@ -2147,7 +2185,7 @@ public class TypeInference8 {
 
     @Override
     public String toString() {
-      return s + " = " + t;
+      return s.toSourceText() + " = " + t.toSourceText();
     }
 
     @Override
@@ -2203,7 +2241,7 @@ public class TypeInference8 {
 
     @Override
     public String toString() {
-      return s + " <: " + t;
+      return s.toSourceText() + " <: " + t.toSourceText();
     }
 
     @Override
@@ -2228,7 +2266,7 @@ public class TypeInference8 {
 
     @Override
     public String toString() {
-      return s + " = capture(" + t + ")";
+      return s.toSourceText() + " = capture(" + t.toSourceText() + ")";
     }
 
     @Override
@@ -2564,7 +2602,7 @@ public class TypeInference8 {
 
     private void unparseSet(StringBuilder sb, Set<? extends IJavaReferenceType> types) {
       if (types.size() == 1) {
-        sb.append(types.iterator().next());
+        sb.append(types.iterator().next().toSourceText());
       } else {
         sb.append('{');
         boolean first = true;
@@ -2572,9 +2610,9 @@ public class TypeInference8 {
           if (first) {
             first = false;
           } else {
-            sb.append(", \n");
+            sb.append(", \n\t");
           }
-          sb.append(t);
+          sb.append(t.toSourceText());
         }
         sb.append('}');
       }
@@ -2659,6 +2697,7 @@ public class TypeInference8 {
    * this is merely out of convenience, and the two are interchangeable
    */
   class BoundSet {
+	private boolean debug = false;
     /**
      * Controls whether bounds are actually incorporated or not
      */
@@ -2717,8 +2756,13 @@ public class TypeInference8 {
       subtypeBounds.addAll(orig.subtypeBounds);
       captures.addAll(orig.captures);
       variableMap.putAll(orig.variableMap);
+      debug = orig.debug;
     }
 
+    void debug() {
+      debug = true;
+    }
+    
     boolean contains(BoundSet sub) {
       return thrownSet.containsAll(sub.thrownSet) && subtypeBounds.containsAll(sub.subtypeBounds)
           && captures.containsAll(sub.captures) && equalities.containsAll(sub.equalities);
@@ -2994,6 +3038,9 @@ public class TypeInference8 {
     }
 
     void addFalse() {
+      if (debug) {
+    	  System.out.println("FALSE: "+this);
+      }
       isFalse = true;
     }
 
@@ -3089,7 +3136,9 @@ public class TypeInference8 {
           if (subtypeBounds.contains(sb)) {
             continue;
           }
-          // System.out.println("Incorporating subtypeB "+bound);
+          if (debug) {
+        	System.out.println("Incorporating subtypeB "+sb);
+          }
           subtypeBounds.add(sb);
           incorporateSubtypeBound(temp, sb);
         } else if (b instanceof EqualityBound) {
@@ -3097,7 +3146,9 @@ public class TypeInference8 {
           if (equalities.contains(eb)) {
             continue;
           }
-          // System.out.println("Incorporating equalB "+b);
+          if (debug) {
+        	System.out.println("Incorporating equalB "+eb);
+          }
           equalities.add(eb);
           incorporateEqualityBound(temp, eb);
         } else {
@@ -3105,7 +3156,9 @@ public class TypeInference8 {
           if (captures.contains(cb)) {
             continue;
           }
-          // System.out.println("Incorporating captureB "+bound);
+          if (debug) {
+            System.out.println("Incorporating captureB "+cb);
+          }
           captures.add(cb);
           incorporateCaptureBound(temp, cb);
         }
@@ -3684,7 +3737,7 @@ public class TypeInference8 {
      * 
      * @return the new bound set to try to resolve
      */
-    BoundSet instantiateViaFreshVars(final Set<InferenceVariable> origSubset) {
+    BoundSet instantiateViaFreshVars(final Set<InferenceVariable> origSubset, final boolean debug) {
       // HACK use the same type variable for equalities:
       // Remove "duplicate" variables from origSubset
       // Take advantage of incorporation to set the "duplicates" to the same
@@ -3771,6 +3824,9 @@ public class TypeInference8 {
         if (u_i != null) {
           y_i.setUpperBound((IJavaReferenceType) u_i);
           // rv.addSubtypeBound(y_i, u_i);
+        }
+        if (debug) {
+          System.out.println("Instantiating "+a_i+" as "+y_i);
         }
         // rv.addEqualityBound(a_i, y_i);
         newBounds[i] = newEqualityBound(a_i, y_i);
@@ -3912,9 +3968,10 @@ public class TypeInference8 {
     Set<InferenceVariable> subset = bounds.chooseUninstantiated(toResolve, debug);
     BoundSet current = bounds, last = bounds;
     while (!subset.isEmpty()) {
-      BoundSet next = resolveVariables(current, subset);
+      BoundSet next = resolveVariables(current, subset, debug);
       if (next == null || next.isFalse) {
-    	resolveVariables(current, subset);
+    	current.debug();
+    	resolveVariables(current, subset, true);
         return null;
       }
       last = current;
@@ -3932,7 +3989,7 @@ public class TypeInference8 {
   /**
    * Try to resolve the specific subset of variables.
    */
-  static BoundSet resolveVariables(final BoundSet bounds, final Set<InferenceVariable> subset) {
+  static BoundSet resolveVariables(final BoundSet bounds, final Set<InferenceVariable> subset, final boolean debug) {
     if (subset.isEmpty()) {
       return bounds; // All instantiated
     }
@@ -3945,7 +4002,7 @@ public class TypeInference8 {
       // Otherwise, try below
       //System.out.println("Couldn't resolve from bounds");
     }
-    BoundSet fresh = bounds.instantiateViaFreshVars(subset);
+    BoundSet fresh = bounds.instantiateViaFreshVars(subset, debug);
     // return resolve(fresh);
     return fresh;
   }
@@ -4648,7 +4705,7 @@ public class TypeInference8 {
       name = MethodReference.getMethod(e);
       targs = MethodReference.getTypeArgs(e);
     } else {
-      recv = ConstructorReference.getReceiver(e);
+      recv = ConstructorReference.getType(e);
       name = "new";
       targs = ConstructorReference.getTypeArgs(e);
     }
@@ -5084,6 +5141,17 @@ public class TypeInference8 {
           } else {
             reduceSubtypingConstraints(bounds, tEnv.getObjectType(), wt.getUpperBound());
           }
+        } else if (s instanceof IJavaCaptureType) {
+          // Is this really the same as the wildcard?
+          final IJavaCaptureType cs = (IJavaCaptureType) s;
+          if (captureIsWildcard(cs, wt)) {
+        	bounds.addTrue();
+          } else {
+        	//bounds.addTrue();
+        	//
+        	// Fall through to below
+        	reduceSubtypingConstraints(bounds, s, wt.getUpperBound());
+          }
         } else {
           reduceSubtypingConstraints(bounds, s, wt.getUpperBound());
         }
@@ -5130,6 +5198,18 @@ public class TypeInference8 {
     } else {
       reduceTypeEqualityConstraints(bounds, s, t);
     }
+  }
+
+  private boolean captureIsWildcard(IJavaCaptureType c, IJavaWildcardType w) {
+	if (c.getWildcard().equals(w)) {
+	  if (c.getLowerBound() != JavaTypeFactory.nullType || w.getLowerBound() != null) {
+		return false;
+	  }
+	  if (c.getUpperBound() == w.getUpperBound()) {
+		return true;
+	  }
+	}
+	return false;
   }
 
   /**
@@ -5861,7 +5941,21 @@ public class TypeInference8 {
 
     @Override
     public String toString() {
-      return subst.toString();
+      if (subst.size() <= 1) {
+    	return subst.toString();
+      } 
+      StringBuilder sb = new StringBuilder();
+      sb.append('{');
+      boolean first = true;
+      for(Map.Entry<?, ?> e : subst.entrySet()) {
+    	if (first) {
+    	  first = false;
+    	} else {
+    	  sb.append('\t');
+    	}
+    	sb.append(e.getKey()).append(" = ").append(e.getValue()).append('\n');
+      }
+      return sb.toString();
     }
 
 	@Override

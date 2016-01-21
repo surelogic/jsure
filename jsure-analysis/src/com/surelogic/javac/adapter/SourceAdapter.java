@@ -16,7 +16,6 @@ import java.util.zip.ZipFile;
 
 import com.surelogic.javax.lang.model.element.Modifier;
 import com.surelogic.javax.lang.model.element.Name;
-
 import com.surelogic.com.sun.source.tree.*;
 import com.surelogic.com.sun.source.tree.Tree.Kind;
 import com.surelogic.com.sun.source.util.SourcePositions;
@@ -468,6 +467,8 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
       return visitWildcard((WildcardTree) t, context);
     case UNION_TYPE:
       return visitUnionType((UnionTypeTree) t, context);
+    case ANNOTATED_TYPE:
+      return visitAnnotatedType((AnnotatedTypeTree) t, context);
     default:
       throw new IllegalArgumentException("Unknown type: " + t.getKind());
     }
@@ -597,6 +598,10 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
   };
 
   IRNode adaptExpr(Tree t, CodeContext context) {
+	return adaptExpr(t, context, false);
+  }
+  
+  IRNode adaptExpr(Tree t, CodeContext context, boolean createType) {
     if (t == null) {
       return null;
     }
@@ -606,7 +611,7 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     case MEMBER_SELECT:
       IRNode name = acceptNode(t, context);
       if (edu.cmu.cs.fluid.java.operator.Name.prototype.includes(name)) {
-        rv = NameExpression.createNode(name);
+        rv = createType ? NameType.createNode(name) : NameExpression.createNode(name);
       } else {
         rv = name;
       }
@@ -1789,14 +1794,15 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
   }
 
   // needed for Java 8
-  public IRNode visitAnnotatedType(AnnotatedTypeTree arg0, CodeContext c) {
-	// TODO: implement this new node
-    throw new UnsupportedOperationException();
+  public IRNode visitAnnotatedType(AnnotatedTypeTree t, CodeContext c) {
+	IRNode[] result = map(acceptNodes, t.getAnnotations(), c);
+	IRNode annos = Annotations.createNode(result);
+    IRNode type = adaptType(t.getUnderlyingType(), c);
+    return edu.cmu.cs.fluid.java.operator.AnnotatedType.createNode(annos, type);
   }
   
   public IRNode visitIntersectionType(IntersectionTypeTree arg0, CodeContext arg1) {
-	// TODO Auto-generated method stub
-	return null;
+	throw new UnsupportedOperationException();
   }
   
   public IRNode visitLambdaExpression(LambdaExpressionTree arg0, CodeContext c) {
@@ -1824,7 +1830,7 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
 	  case INVOKE:
 		  return MethodReference.createNode(adaptExpr(arg0.getQualifierExpression(),c), typeArgs, arg0.getName().toString());
 	  case NEW:
-		  return ConstructorReference.createNode(adaptExpr(arg0.getQualifierExpression(),c), typeArgs);
+		  return ConstructorReference.createNode(adaptExpr(arg0.getQualifierExpression(),c, true), typeArgs);
 	  default:
 		  throw new AssertionError("should not be possible");
 	  }

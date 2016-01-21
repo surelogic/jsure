@@ -2706,8 +2706,8 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 
 	@Override
 	public String toString() {
-		return "JavaFunctionType(" + typeFormalList + "," + getReturnType() +
-				"," + paramTypes + "," + isVariable + "," + throwTypes + ")";
+		return "JavaFunctionType(" + typeFormalList + ",\n\t" + getReturnType() +
+				",\n\t" + paramTypes + ",\n\t" + isVariable + "," + throwTypes + ")";
 	}
 	
 	@Override

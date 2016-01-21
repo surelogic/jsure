@@ -305,7 +305,7 @@ public class MethodBinder8 implements IMethodBinder {
     		if (t instanceof IJavaTypeFormal) {
     			return declaresTypeParam(ConstructorDeclaration.getTypes(mb.getNode()), (IJavaTypeFormal) t);
     		}
-    		return methodRefHasPotentiallyApplicableMethods(t, ConstructorReference.getReceiver(e), "new") != null;
+    		return methodRefHasPotentiallyApplicableMethods(t, ConstructorReference.getType(e), "new") != null;
     	}  
     	else if (ParenExpression.prototype.includes(op)) {
     		return isPotentiallyCompatible(mb, ParenExpression.getOp(e), t);
@@ -1099,7 +1099,21 @@ public class MethodBinder8 implements IMethodBinder {
 		if (r_prime instanceof IJavaVoidType) {
 			return false;
 		}
-		return tEnv.isAssignmentCompatible(r, r_prime, ref);
+		boolean rv = tEnv.isAssignmentCompatible(r, r_prime, ref);
+		if (!rv) {
+			// Check for (un)boxing
+			IJavaType t = null;
+			if (r_prime instanceof IJavaPrimitiveType) {
+				t = JavaTypeFactory.getCorrespondingDeclType(tEnv, (IJavaPrimitiveType) r_prime);
+			} 
+			else if (r_prime instanceof IJavaDeclaredType) {
+				t = JavaTypeFactory.getCorrespondingPrimType((IJavaDeclaredType) r_prime);
+			}
+			if (t != null) {
+				rv = tEnv.isAssignmentCompatible(r, t, ref);
+			}
+		}
+		return rv;
 	}
 	
 	CallState getCallState(IRNode call, IBinding b) {
@@ -1759,11 +1773,12 @@ public class MethodBinder8 implements IMethodBinder {
     		}
     		*/
     		// Need to check if this is Java 8+ code
-    		if (mb.tEnv.getMajorJavaVersion() >= 8 && mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
+    		//if (false && mb.tEnv.getMajorJavaVersion() >= 8 && mb.isPolyCall(c.getNode(), JJNode.tree.getOperator(c.getNode()), m)) {
+    		if (mb.typeInfer.isGenericMethodRef(m)) {
         		// Don't include instantiations from computing applicability since they may not be right
     			// TODO what if the return type is a type formal, and needs some kind of substitution?
     			
-    			//System.out.println("Omitting type substitution since source level is Java 8+");
+    			//System.out.println("Omitting type substitution since source level is Java 8+: "+mb.tEnv);
     			newB = m.bind;
     		} else {
         		final BoundSet result = TypeInference8.resolve(b, null, debug);    		
@@ -2056,7 +2071,7 @@ public class MethodBinder8 implements IMethodBinder {
        		recv = MethodReference.getReceiver(ref);
     		isMethod = true;
     	} else {
-    		recv = ConstructorReference.getReceiver(ref);
+    		recv = ConstructorReference.getType(ref);
     		isMethod = false;
     	}
     	final ReceiverKind kind = identifyReceiverKind(recv);
@@ -2263,8 +2278,8 @@ public class MethodBinder8 implements IMethodBinder {
 			 *   
 			 *   – Otherwise, the invocation type is the same as the method's type.
 			 */
-			if (call.toString().equals("c.asSubclass(clazz).newInstance")) {
-				System.out.println("What's the problem here?  no receiver added?");
+			if (false && call.toString().startsWith("spy:: <> get")) {
+				System.out.println("What's the problem here?");
 			}
 			IJavaFunctionType mtype = computeMethodType(/*m*/b, call);
 			// TODO any other way to know unchecked conversion was used?
@@ -2559,7 +2574,7 @@ public class MethodBinder8 implements IMethodBinder {
 				base = MethodReference.getReceiver(ref);
 				name = MethodReference.getMethod(ref);
 			} else {
-				base = ConstructorReference.getReceiver(ref);
+				base = ConstructorReference.getType(ref);
 				name = "new";
 			}
 		}

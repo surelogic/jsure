@@ -1189,7 +1189,7 @@ public class JavaCanonicalizer {
 
     @Override
     public Boolean visitConstructorReference(IRNode node) {
-    	return handleMethodReference(node, ConstructorReference.getReceiver(node), "new", ConstructorReference.getTypeArgs(node));
+    	return handleMethodReference(node, ConstructorReference.getType(node), "new", ConstructorReference.getTypeArgs(node));
     }
     
     @Override

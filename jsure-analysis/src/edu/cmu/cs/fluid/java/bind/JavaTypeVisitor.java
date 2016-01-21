@@ -69,6 +69,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitAnnotatedType(IRNode node) {
+	return doAccept(AnnotatedType.getBase(node));
+  }
+  
+  @Override
   public IJavaType visitAnnotation(IRNode node) {      
 	  /*
 	  if ("Override".equals(Annotation.getId(node))) {
@@ -119,10 +124,10 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitArithBinopExpression(IRNode node) {
     IRNode node1 = BinopExpression.getOp1( node );
-    IJavaType type1 = doAccept( node1 );
+    IJavaType type1 = binder.getJavaType( node1 );//doAccept( node1 );
     
     IRNode node2 = BinopExpression.getOp2( node );
-    IJavaType type2 = doAccept( node2 );
+    IJavaType type2 = binder.getJavaType( node2 );//doAccept( node2 );
     return typeInference2( type1, type2 );
   }
   
