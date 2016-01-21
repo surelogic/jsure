@@ -247,11 +247,7 @@ public class LockRules extends AnnotationRules {
 	}
 
 	public static ReturnsLockPromiseDrop getReturnsLock(IRNode vdecl) {
-    ReturnsLockPromiseDrop rv = getDrop(returnsLockRule.getStorage(), vdecl);
-    if (rv == null) {
-      return rv;
-    }
-    return rv;
+    return getDrop(returnsLockRule.getStorage(), vdecl);
 	}
 
   /**

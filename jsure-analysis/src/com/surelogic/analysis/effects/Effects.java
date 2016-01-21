@@ -69,6 +69,7 @@ import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.PostDecrementExpression;
@@ -1080,12 +1081,28 @@ public final class Effects implements IBinderClient {
         /* Check for a lock: the final field may be protected by
          * a @GuardedBy(itself) annotation.  N.B. @GuardedBy(itself) is
          * an intrinsic lock always, so we don't need read/write information.
+         * 
+         * Only check for the lock if the field ref is the receiver expression
+         * of another field ref, array ref expression, or method call
+         * because the lock protects
+         * the contents of the referenced object, not the reference itself.
          */
+        final Set<NeededLock> neededLocks;
+        final IRNode parentExpr = JJNode.tree.getParent(expr);
+        final Operator parentExprOp = JJNode.tree.getOperator(parentExpr);
+        if (ArrayRefExpression.prototype.includes(parentExprOp) ||
+            FieldRef.prototype.includes(parentExprOp) ||
+            (MethodCall.prototype.includes(parentExprOp) && 
+                ((MethodCall) parentExprOp).get_Object(parentExpr) == expr)) {
+          neededLocks = lockModel.get().getNeededLocks(
+              lockFactory, binder.getJavaType(object), region, expr, 
+              NeededLock.Reason.FIELD_ACCESS, true, object);
+        } else {
+          neededLocks = ImmutableSet.of();
+        }
         addEffect(
             Effect.empty(expr, new EmptyEvidence(Reason.FINAL_FIELD, id),
-                ImmutableSet.of(getEvidence()), lockModel.get().getNeededLocks(
-                    lockFactory, binder.getJavaType(object), region, expr, 
-                    NeededLock.Reason.FIELD_ACCESS, !isRead, object)));
+                ImmutableSet.of(getEvidence()), neededLocks));
       }
       doAcceptForChildren(expr);
       return null;

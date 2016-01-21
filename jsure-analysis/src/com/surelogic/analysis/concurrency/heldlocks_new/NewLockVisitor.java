@@ -34,6 +34,7 @@ import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.InstanceInitAction;
+import com.surelogic.annotation.rules.JcipRules;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -321,8 +322,9 @@ implements IBinderClient {
     if (!isSafeType(thisExprBinder.getJavaType(actualRcvr))) { // not safe
       if (FieldRef.prototype.includes(actualRcvr)) {
         final IRNode fieldDecl = this.thisExprBinder.getBinding(actualRcvr);
-        // If the field is unique, it is a safe object
-        if (!UniquenessUtils.isUnique(fieldDecl)) {
+        //  If the field is unique or GuardedBy("itself") it is a safe object
+        if (!UniquenessUtils.isUnique(fieldDecl) &&
+            !JcipRules.getGuardedBy(fieldDecl).itself()) {
           /* See if the field is protected: either directly, or
            * because the the field is final or volatile and the class
            * contains lock annotations.
@@ -366,13 +368,18 @@ implements IBinderClient {
        * Things are only interesting if the outer region f is not protected. So
        * we don't proceed if f' is unique (and thus f is aggregated into the
        * state of the referring object), f is protected by a lock or if f is
-       * volatile or final. Array reference is never protected
+       * volatile or final. Array reference is never protected, unless the
+       * array field is @GuardedBy("itself").
+       * 
+       * N.B. f is protected if f' is @GuardedBy("itself")
        */
       final IRNode fDecl = thisExprBinder.getBinding(fieldRef);
       final IRNode fPrimeDecl = thisExprBinder.getBinding(objExpr);
       if (!UniquenessUtils.isUnique(fPrimeDecl) &&
+          !JcipRules.getGuardedBy(fPrimeDecl).itself() &&
           (isArrayRef ||
-              (!TypeUtil.isJSureFinal(fDecl) && !TypeUtil.isVolatile(fDecl) &&
+              (!TypeUtil.isJSureFinal(fDecl) &&
+                  !TypeUtil.isVolatile(fDecl) &&
                   analysisLockModel.get().getLockForFieldRef(fieldRef) == null))) {
         /*
          * Now check if f' is in a protected region. There are three cases: (1)

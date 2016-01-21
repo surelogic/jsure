@@ -2,6 +2,7 @@
 package com.surelogic.dropsea.ir.drops.locks;
 
 import com.surelogic.aast.promise.GuardedByNode;
+import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.IDerivedDropCreator;
 
@@ -18,5 +19,9 @@ public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> implements 
   public void validated(final PromiseDrop<?> lm) {
     lm.setVirtual(true);
     lm.setSourceDrop(this);
+  }
+  
+  public boolean itself() {
+    return getAAST().getLock() instanceof ItselfNode;
   }
 }

@@ -62,6 +62,12 @@ public class JcipRules extends AnnotationRules {
 		registerScrubber(fw, methodScrubber);
 	}
 
+
+  public static GuardedByPromiseDrop getGuardedBy(IRNode varDecl) {
+    return getDrop(guardedByRule.getStorage(), varDecl);
+  }
+
+  
 	static class GuardedBy_ParseRule
 			extends
 			DefaultSLAnnotationParseRule<GuardedByNode, GuardedByPromiseDrop> {
@@ -88,7 +94,8 @@ public class JcipRules extends AnnotationRules {
 		protected IAnnotationScrubber makeScrubber() {
 			// Run this before Lock to create virtual declarations
 			return new AbstractAASTScrubber<GuardedByNode, GuardedByPromiseDrop>(this, ScrubberType.UNORDERED, 
-					new String[] { RegionRules.REGION, LockRules.LOCK, RegionRules.IN_REGION, RegionRules.SIMPLE_UNIQUE_IN_REGION }, 
+					new String[] { RegionRules.REGION, LockRules.LOCK, RegionRules.IN_REGION,
+			      RegionRules.SIMPLE_UNIQUE_IN_REGION }, 
 					SLUtility.EMPTY_STRING_ARRAY) {
 				@Override
 				protected PromiseDrop<GuardedByNode> makePromiseDrop(GuardedByNode a) {
