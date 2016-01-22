@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.TrueExpression;
@@ -78,7 +79,9 @@ public final class SyntacticEquality {
     }
     
     if (op1.equals(op2)) {
-      if (FieldRef.prototype.includes(op1)) {
+      if (ParameterDeclaration.prototype.includes(op1)) {
+        return expr1.equals(expr2);
+      } else if (FieldRef.prototype.includes(op1)) {
         // check that the fields are the same
         if (thisExprBinder.getBinding(expr1).equals(thisExprBinder.getBinding(expr2))) {
           /* If the field is an instance field, check that the dereferenced

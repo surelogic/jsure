@@ -40,6 +40,7 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
+import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -323,8 +324,9 @@ implements IBinderClient {
       if (FieldRef.prototype.includes(actualRcvr)) {
         final IRNode fieldDecl = this.thisExprBinder.getBinding(actualRcvr);
         //  If the field is unique or GuardedBy("itself") it is a safe object
-        if (!UniquenessUtils.isUnique(fieldDecl) &&
-            !JcipRules.getGuardedBy(fieldDecl).itself()) {
+        final GuardedByPromiseDrop guardedBy = JcipRules.getGuardedBy(fieldDecl);
+        final boolean isGuardedByItself = (guardedBy != null) && guardedBy.itself();
+        if (!UniquenessUtils.isUnique(fieldDecl) && !isGuardedByItself) {
           /* See if the field is protected: either directly, or
            * because the the field is final or volatile and the class
            * contains lock annotations.
@@ -375,8 +377,10 @@ implements IBinderClient {
        */
       final IRNode fDecl = thisExprBinder.getBinding(fieldRef);
       final IRNode fPrimeDecl = thisExprBinder.getBinding(objExpr);
-      if (!UniquenessUtils.isUnique(fPrimeDecl) &&
-          !JcipRules.getGuardedBy(fPrimeDecl).itself() &&
+      final GuardedByPromiseDrop guardedBy = JcipRules.getGuardedBy(fPrimeDecl);
+      final boolean isGuardedByItself = (guardedBy != null) && guardedBy.itself();
+          
+      if (!UniquenessUtils.isUnique(fPrimeDecl) && !isGuardedByItself &&
           (isArrayRef ||
               (!TypeUtil.isJSureFinal(fDecl) &&
                   !TypeUtil.isVolatile(fDecl) &&
