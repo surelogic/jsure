@@ -814,9 +814,9 @@ public class TypeInference8 {
     	computeB_4(b_3, c2);
     }
     final IJavaFunctionType origType = mb.computeMethodType(m);
-    final BoundSet result = resolve(b_4, null, false);
+    BoundSet result = resolve(b_4, null, false);
     if (result == null) {
-    	resolve(b_4, null, true);
+    	result = resolve(b_4, null, true);
     }
     final IJavaTypeSubstitution theta_prime = result/* b_4 */.getFinalTypeSubst(eliminateTypeVars, false);
     if (b_4.usedUncheckedConversion()) {
@@ -1159,6 +1159,7 @@ public class TypeInference8 {
       }
       if (current.isFalse) {
         BoundSet temp = new BoundSet(last == null ? b_3 : last);
+        temp.debug();
         doComputeB_4(c, io, temp);
         return null;
       }
@@ -5432,7 +5433,8 @@ public class TypeInference8 {
        */
       for (IJavaType x_i : x) {
         if (!isPartOfThrowsClause(targetFuncType, x_i)) {
-          isPartOfThrowsClause(targetFuncType, x_i);
+          //computeCheckedExceptionsThrownByLambda(bounds, lambda, t, targetFuncType);
+          //isPartOfThrowsClause(targetFuncType, x_i);
           bounds.addFalse();
           break;
         } else {
@@ -5500,8 +5502,7 @@ public class TypeInference8 {
     final JavaCanonicalizer.IBinderCache old = ujb.setBinderCache(new LambdaCache(tEnv, bounds, lambda, t, targetFuncType));
     try {
       final ExceptionCollector c = new ExceptionCollector(ujb);
-      c.doAccept(LambdaExpression.getBody(lambda));
-      return c.exceptions;
+      return c.doAccept(LambdaExpression.getBody(lambda));
     } finally {
       ujb.setBinderCache(old);
     }
@@ -5580,8 +5581,7 @@ public class TypeInference8 {
     }
   }
 
-  static class ExceptionCollector extends VoidTreeWalkVisitor {
-    final Set<IJavaType> exceptions = new HashSet<IJavaType>();
+  static class ExceptionCollector extends TreeWalkVisitor<Set<IJavaType>> {
     final IPrivateBinder binder;
     final MethodBinder8 mb;
 
@@ -5590,15 +5590,14 @@ public class TypeInference8 {
       mb = new MethodBinder8(b, false);
     }
 
-    Void collectForCall(IRNode call, IRNode receiver, IRNode args, IRNode targs) {
+    Set<IJavaType> collectForCall(IRNode call, IRNode receiver, IRNode args, IRNode targs) {
       // TODO can't bind? (causes cycle)
       final MethodBinding8 b = (MethodBinding8) binder.getIBinding(call);
       final CallState state = CallState.create(binder, call, args, targs, binder.getJavaType(receiver));
       final IJavaFunctionType itype = mb.computeInvocationType(state, b, false);
-      exceptions.addAll(itype.getExceptions());
-      return null;
-    }
-
+      return itype.getExceptions();
+    }    
+    
     /**
      * 11.2.1 Exception Analysis of Expressions
      * 
@@ -5614,27 +5613,26 @@ public class TypeInference8 {
      * .
      */
     @Override
-    public Void visitNewExpression(IRNode e) {
-      doAcceptForChildren(e);
-      return collectForCall(e, NewExpression.getType(e), NewExpression.getArgs(e), NewExpression.getTypeArgs(e));
+    public Set<IJavaType> visitNewExpression(IRNode e) {
+      return mergeWithChildren(e, collectForCall(e, NewExpression.getType(e), NewExpression.getArgs(e), NewExpression.getTypeArgs(e)));
     }
 
     @Override
-    public Void visitAnonClassExpression(IRNode ace) {
-      doAccept(AnonClassExpression.getAlloc(ace));
+    public Set<IJavaType> visitAnonClassExpression(IRNode ace) {
+      Set<IJavaType> rv = doAccept(AnonClassExpression.getAlloc(ace));
       for (IRNode m : VisitUtil.getClassBodyMembers(ace)) {
         final Operator op = JJNode.tree.getOperator(m);
         if (!TypeUtil.isStatic(m)) {
           continue;
         }
         if (FieldDeclaration.prototype.includes(op)) {
-          doAccept(FieldDeclaration.getVars(m));
+          rv = merge(rv, doAccept(FieldDeclaration.getVars(m)));
         } else if (ClassInitializer.prototype.includes(op)) {
-          doAccept(ClassInitializer.getBlock(m));
+          rv = merge(rv, doAccept(ClassInitializer.getBlock(m)));
         }
         // Otherwise, ignore it
       }
-      return null;
+      return rv;
     }
 
     /**
@@ -5647,18 +5645,17 @@ public class TypeInference8 {
      * exception types of the invocation type of the chosen method (§15.12.2.6).
      */
     @Override
-    public Void visitMethodCall(IRNode call) {
+    public Set<IJavaType> visitMethodCall(IRNode call) {
       // Handle receiver and args
-      doAcceptForChildren(call);
-      return collectForCall(call, MethodCall.getObject(call), MethodCall.getArgs(call), MethodCall.getTypeArgs(call));
+      return mergeWithChildren(call, collectForCall(call, MethodCall.getObject(call), MethodCall.getArgs(call), MethodCall.getTypeArgs(call)));
     }
 
     /**
      * A lambda expression (§15.27) can throw no exception classes.
      */
     @Override
-    public Void visitLambdaExpression(IRNode e) {
-      return null;
+    public Set<IJavaType> visitLambdaExpression(IRNode e) {
+      return Collections.emptySet();
     }
     /*
      * For every other kind of expression, the expression can throw an exception
@@ -5679,7 +5676,7 @@ public class TypeInference8 {
      * (see below)
      */
     @Override
-    public Void visitThrowStatement(IRNode s) {
+    public Set<IJavaType> visitThrowStatement(IRNode s) {
       final IRNode v = ThrowStatement.getValue(s);
       final Operator op = JJNode.tree.getOperator(v);
       final IJavaType e = binder.getJavaType(v);
@@ -5695,10 +5692,9 @@ public class TypeInference8 {
              * which declares C can throw; and
              */
             final IRNode gp = JJNode.tree.getParent(p);
-            final ExceptionCollector c = new ExceptionCollector(binder);
-            c.doAccept(TryStatement.getBlock(gp));
+            final Set<IJavaType> fromBlock = doAccept(TryStatement.getBlock(gp));
 
-            if (c.exceptions.contains(e) && isAssignmentCompatibleWithCatchClause(e, p)) {
+            if (fromBlock.contains(e) && isAssignmentCompatibleWithCatchClause(e, p)) {
               /*
                * • E is assignment compatible with any of C 's catchable
                * exception classes; and • E is not assignment compatible with
@@ -5716,21 +5712,20 @@ public class TypeInference8 {
                 }
               }
               if (addE) {
-                exceptions.add(e);
+                return Collections.singleton(e);
               }
             }
-            return null;
+            return Collections.emptySet();
           }
         }
       }
-      exceptions.add(e);
-      return doAccept(v);
+      return merge(doAccept(v), e);
     }
 
     boolean isAssignmentCompatibleWithCatchClause(IJavaType e, IRNode cc) {
       IRNode param = CatchClause.getParam(cc);
       IJavaType ptype = binder.getJavaType(ParameterDeclaration.getType(param));
-      return binder.getTypeEnvironment().isAssignmentCompatible(e, ptype, null);
+      return binder.getTypeEnvironment().isAssignmentCompatible(ptype, e, null);
     }
 
     /**
@@ -5746,15 +5741,14 @@ public class TypeInference8 {
      * normally; or • A finally block is present and can throw E .
      */
     @Override
-    public Void visitTryStatement(IRNode t) {
-      final ExceptionCollector c = new ExceptionCollector(binder);
-      c.doAccept(TryStatement.getBlock(t));
-      return handleTry(c.exceptions, TryStatement.getCatchPart(t), TryStatement.getFinallyPart(t));
+    public Set<IJavaType> visitTryStatement(IRNode t) {
+      Set<IJavaType> fromBlock = doAccept(TryStatement.getBlock(t));
+      return handleTry(fromBlock, TryStatement.getCatchPart(t), TryStatement.getFinallyPart(t));
     }
 
-    private Void handleTry(final Set<IJavaType> fromBody, final IRNode catches, final IRNode finallyC) {
-      // Remove exceptions handled by the catch clauses,
-      final ExceptionCollector c2 = new ExceptionCollector(binder);
+    private Set<IJavaType> handleTry(final Set<IJavaType> fromBody, final IRNode catches, final IRNode finallyC) {
+      // Remove exceptions handled by the catch clauses
+      final Set<IJavaType> exceptions = new HashSet<IJavaType>();
       for (final IRNode cc : CatchClauses.getCatchClauseIterator(catches)) {
         Iterator<IJavaType> it = fromBody.iterator();
         while (it.hasNext()) {
@@ -5762,32 +5756,28 @@ public class TypeInference8 {
           if (isAssignmentCompatibleWithCatchClause(e, cc)) {
             it.remove();
           }
-          c2.doAccept(CatchClause.getBody(cc));
+          exceptions.addAll(doAccept(CatchClause.getBody(cc)));
         }
       }
       if (NoFinally.prototype.includes(finallyC)) {
-        exceptions.addAll(fromBody);
-        exceptions.addAll(c2.exceptions);
+    	  exceptions.addAll(fromBody);
       } else {
-        if (!fromBody.isEmpty() || !c2.exceptions.isEmpty()) {
+        if (!fromBody.isEmpty() || !/*from c2*/exceptions.isEmpty()) {
           // TODO how to complete normally?
           exceptions.addAll(fromBody);
-          exceptions.addAll(c2.exceptions);
         }
-        final ExceptionCollector c3 = new ExceptionCollector(binder);
-        c3.doAccept(finallyC);
-        exceptions.addAll(c3.exceptions);
+        final Set<IJavaType> c3 = doAccept(finallyC);
+        exceptions.addAll(c3);
       }
-      return null;
+      return exceptions;
     }
 
     @Override
-    public Void visitTryResource(IRNode t) {
-      final ExceptionCollector c = new ExceptionCollector(binder);
-      c.doAccept(TryResource.getBlock(t));
-      c.doAccept(TryResource.getResources(t));
+    public Set<IJavaType> visitTryResource(IRNode t) {
+      Set<IJavaType> local = doAccept(TryResource.getBlock(t));
+      local = merge(local, doAccept(TryResource.getResources(t)));
       // TODO what about the close?
-      return handleTry(c.exceptions, TryResource.getCatchPart(t), TryResource.getFinallyPart(t));
+      return handleTry(local, TryResource.getCatchPart(t), TryResource.getFinallyPart(t));
     }
 
     /**
@@ -5798,9 +5788,8 @@ public class TypeInference8 {
      * (§15.12.2.6).
      */
     @Override
-    public Void visitConstructorCall(IRNode e) {
-      doAcceptForChildren(e);
-      return collectForCall(e, ConstructorCall.getObject(e), ConstructorCall.getArgs(e), ConstructorCall.getTypeArgs(e));
+    public Set<IJavaType> visitConstructorCall(IRNode e) {
+      return mergeWithChildren(e, collectForCall(e, ConstructorCall.getObject(e), ConstructorCall.getArgs(e), ConstructorCall.getTypeArgs(e)));
     }
 
     /*
@@ -5809,10 +5798,58 @@ public class TypeInference8 {
      */
 
     @Override
-    public Void visitType(IRNode t) {
+    public Set<IJavaType> visitType(IRNode t) {
       // No statements or expressions inside
-      return null;
+      return Collections.emptySet();
     }
+
+    private Set<IJavaType> merge(Set<IJavaType> r, IJavaType t) {
+      if (r.isEmpty()) {
+    	return Collections.singleton(t);
+      }
+      Set<IJavaType> rv = new HashSet<IJavaType>(r);
+      rv.add(t);
+      return rv;
+    }
+    
+    private Set<IJavaType> merge(Set<IJavaType> r1, Set<IJavaType> r2) {
+      return merge(r1, r2, false);
+    }
+    
+    private Set<IJavaType> merge(Set<IJavaType> r1, Set<IJavaType> r2, boolean reuseR1) {
+      if (r1.isEmpty()) {
+    	  return r2;
+      }
+      if (r2.isEmpty()) {
+    	  return r1;
+      }
+      Set<IJavaType> rv = reuseR1 ? r1 : new HashSet<IJavaType>(r1);
+      rv.addAll(r2);
+      return rv;
+    }
+    
+    private Set<IJavaType> mergeWithChildren(IRNode n, Set<IJavaType> localResults) {
+      Set<IJavaType> childrenResults = mergeResults(doAcceptForChildrenWithResults(n));
+      return merge(childrenResults, localResults, true); 
+    }
+    
+	@Override
+	protected Set<IJavaType> mergeResults(List<Set<IJavaType>> results) {
+		if (results.isEmpty()) {
+			return Collections.emptySet();
+		}
+		Set<IJavaType> rv = Collections.emptySet();
+		for(Set<IJavaType> v : results) {
+			if (v == null || v.isEmpty()) {
+				continue;
+			}
+			if (rv.isEmpty()) {
+				rv = new HashSet<IJavaType>();
+			}
+			rv.addAll(v);
+		}
+		return rv;
+	}
   }
 
   /**
