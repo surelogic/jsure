@@ -411,19 +411,9 @@ public class JavaPromise extends JavaNode {
 		  }
 		}
 		 */
-		// Check if it's actually a normal receiver node
-		String name = JavaNames.getFullTypeName_local(type);
-		if (typeName.equals(name)) {
-			if (!type.equals(declNode)) {
-				// Probably a method decl
-				return getReceiverNode(declNode);
-			} else {
-				IRNode rv = getReceiverNode(declNode);
-				if (rv == null) {
-					throw new IllegalStateException("No receiver node to get from "+JavaNames.getFullTypeName(type));
-				}
-				return rv;
-			}
+		IRNode r = checkIfNormalReceiver(declNode, typeName, type);
+		if (r != null) {
+		  return r;
 		}
 		
 		// typeName may contain : for local classes, due to getFullTypeName()
@@ -444,6 +434,10 @@ public class JavaPromise extends JavaNode {
 		
 		// Compare names with each qualified receiver
 		while (type != null) {
+			IRNode nr = checkIfNormalReceiver(declNode, typeName, type);
+			if (nr != null) {
+				return nr;
+			}
 			IRNode qr = lookForQualifiedReceiver(type, typeName);
 			if (qr != null) {
 				return qr;
@@ -453,6 +447,23 @@ public class JavaPromise extends JavaNode {
 		return null;
 	}    
 
+	private static IRNode checkIfNormalReceiver(final IRNode declNode, final String typeName, final IRNode type) {
+		String name = JavaNames.getFullTypeName_local(type);
+		if (typeName.equals(name)) {
+			if (!type.equals(declNode)) {
+				// Probably a method decl
+				return getReceiverNodeOrNull(declNode);
+			} else {
+				IRNode rv = getReceiverNode(declNode);
+				if (rv == null) {
+					throw new IllegalStateException("No receiver node to get from "+JavaNames.getFullTypeName(type));
+				}
+				return rv;
+			}
+		}
+		return null;
+	}
+	
 	private static IRNode lookForQualifiedReceiver(IRNode decl, String typeNameToMatch) {
 		IRNode qr = getQualifiedReceiverNodeOrNull(decl);
 		if (qr == null) {
