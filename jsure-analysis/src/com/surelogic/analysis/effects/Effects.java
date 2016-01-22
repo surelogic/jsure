@@ -580,12 +580,6 @@ public final class Effects implements IBinderClient {
     private final Map<IRNode, QueryTransformer> transformerMap;
     
     /**
-     * The MethodDeclaration, ConstructorDeclaration, or ClassInitDeclaration
-     * being analyzed.
-     */
-    private final IRNode enclosingMethod;
-    
-    /**
      * The receiver declaration node of the constructor/method/field
      * initializer/class initializer currently being analyzed. Every expression we
      * want to analyze should be inside one of these things. We need to keep track
@@ -626,12 +620,11 @@ public final class Effects implements IBinderClient {
     
     
     private Context(final ImmutableSet.Builder<Effect> effects,
-        final Map<IRNode, QueryTransformer> transformerMap, final IRNode method,
+        final Map<IRNode, QueryTransformer> transformerMap,
         final IRNode rcvr, final BindingContextAnalysis.Query query,
         final boolean lhs) {
       this.theEffects = effects;
       this.transformerMap = transformerMap;
-      this.enclosingMethod = method;
       this.theReceiverNode = rcvr;
       this.bcaQuery = query;
       this.isLHS = lhs;
@@ -641,26 +634,23 @@ public final class Effects implements IBinderClient {
         final Map<IRNode, QueryTransformer> transformerMap, 
         final BindingContextAnalysis.Query query, final IRNode enclosingMethod) {
       return new Context(ImmutableSet.<Effect>builder(), 
-          transformerMap, enclosingMethod,
-          JavaPromise.getReceiverNodeOrNull(enclosingMethod),
+          transformerMap, JavaPromise.getReceiverNodeOrNull(enclosingMethod),
           query, false);
     }
     
     public static Context forACE(
         final Map<IRNode, QueryTransformer> transformerMap, 
-        final Context oldContext, final IRNode anonClassExpr,
-        final IRNode enclosingDecl, final IRNode rcvr) {
+        final Context oldContext, final IRNode anonClassExpr, final IRNode rcvr) {
       return new Context(ImmutableSet.<Effect>builder(), transformerMap, 
-          enclosingDecl, rcvr,
-          oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), false);
+          rcvr, oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), false);
     }
     
     public static Context forConstructorCall(
         final Map<IRNode, QueryTransformer> transformerMap, 
         final Context oldContext, final IRNode ccall) {
       // Purposely alias the effects set
-      return new Context(oldContext.theEffects, transformerMap,
-          oldContext.enclosingMethod, oldContext.theReceiverNode,
+      return new Context(
+          oldContext.theEffects, transformerMap, oldContext.theReceiverNode,
           oldContext.bcaQuery.getSubAnalysisQuery(ccall), oldContext.isLHS);
     }
     
@@ -909,9 +899,8 @@ public final class Effects implements IBinderClient {
         
         @Override
         public void tryBefore() {
-          this.newContext = Context.forACE(
-              transformerMap, oldContext, expr, getEnclosingDecl(),
-              JavaPromise.getReceiverNodeOrNull(getEnclosingDecl()));
+          this.newContext = Context.forACE(transformerMap, oldContext, expr,
+              JavaPromise.getReceiverNodeOrNull(JavaPromise.getInitMethodOrNull(expr)));
           EffectsVisitor.this.context = this.newContext;
         }
         

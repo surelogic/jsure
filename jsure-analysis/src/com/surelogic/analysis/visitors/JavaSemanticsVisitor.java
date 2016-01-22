@@ -856,7 +856,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     final boolean prevInsideFieldDeclaration = insideFieldDeclaration;
     final boolean prevIsFieldStatic = isStaticField;
     
-    // No longer inside a field declaration because are entering a type
+    // No longer inside a field declaration because we are entering a type
     insideFieldDeclaration = false;
     isStaticField = false;
     
@@ -870,9 +870,25 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
        * see Bug 1662.  Technically the initializer blocks of the anonymous
        * class expression are executed as part of the enclosing method/constructor. 
        */
+      /* 2016-01-21: Things are stranger than I originally thought.  Yes, 
+       * analysis should consider that it is inside a constructor for purposes
+       * of special cases, but the overall, the flow of control is still within
+       * the original enclosing declaration.  (When an initializer block is 
+       * visited in a normal class (triggered by a call to super(...)), the
+       * enclosing declaration remains the constructor that contains the 
+       * super(...).  Here we are still in the context of whatever flow unit 
+       * contains the anonymous class expression.
+       * 
+       * It remains to be seen what kind of craziness will be caused by
+       * setting insisdeConstructor to be true when the enclosing declaration
+       * is not necessarily a constructor.
+       */
       insideConstructor = true; // We are inside the constructor of the anonymous class
       insideInstanceInitialization = false;
-      enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
+      // 2016-01-21: was
+//      enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
+      // 2016-01-21: changed to
+      enterEnclosingDecl(enclosingDecl, expr); 
       action.tryBefore();
       try {
         processClassBody(classBody, WhichMembers.INSTANCE);

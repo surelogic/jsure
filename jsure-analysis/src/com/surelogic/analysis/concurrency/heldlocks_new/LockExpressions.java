@@ -70,7 +70,6 @@ final class LockExpressions {
      * instead of maintaining a separate copy of it. 
      */
     IRNode enclosingFlowUnit;
-    private final LinkedList<IRNode> declStack = new LinkedList<IRNode>();
     private IRNode currentRcvr;
     private final LinkedList<IRNode> rcvrStack = new LinkedList<IRNode>();
     
@@ -92,14 +91,15 @@ final class LockExpressions {
     }
     
     public void newDeclaration(final IRNode decl) {
-      declStack.addFirst(enclosingFlowUnit);
       rcvrStack.addFirst(currentRcvr);
-      enclosingFlowUnit = decl;
+      /* 2016-01-21: Enclosing flow unit doesn't change, although the receiver
+       * does.  We are still inside whatever flow unit contains the anonymous
+       * class expression.  We still push the flow unit above, so that  
+       */
       currentRcvr = JavaPromise.getReceiverNodeOrNull(decl);
     }
     
     public void pop() {
-      enclosingFlowUnit = declStack.removeFirst();
       currentRcvr = rcvrStack.removeFirst();
     }    
   }
@@ -577,6 +577,7 @@ final class LockExpressions {
             true, ReturnStatement.getValue(rstmt), rstmt, Reason.BOGUS, null);
         returnStatements.put(rstmt, retLocks);
       }
+      doAcceptForChildren(rstmt);
       return null;
     }
     
