@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IDecl;
 
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -25,7 +26,7 @@ public interface PromiseConstants {
   public static final String REGION_ALL_NAME = "All";
   public static final String ROOT_REGION_NAME = REGION_ALL_NAME;
   public static final String REGION_INSTANCE_NAME = "Instance";
-  public static final String ARRAY_CLASS_NAME = "[]";
+  public static final String ARRAY_CLASS_NAME = IDecl.ARRAY_BRACKETS;
   public static final String REGION_LENGTH_NAME = "length";
   public static final String ARRAY_CLASS_QNAME = "java.lang."+ARRAY_CLASS_NAME;
   

@@ -5,6 +5,7 @@ package com.surelogic.aast.java;
 import java.util.List;
 
 import com.surelogic.aast.*;
+import com.surelogic.common.ref.IDecl;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
@@ -56,7 +57,7 @@ public class ArrayTypeNode extends ReferenceTypeNode {
     } else {
     	sb.append(getBase().unparse(debug, indent));
     	for(int i=0; i<dims; i++) {
-    		sb.append("[]");
+    		sb.append(IDecl.ARRAY_BRACKETS);
     	}
     }
     return sb.toString();
