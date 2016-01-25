@@ -118,6 +118,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
     
     private static final Map<String,IRNode> types = new Hashtable<String, IRNode>();
     
+    // Note that T is the element type of the array!
     public static IRNode createArrayType(String project, IIRProject p, ITypeEnvironment tEnv) {      
       final IRNode rv = types.get(project+p.hashCode());
       if (rv != null) {
@@ -140,6 +141,17 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       /*
       final IRNode privateArrayElement = CogenUtil.makeVarDecl(PromiseConstants.REGION_ELEMENT_NAME, null);
       */
+      final IRNode[] intParams = new IRNode[] { 
+    		  ParameterDeclaration.createNode(Annotations.createNode(noNodes), JavaNode.FINAL, IntType.prototype.jjtCreate(), "size") 
+      };      
+      //final IRNode tArray2 = ArrayType.createNode(NamedType.createNode("T"), 1);
+      final IRNode publicIntConstructor = 
+    	CogenUtil.makeConstructorDecl(noNodes, JavaNode.PUBLIC | JavaNode.NATIVE, noNodes, 
+    			                      PromiseConstants.ARRAY_CLASS_NAME, intParams, noNodes, null);
+    	/*
+        CogenUtil.makeMethodDecl(noNodes, JavaNode.PUBLIC | JavaNode.NATIVE, noNodes,
+                                 tArray2, PromiseConstants.ARRAY_CLASS_NAME, intParams, noNodes, null);      
+                              */
       
       // Somehow, this needs to take prim types
       final IRNode typeParam   = TypeFormal.createNode("T", MoreBounds.createNode(noNodes));
@@ -157,7 +169,8 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
                               CogenUtil.makeFieldDecl(noNodes, JavaNode.PUBLIC | JavaNode.FINAL, 
                             	ArrayType.createNode(NamedType.createNode("T"), 1), privateArrayElement),
                               */
-        	
+                              publicIntConstructor,
+                                
                               // FIX alpha for the type?
                               privateCloneMethod,
                               /*
@@ -186,6 +199,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
           TypeDeclarations.createNode(new IRNode[] {privateArrayType}));
       JavaNode.setModifiers(cu, JavaNode.AS_BINARY);
       
+      ReceiverDeclaration.makeReceiverNode(publicIntConstructor);
       ReturnValueDeclaration.makeReturnNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateArrayType);
