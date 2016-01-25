@@ -4443,10 +4443,12 @@ public class TypeInference8 {
         bounds.addFalse();
       }
     } else if (!mb.isPolyExpression(e)) {
+      /*
       final String unparse = DebugUnparser.toString(e);
       if ("match.gpe".equals(unparse)) {
     	  System.out.println("Checking "+unparse);
       }
+      */
       IJavaType s = tEnv.getBinder().getJavaType(e);
       IJavaType captured = JavaTypeVisitor.captureWildcards(tEnv.getBinder(), s);
       reduceTypeCompatibilityConstraints(bounds, captured, t);
@@ -5026,12 +5028,11 @@ public class TypeInference8 {
         bounds.addFalse();
       }
     } else if (t instanceof IJavaArrayType) {
-      final IJavaArrayType s_primeArray = findMostSpecificArraySuperType(s);
-      if (s_primeArray == null) {
+      final IJavaType s_prime = findMostSpecificArraySuperType(s);
+      if (s_prime == null) {
         bounds.addFalse();
       } else {
         final IJavaArrayType t_primeArray = (IJavaArrayType) t;
-        final IJavaType s_prime = s_primeArray.getElementType();
         final IJavaType t_prime = t_primeArray.getElementType();
         if (s_prime instanceof IJavaPrimitiveType || t_prime instanceof IJavaPrimitiveType) {
           if (!s_prime.equals(t_prime)) {
@@ -5099,11 +5100,16 @@ public class TypeInference8 {
     return null;
   }
 
-  private IJavaArrayType findMostSpecificArraySuperType(IJavaType s) {
+  // returns S' for S'[]
+  private IJavaType findMostSpecificArraySuperType(IJavaType s) {
     if (s instanceof IJavaArrayType) {
-      return (IJavaArrayType) s;
+      IJavaArrayType as = (IJavaArrayType) s;
+      return as.getElementType();
     } else if (s instanceof IJavaDeclaredType) {
-      return null; // TODO right?
+      IJavaDeclaredType ds = (IJavaDeclaredType) s;
+      if (ds.getDeclaration() == tEnv.getArrayClassDeclaration()) {
+    	return ds.getTypeParameters().get(0);
+      }
     }
     // What other cases are there?
     return null;
