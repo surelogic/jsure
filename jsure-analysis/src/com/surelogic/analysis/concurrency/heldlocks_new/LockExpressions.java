@@ -14,7 +14,10 @@ import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo.SyncedJUC;
 import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.SingleThreadedData;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo.Bogus;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockExpressionManager.LockExprInfo.Final;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLock;
 import com.surelogic.analysis.concurrency.model.instantiated.HeldLockFactory;
@@ -588,20 +591,26 @@ final class LockExpressions {
           lockExpr, thisExprBinder.enclosingFlowUnit, syncBlock,
           currentQuery().first(), currentQuery().second());
 
-      // Get the locks for the lock expression
-      final ImmutableSet.Builder<HeldLock> lockSet = ImmutableSet.builder();
-      lockUtils.convertLockExpr(
-          convertAsIntrinsic, lockExpr, heldLockFactory, src, reason,
-          currentQuery().second(), enclosingMethodDecl, lockSet);
-      final Set<HeldLock> result = lockSet.build();
-      
-      if (!isFinal) {
-        return new LockExprInfo(false, false, result);
-      } else {
-        if (result.isEmpty() && !convertAsIntrinsic) {
-          return new LockExprInfo(true, true, ImmutableSet.<HeldLock>of(heldLockFactory.createBogusLock(lockExpr)));
+      if (convertAsIntrinsic && lockUtils.isJavaUtilConcurrentLockObject(lockExpr)) {
+        return new LockExprInfo(isFinal ? Final.YES : Final.NO,
+            Bogus.NO, SyncedJUC.YES, ImmutableSet.<HeldLock>of());
+      } else { // !convertAsIntrinsic || !isJavaUtilConcurrentLockObject
+        // Get the locks for the lock expression
+        final ImmutableSet.Builder<HeldLock> lockSet = ImmutableSet.builder();
+        lockUtils.convertLockExpr(
+            convertAsIntrinsic, lockExpr, heldLockFactory, src, reason,
+            currentQuery().second(), enclosingMethodDecl, lockSet);
+        final Set<HeldLock> result = lockSet.build();
+        
+        if (!isFinal) {
+          return new LockExprInfo(Final.NO, Bogus.NO, SyncedJUC.NO, result);
         } else {
-          return new LockExprInfo(true, false, result);
+          if (result.isEmpty() && !convertAsIntrinsic) {
+            return new LockExprInfo(Final.YES, Bogus.YES, SyncedJUC. NO,
+                ImmutableSet.<HeldLock>of(heldLockFactory.createBogusLock(lockExpr)));
+          } else {
+            return new LockExprInfo(Final.YES, Bogus.NO, SyncedJUC.NO, result);
+          }
         }
       }
     }    

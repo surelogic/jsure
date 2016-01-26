@@ -849,7 +849,8 @@ implements IBinderClient {
     final LockExprInfo acquiringLocks =
         lockExprManager.getSyncBlock(getEnclosingDecl(), syncStmt);
 
-    if (lockUtils.isJavaUtilConcurrentLockObject(lockExpr)) {
+    if (acquiringLocks.isSyncedJUC()) {
+//    if (lockUtils.isJavaUtilConcurrentLockObject(lockExpr)) {
       HintDrop.newWarning(
           lockExpr, MIXED_JUC_INTRINSIC, SYNCED_LOCK_OBJECT, DebugUnparser.toString(lockExpr));
     } else {

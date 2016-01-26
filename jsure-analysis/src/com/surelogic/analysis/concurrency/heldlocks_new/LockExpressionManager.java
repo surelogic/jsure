@@ -25,21 +25,30 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public final class LockExpressionManager {
   public final static class LockExprInfo {
-    private final boolean isFinal;
-    private final boolean isBogus;
+    public enum Final { NO, YES }
+    public enum Bogus { NO, YES }
+    public enum SyncedJUC { NO, YES }
+    
+    private final Final isFinal;
+    private final Bogus isBogus;
+    private final SyncedJUC isSyncedJUC;
     private final Set<HeldLock> locks;
     
-    public LockExprInfo(final boolean isFinal, final boolean isBogus, final Set<HeldLock> locks) {
+    public LockExprInfo(
+        final Final isFinal, final Bogus isBogus,
+        final SyncedJUC isSyncedJUC, final Set<HeldLock> locks) {
       this.isFinal = isFinal;
       this.isBogus = isBogus;
+      this.isSyncedJUC = isSyncedJUC;
       this.locks = locks;
     }
     
-    public boolean isFinal() { return isFinal; }
-    public boolean isBogus() { return isBogus; }
+    public boolean isFinal() { return isFinal == Final.YES; }
+    public boolean isBogus() { return isBogus == Bogus.YES; }
+    public boolean isSyncedJUC() { return isSyncedJUC == SyncedJUC.YES; }
     public Set<HeldLock> getLocks() { return locks; }
     public Set<HeldLock> getRealLocks() {
-      return isBogus ? ImmutableSet.<HeldLock>of() : locks;
+      return isBogus() ? ImmutableSet.<HeldLock>of() : locks;
     }
   }
   
