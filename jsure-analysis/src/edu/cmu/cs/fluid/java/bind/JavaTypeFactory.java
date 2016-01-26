@@ -31,6 +31,7 @@ import com.surelogic.ast.java.operator.ITypeFormalNode;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.common.util.Iteratable;
@@ -2107,17 +2108,17 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   
   @Override
   public final String toSourceText() {
-	  return elementType.toSourceText() + "[]";
+	  return elementType.toSourceText() + IDecl.ARRAY_BRACKETS;
   }
   
   @Override
   public String toFullyQualifiedText() {
-	  return elementType.toFullyQualifiedText() + "[]";
+	  return elementType.toFullyQualifiedText() + IDecl.ARRAY_BRACKETS;
   }
   
   @Override
   public String toString() {
-    return elementType.toString() + "[]";
+    return elementType.toString() + IDecl.ARRAY_BRACKETS;
   }
   
   @Override

@@ -497,7 +497,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			}
 			for (IRNode s : e.getValue()) {
 				final IRNode sRoot = VisitUtil.findRoot(s);
-				if ("[]".equals(JJNode.getInfoOrNull(s))) {
+				if (PromiseConstants.ARRAY_CLASS_NAME.equals(JJNode.getInfoOrNull(s))) {
 					continue;
 				}
 				final CUDrop sCU = CUDrop.queryCU(sRoot);

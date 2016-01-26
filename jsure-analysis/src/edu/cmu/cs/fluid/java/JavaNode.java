@@ -702,7 +702,7 @@ public class JavaNode extends JJNode {
       if (tok == null) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < dims; ++i)
-          sb.append("[]");
+          sb.append(IDecl.ARRAY_BRACKETS);
         tok = new Keyword(sb.toString());
         dimInfos.setElementAt(tok, dims);
       }
@@ -719,7 +719,7 @@ public class JavaNode extends JJNode {
       if (tok == null) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < dims; ++i)
-          sb.append("[]");
+          sb.append(IDecl.ARRAY_BRACKETS);
         tok = new Keyword(sb.toString());
         dimInfos.setElementAt(tok, dims);
       }

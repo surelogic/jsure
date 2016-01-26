@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.util.*;
-
 import com.surelogic.Starts;
 import com.surelogic.RegionEffects;
 import com.surelogic.Unique;
@@ -137,6 +137,6 @@ public class NullCollection<E> implements Collection<E> {
 
   @Override
   public final String toString() {
-    return "[]";
+    return IDecl.ARRAY_BRACKETS;
   }
 }

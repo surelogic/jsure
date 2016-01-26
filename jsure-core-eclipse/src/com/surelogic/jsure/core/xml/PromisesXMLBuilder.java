@@ -6,6 +6,7 @@ import org.eclipse.jdt.core.*;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.xml.*;
 import com.surelogic.xml.AnnotatedJavaElement.Access;
 
@@ -68,7 +69,7 @@ public class PromisesXMLBuilder {
 			} else {
 				translateParameter(m, sb, t.substring(dims));
 				for(int i=0; i<dims; i++) {
-					sb.append("[]");
+					sb.append(IDecl.ARRAY_BRACKETS);
 				}
 			}			
 		} else {

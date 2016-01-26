@@ -111,6 +111,7 @@ import edu.cmu.cs.fluid.java.bind.ICompUnitListener;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaCanonicalizer;
 import edu.cmu.cs.fluid.java.bind.JavaRewrite;
+import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.bind.UnversionedJavaBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
@@ -1763,7 +1764,7 @@ public class Util implements AnalysisConstants {
         final ICodeFile cf = new ICodeFile() {
           @Override
           public String getRelativePath() {
-            return "[]";
+            return PromiseConstants.ARRAY_CLASS_NAME;
           }
 
           @Override

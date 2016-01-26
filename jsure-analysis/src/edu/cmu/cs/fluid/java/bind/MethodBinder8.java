@@ -458,10 +458,17 @@ public class MethodBinder8 implements IMethodBinder {
     		return JavaTypeVisitor.captureWildcards(binder, t);
     	}
     	IJavaType rv = binder.getJavaType(receiver);
-       	if (isConstructor && rv instanceof IJavaDeclaredType) {
-       		IJavaDeclaredType dt = (IJavaDeclaredType) rv;
-       		if (dt.getTypeParameters().isEmpty() && dt.isRawType(tEnv)) {
-       			return tEnv.convertNodeTypeToIJavaType(dt.getDeclaration());
+       	if (isConstructor) {
+       		if (rv instanceof IJavaDeclaredType) {
+       			IJavaDeclaredType dt = (IJavaDeclaredType) rv;
+       			if (dt.getTypeParameters().isEmpty() && dt.isRawType(tEnv)) {
+       				return tEnv.convertNodeTypeToIJavaType(dt.getDeclaration());
+       			}
+       		}
+       		else if (rv instanceof IJavaArrayType) {
+       			IJavaArrayType at = (IJavaArrayType) rv;
+    			List<IJavaType> params = Collections.singletonList(at.getElementType());
+    			return JavaTypeFactory.getDeclaredType(tEnv.getArrayClassDeclaration(), params, null);       			
        		}
        	}
        	return rv;
@@ -515,23 +522,27 @@ public class MethodBinder8 implements IMethodBinder {
 		
 		final IJavaType t = findTypeToSearchForMethodRef(base, kind, isConstructor);
     	final LookupContext context = new LookupContext();
-    	if (!isConstructor) {
-    		context.use(name, base);
-    	} else {
-    		IJavaDeclaredType dt = (IJavaDeclaredType) t;
-    		context.use(JJNode.getInfo(dt.getDeclaration()), base);
-    	}
-    	
     	final IJavaScope scope;
     	final boolean isRefType;
+    	
     	if (isConstructor) {
-    		// Only needs to look at the specified type
-    		IJavaSourceRefType tdecl = (IJavaSourceRefType) t;
-    		scope = binder.typeMemberTable(tdecl).asLocalScope(tEnv);
-    		isRefType = !isConstructor;
+  			isRefType = !isConstructor;
+    		if (t instanceof IJavaArrayType) {
+       			IJavaArrayType at = (IJavaArrayType) t;
+    			List<IJavaType> params = Collections.singletonList(at.getElementType());
+    			IJavaDeclaredType ast  = JavaTypeFactory.getDeclaredType(tEnv.getArrayClassDeclaration(), params, null);
+    			scope = binder.typeMemberTable(ast).asLocalScope(tEnv);
+    			context.use(PromiseConstants.ARRAY_CLASS_NAME, base);
+    		} else {
+    			// Only needs to look at the specified type
+    			IJavaSourceRefType tdecl = (IJavaSourceRefType) t;
+    			scope = binder.typeMemberTable(tdecl).asLocalScope(tEnv);
+    			context.use(JJNode.getInfo(tdecl.getDeclaration()), base);
+    		}
     	} else {
     		scope = binder.typeScope(t);
     		isRefType = (kind == ReceiverKind.REF_TYPE);
+    		context.use(name, base);
     	}
     	
     	final Set<IBinding> rv = new HashSet<IBinding>();
@@ -2256,6 +2267,9 @@ public class MethodBinder8 implements IMethodBinder {
 				IJavaTypeSubstitution subst = new TypeInference8.TypeSubstitution(tEnv.getBinder(), map);
 				IJavaFunctionType mtype = computeMethodType(mb);
 				
+				if (b_2 == null) {
+					typeInfer.recomputeB_2(call, b);
+				}
 				if (b_2.usedUncheckedConversion()) {
 					return substParams_eraseReturn(mtype, subst);
 				} else {
