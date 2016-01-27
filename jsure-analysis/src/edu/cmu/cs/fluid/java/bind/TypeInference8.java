@@ -572,9 +572,11 @@ public class TypeInference8 {
     final BoundSet result = resolve(b_2, null, false);
     // debug
     if (result == null || result.getInstantiations().isEmpty()) {
+      /*
       if (result == null) {
     	  System.out.println("Null result from resolve()");
       }
+      */
       resolve(b_2, null, true);
     }
     if (result != null && !result.isFalse && result.getInstantiations().keySet().containsAll(result.variableMap.values())) {
