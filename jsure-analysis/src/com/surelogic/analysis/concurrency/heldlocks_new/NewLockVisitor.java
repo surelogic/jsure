@@ -850,7 +850,6 @@ implements IBinderClient {
         lockExprManager.getSyncBlock(getEnclosingDecl(), syncStmt);
 
     if (acquiringLocks.isSyncedJUC()) {
-//    if (lockUtils.isJavaUtilConcurrentLockObject(lockExpr)) {
       HintDrop.newWarning(
           lockExpr, MIXED_JUC_INTRINSIC, SYNCED_LOCK_OBJECT, DebugUnparser.toString(lockExpr));
     } else {

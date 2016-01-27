@@ -43,7 +43,16 @@ public final class HeldLockFactory {
         modelLock.getImplementation(), source, reason, needsWrite,
         modelLock.getSourceAnnotation(), supportingDrop);
   }
-  
+
+  public HeldLock createInstanceParameterDeclLock(
+      final IRNode paramDecl, final LockImplementation lockImpl,
+      final IRNode source, final Reason reason, final boolean needsWrite,
+      final PromiseDrop<?> lockPromise,
+      final RequiresLockPromiseDrop supportingDrop) {
+    return new HeldInstanceParamDeclLock(paramDecl, 
+        lockImpl, source, reason, needsWrite, lockPromise, supportingDrop);
+  }
+
   public HeldLock createStaticLock(
       final LockImplementation lockImpl, final IRNode source,
       final Reason reason, final boolean needsWrite,

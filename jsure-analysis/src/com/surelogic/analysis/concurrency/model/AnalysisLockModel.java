@@ -878,7 +878,9 @@ public final class AnalysisLockModel {
 //                  node, lockModel, type);
             } else { // operator is ParameterDeclaration, find the actual
               // Lock is "<UseExpression>.<LockName>"
-              objExpr = node;
+              // special case!
+              return createInstanceParameterDeclLock(lockModel, node, lockImpl, source, needsWrite);
+//              objExpr = node;
             }
           }
         }
@@ -901,7 +903,11 @@ public final class AnalysisLockModel {
     protected abstract T createInstanceLock(LockModel lockModel,
         IRNode objectRefExpr, LockImplementation lockImpl, IRNode source,
         boolean needsWrite);
-    
+
+    protected abstract T createInstanceParameterDeclLock(LockModel lockModel,
+        IRNode paramDecl, LockImplementation lockImpl, IRNode source,
+        boolean needsWrite);
+
 //    protected abstract T createFieldRefLock(IRNode rcvr, IRNode fdecl, LockModel lock, boolean needsWrite);
   }
   
@@ -959,6 +965,24 @@ public final class AnalysisLockModel {
       } else {
         return heldLockFactory.createInstanceLock(
             mappedObjectExpr, lockImpl, source, reason, needsWrite, lockModel, null);
+      }
+    }
+    
+    @Override
+    protected HeldLock createInstanceParameterDeclLock(final LockModel lockModel,
+        final IRNode paramDecl, final LockImplementation lockImpl,
+        final IRNode source, final boolean needsWrite) {
+      if (formalsToActuals == null) {
+        return heldLockFactory.createInstanceParameterDeclLock(
+            paramDecl, lockImpl, source, reason, needsWrite, lockModel, null);
+      } else {
+        final IRNode mappedObjectExpr = formalsToActuals.get(paramDecl);
+        if (mappedObjectExpr == null) {
+          return null;
+        } else {
+          return heldLockFactory.createInstanceLock(
+              mappedObjectExpr, lockImpl, source, reason, needsWrite, lockModel, null);
+        }
       }
     }
   }
@@ -1042,6 +1066,20 @@ public final class AnalysisLockModel {
             NeededLock.Reason.LOCK_PRECONDITION, requiresLockDrop, needsWrite);
       }
     }
+    
+    @Override
+    protected NeededLock createInstanceParameterDeclLock(
+        final LockModel lockModel, final IRNode paramDecl,
+        final LockImplementation lockImpl, final IRNode source,
+        final boolean needsWrite) {
+      final IRNode mappedObjectExpr = formalToActualMap.get(paramDecl);
+      if (mappedObjectExpr == null) {
+        return null;
+      } else {
+        return lockFactory.createInstanceLock(mappedObjectExpr, lockImpl, source,
+            NeededLock.Reason.LOCK_PRECONDITION, requiresLockDrop, needsWrite);
+      }
+    }
   }
 
   private final class PreconditionProcessorHeldLocks
@@ -1083,6 +1121,15 @@ public final class AnalysisLockModel {
         final IRNode source, final boolean needsWrite) {
       return heldLockFactory.createInstanceLock(
           objectRefExpr, lockImpl, source, HeldLock.Reason.METHOD_PRECONDITION,
+          needsWrite, lockModel, supportingDrop);
+    }
+    
+    @Override
+    protected HeldLock createInstanceParameterDeclLock(final LockModel lockModel,
+        final IRNode paramDecl, final LockImplementation lockImpl,
+        final IRNode source, final boolean needsWrite) {
+      return heldLockFactory.createInstanceParameterDeclLock(
+          paramDecl, lockImpl, source, HeldLock.Reason.METHOD_PRECONDITION,
           needsWrite, lockModel, supportingDrop);
     }
   }
