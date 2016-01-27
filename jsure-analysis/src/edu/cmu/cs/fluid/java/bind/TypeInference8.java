@@ -519,6 +519,12 @@ public class TypeInference8 {
     }
     final BoundSet b_2 = new BoundSet(b_1);
     final IJavaTypeSubstitution theta = b_2.getInitialVarSubst();
+    /*
+	final String unparse = call.toString();
+	if (unparse.equals("<implicit>.getVertx.sharedData.<String, String> getClusterWideMap(\"bar\", <implicit>.onSuccess(# -> #))")) {
+		System.out.println("Found problematic call");
+	}
+	*/
     // Include the receiver
     if (call.getReceiverType() != null) {
     	// No need to check for un/boxing
@@ -566,6 +572,11 @@ public class TypeInference8 {
     final BoundSet result = resolve(b_2, null, false);
     // debug
     if (result == null || result.getInstantiations().isEmpty()) {
+      /*
+      if (result == null) {
+    	  System.out.println("Null result from resolve()");
+      }
+      */
       resolve(b_2, null, true);
     }
     if (result != null && !result.isFalse && result.getInstantiations().keySet().containsAll(result.variableMap.values())) {
@@ -5599,7 +5610,7 @@ public class TypeInference8 {
     Set<IJavaType> collectForCall(IRNode call, IRNode receiver, IRNode args, IRNode targs) {
       // TODO can't bind? (causes cycle)
       final MethodBinding8 b = (MethodBinding8) binder.getIBinding(call);
-      final CallState state = CallState.create(binder, call, args, targs, binder.getJavaType(receiver));
+      final CallState state = CallState.create(binder, call, targs, args, binder.getJavaType(receiver));
       final IJavaFunctionType itype = mb.computeInvocationType(state, b, false);
       return itype.getExceptions();
     }    
