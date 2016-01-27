@@ -2855,7 +2855,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       return false;
     }
-
+    
+    /*
+     * Bind 'n' to the right receiver declaration
+     */
     private IRNode handleThisExpr(final IRNode n, final IRNode contextType, final boolean useSuper) {
       IRNode contextTypeB = null;
       if (contextType != null) {
@@ -2868,15 +2871,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IRNode enclosingType = null;
       if (decl != null) {
         Operator op = JJNode.tree.getOperator(decl);
-        if (isParameterToAnonClassExpr(op, decl, n)) {
-          // "inside" a ACE
+        // Check for exceptional cases
+        while (LambdaExpression.prototype.includes(op) || // 1. Ignore the lambda -- it's part of the surrounding decl
+        	   isParameterToAnonClassExpr(op, decl, n)) { // 2. "inside" a ACE -- not really        	   
           decl = VisitUtil.getEnclosingClassBodyDecl(decl);
           op = JJNode.tree.getOperator(decl);
         }
         if (SomeFunctionDeclaration.prototype.includes(op)) {
           if (contextTypeB != null) {
             // Check if the context type is the same as the enclosing type
-            enclosingType = VisitUtil.getEnclosingType(n);
+            enclosingType = VisitUtil.getEnclosingType(decl);
             if (contextTypeB == enclosingType) {
               // If so, use the receiver node instead
               return JavaPromise.getReceiverNodeOrNull(decl);
