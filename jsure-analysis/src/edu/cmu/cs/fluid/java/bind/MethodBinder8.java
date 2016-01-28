@@ -580,17 +580,8 @@ public class MethodBinder8 implements IMethodBinder {
     	if (StatementExpression.prototype.includes(lambdaBody)) {
     		return true;
     	}
-    	// Look for a return statement
-    	for(IRNode n : JJNode.tree.topDown(lambdaBody)) {
-        	final Operator op = JJNode.tree.getOperator(n);
-        	if (ReturnStatement.prototype.includes(op)) {
-        		return false;
-        	}
-          	else if (VoidReturnStatement.prototype.includes(op)) {
-        		return true;
-        	}
-    	}
-		return true;
+    	// Look for a void return statement
+    	return rsv.doAccept(lambdaBody) != Boolean.TRUE;
 	}
     
 	/**
@@ -600,19 +591,48 @@ public class MethodBinder8 implements IMethodBinder {
     	if (Expression.prototype.includes(lambdaBody)) {
     		return true;
     	}
-    	// Look for a void return statement
-    	for(IRNode n : JJNode.tree.topDown(lambdaBody)) {
-        	final Operator op = JJNode.tree.getOperator(n);
-        	if (ReturnStatement.prototype.includes(op)) {
-        		return true;
-        	}
-        	else if (VoidReturnStatement.prototype.includes(op)) {
-        		return false;
-        	}
-    	}
-		return false;
+    	// Look for a return statement
+    	return rsv.doAccept(lambdaBody) == Boolean.TRUE;
 	}
 
+    private final ReturnStatementVisitor rsv = new ReturnStatementVisitor();
+    
+    /**
+     * Looks for a return statement
+     * @author edwin
+     */
+    private class ReturnStatementVisitor extends AbstractLambdaVisitor<Boolean> {
+    	ReturnStatementVisitor() {
+    		super(null);
+    	}
+		@Override
+		Boolean merge(Boolean v1, Boolean v2) {
+			if (v1 == null) {
+				return v2;
+			}
+			if (v2 == null) {
+				return v1;
+			}
+			return v1 || v2;
+		}
+		@Override
+		protected Boolean mergeResults(List<Boolean> results) {
+			Boolean rv = null;
+			for(Boolean v : results) {
+				rv = merge(rv, v);
+			}
+			return rv;
+		}
+    	@Override
+    	public Boolean visitReturnStatement(IRNode s) {
+    		return Boolean.TRUE;
+    	}
+    	@Override
+    	public Boolean visitVoidReturnStatement(IRNode s) {
+    		return Boolean.FALSE;
+    	}
+    }
+    
 	private boolean declaresTypeParam(IRNode types, IJavaTypeFormal t) {
 		for(IRNode f : children(types)) {
 			if (f.equals(t.getDeclaration())) {
@@ -2086,20 +2106,33 @@ public class MethodBinder8 implements IMethodBinder {
     		isMethod = false;
     	}
     	final ReceiverKind kind = identifyReceiverKind(recv);
-       	final IJavaDeclaredType t = (IJavaDeclaredType) findTypeToSearchForMethodRef(recv, kind, !isMethod);
+      	final IJavaType t = findTypeToSearchForMethodRef(recv, kind, !isMethod);
 		if (!isMethod || kind == ReceiverKind.REF_TYPE) {
-			if (t.isRawType(tEnv)) {
-				return null;
+			if (t instanceof IJavaDeclaredType) {
+				final IJavaDeclaredType dt = (IJavaDeclaredType) t;
+				if (dt.isRawType(tEnv)) {
+					return null;
+				}
 			}
 		}
 	  	final LookupContext context = new LookupContext();
+	  	final IJavaSourceRefType st;
 	  	if (isMethod) {
 	  		context.use(JJNode.getInfoOrNull(ref), ref);
-	  	} else {	  		
-	  		context.use(JJNode.getInfoOrNull(t.getDeclaration()), ref);	
+	  		st = (IJavaSourceRefType) t;
+	  	} else {	  	
+	  		// Decl type or array
+	  		if (t instanceof IJavaArrayType) {
+       			IJavaArrayType at = (IJavaArrayType) t;
+    			List<IJavaType> params = Collections.singletonList(at.getElementType());
+    			st = JavaTypeFactory.getDeclaredType(tEnv.getArrayClassDeclaration(), params, null); 
+	  		} else {
+	  			st = (IJavaDeclaredType) t;
+	  		}
+	  		context.use(JJNode.getInfoOrNull(st.getDeclaration()), ref);	
 	  	}
 	
-    	final IJavaScope scope = isMethod ? binder.typeMemberTable(t).asScope(binder) : binder.typeMemberTable(t).asLocalScope(tEnv);
+    	final IJavaScope scope = isMethod ? binder.typeMemberTable(st).asScope(binder) : binder.typeMemberTable(st).asLocalScope(tEnv);
     	IBinding result = null;
     	for(IBinding m : findMethods(scope, context, isMethod, ref)) {
     		if (result == null) {

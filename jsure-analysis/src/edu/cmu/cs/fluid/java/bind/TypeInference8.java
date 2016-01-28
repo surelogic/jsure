@@ -5598,11 +5598,12 @@ public class TypeInference8 {
     }
   }
 
-  static class ExceptionCollector extends TreeWalkVisitor<Set<IJavaType>> {
+  static class ExceptionCollector extends AbstractLambdaVisitor<Set<IJavaType>> {
     final IPrivateBinder binder;
     final MethodBinder8 mb;
 
     ExceptionCollector(IPrivateBinder b) {
+      super(Collections.<IJavaType>emptySet());
       binder = b;
       mb = new MethodBinder8(b, false);
     }
@@ -5634,24 +5635,6 @@ public class TypeInference8 {
       return mergeWithChildren(e, collectForCall(e, NewExpression.getType(e), NewExpression.getArgs(e), NewExpression.getTypeArgs(e)));
     }
 
-    @Override
-    public Set<IJavaType> visitAnonClassExpression(IRNode ace) {
-      Set<IJavaType> rv = doAccept(AnonClassExpression.getAlloc(ace));
-      for (IRNode m : VisitUtil.getClassBodyMembers(ace)) {
-        final Operator op = JJNode.tree.getOperator(m);
-        if (!TypeUtil.isStatic(m)) {
-          continue;
-        }
-        if (FieldDeclaration.prototype.includes(op)) {
-          rv = merge(rv, doAccept(FieldDeclaration.getVars(m)));
-        } else if (ClassInitializer.prototype.includes(op)) {
-          rv = merge(rv, doAccept(ClassInitializer.getBlock(m)));
-        }
-        // Otherwise, ignore it
-      }
-      return rv;
-    }
-
     /**
      * A method invocation expression (§15.12) can throw an exception class E
      * iff either:
@@ -5670,10 +5653,7 @@ public class TypeInference8 {
     /**
      * A lambda expression (§15.27) can throw no exception classes.
      */
-    @Override
-    public Set<IJavaType> visitLambdaExpression(IRNode e) {
-      return Collections.emptySet();
-    }
+    
     /*
      * For every other kind of expression, the expression can throw an exception
      * class E iff one of its immediate subexpressions can throw E
@@ -5829,7 +5809,7 @@ public class TypeInference8 {
       return rv;
     }
     
-    private Set<IJavaType> merge(Set<IJavaType> r1, Set<IJavaType> r2) {
+    Set<IJavaType> merge(Set<IJavaType> r1, Set<IJavaType> r2) {
       return merge(r1, r2, false);
     }
     
