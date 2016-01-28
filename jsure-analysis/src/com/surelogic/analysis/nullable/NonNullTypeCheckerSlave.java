@@ -254,7 +254,7 @@ extends QualifiedTypeCheckerSlave<com.surelogic.analysis.ThisExpressionBinder, N
       
       @Override
       public void tryBefore() {
-        receiverDecl = JavaPromise.getReceiverNodeOrNull(getEnclosingDecl());
+        receiverDecl = JavaPromise.getReceiverNodeOrNull(getEnclosingSyntacticDecl());
       }
       
       @Override
@@ -281,7 +281,7 @@ extends QualifiedTypeCheckerSlave<com.surelogic.analysis.ThisExpressionBinder, N
     
     @Override
     protected IRNode bindQualifiedReceiver(IRNode outerType, IRNode node) {
-      return JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
+      return JavaPromise.getQualifiedReceiverNodeByName(getEnclosingSyntacticDecl(), outerType);
     }    
   }
 

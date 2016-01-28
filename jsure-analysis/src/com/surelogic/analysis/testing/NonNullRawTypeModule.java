@@ -86,7 +86,7 @@ public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullR
         return null;
       }
 
-      final IRNode rcvrDecl = JavaPromise.getReceiverNode(getEnclosingDecl());
+      final IRNode rcvrDecl = JavaPromise.getReceiverNode(getEnclosingSyntacticDecl());
       processReceiverDeclaration(expr, rcvrDecl);
       return null;
     }
@@ -118,7 +118,7 @@ public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullR
          * do above in visitThisExpression().
          */
         processReceiverDeclaration(
-            expr, JavaPromise.getReceiverNode(getEnclosingDecl()));
+            expr, JavaPromise.getReceiverNode(getEnclosingSyntacticDecl()));
       } else {
         final Element v = currentQuery().second().getResultFor(expr);
         final HintDrop drop = HintDrop.newInformation(expr);

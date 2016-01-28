@@ -224,6 +224,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   private boolean insideFieldDeclaration = false;
   
   /**
+   * The current anonymous class init method we are inside of.
+   */
+  private IRNode currentAnonClassInit = null;
+  
+  /**
    * When {@link #insideFieldDeclaration} is <code>true</code> this indicates
    * whether that field declaration is static or not. 
    */
@@ -425,7 +430,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   
   /**
    * Get the current method/constructor declaration, if any, the visitation is
-   * inside of.
+   * inside of.  This is suitable for knowing what flow unit is currently
+   * being analyzed.
    * 
    * @return The MethodDeclaration, ConstructorDeclaration, InitDeclaration, or
    *         ClassInitDeclaration node the visitation is inside of, or
@@ -436,6 +442,25 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     return enclosingDecl;
   }
 
+  /**
+   * Get the current method/constructor declaration, if any, the visitation is
+   * inside of in a syntactic sense.  This is the same as {@link #getEnclosingDecl}
+   * except for when the item being analyzed is inside the intance initializer
+   * of an anonymous class.  In that case, the <code>getEnclosingDecl()</code>
+   * returns the flow unit that contains the anonymous class expression becuase
+   * the initializer is part of that flow.  But syntactically, we are inside the
+   * init method of the anonymous class, and that is what this method would
+   * return.
+   */
+  protected final IRNode getEnclosingSyntacticDecl() {
+    if (currentAnonClassInit == null) {
+      return enclosingDecl;
+    } else {
+      return currentAnonClassInit;
+    }
+  }
+  
+  
   /**
    * Get whether visitation is inside a constructor or not.  Also true if the
    * visitor is visiting a init declaration on behalf of a constructor.
@@ -855,6 +880,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     final boolean prevInsideInstanceInitialization = insideInstanceInitialization;
     final boolean prevInsideFieldDeclaration = insideFieldDeclaration;
     final boolean prevIsFieldStatic = isStaticField;
+    final IRNode prevAnonClassInit = currentAnonClassInit;
     
     // No longer inside a field declaration because we are entering a type
     insideFieldDeclaration = false;
@@ -889,12 +915,15 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
 //      enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
       // 2016-01-21: changed to
       enterEnclosingDecl(enclosingDecl, expr); 
+      // 2016-01-28: added currentAnonClassInit -- used by getEnclosingSyntacticDecl()
+      currentAnonClassInit = JavaPromise.getInitMethodOrNull(expr);
       action.tryBefore();
       try {
         processClassBody(classBody, WhichMembers.INSTANCE);
       } finally {
         action.finallyAfter();
         leaveEnclosingDecl(prevEnclosingDecl);
+        currentAnonClassInit = prevAnonClassInit;
         insideConstructor = prevInsideConstructor;
         insideInstanceInitialization = prevInsideInstanceInitialization;
       }

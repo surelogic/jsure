@@ -813,7 +813,7 @@ public final class Effects implements IBinderClient {
       
       @Override
       protected IRNode bindQualifiedReceiver(IRNode outerType, IRNode node) {
-        return JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
+        return JavaPromise.getQualifiedReceiverNodeByName(getEnclosingSyntacticDecl(), outerType);
       }    
     }
 
@@ -917,7 +917,7 @@ public final class Effects implements IBinderClient {
             MethodCallUtils.getEnclosingInstanceReferences(
                 thisExprBinder, expr,
                 superClassDecl,
-                context.theReceiverNode, getEnclosingDecl());
+                context.theReceiverNode, getEnclosingSyntacticDecl());
           /* The transformer will already be set in the map correctly for these
            * effects when they are original generated.  We are just modifying
            * the lock and evidence information for the effects.
@@ -927,56 +927,57 @@ public final class Effects implements IBinderClient {
             if (maskedEffect != null) {
               // Mask again if the effect is on the receiver of the anonymous class
               if (maskedEffect.affectsReceiver(newContext.theReceiverNode)) {
-                maskedEffect = Effect.effect(
-                    maskedEffect.getSource(), maskedEffect.isRead(),
-                    new EmptyTarget(new EmptyEvidence(Reason.UNDER_CONSTRUCTION)),
-                    new MaskedEffectEvidence(maskedEffect),
-                    maskedEffect.getNeededLocks());
-              }
-
-              @SuppressWarnings("null")
-              final Target target = maskedEffect.getTarget();
-              if (target instanceof InstanceTarget) {
-                final IRNode ref = target.getReference();
-                
-                final IRNode newRef = enclosing.replace(ref);
-                if (newRef != null) {
-                  final IRNode objectExpr = thisExprBinder.bindThisExpression(newRef);
-                  final Target newTarget = new InstanceTarget(
-                      objectExpr, target.getRegion(),
-                      new EnclosingRefEvidence(maskedEffect.getSource(), ref, newRef));
-                  final Set<NeededLock> newLocks = new HashSet<>();
-                  for (final NeededLock lock : maskedEffect.getNeededLocks()) {
-                    newLocks.add(lock.replaceEnclosingInstanceReference(enclosing));
-                  }
-                  elaborateInstanceTarget(
-                      context.bcaQuery, lockFactory, thisExprBinder, lockModel.get(),
-                      maskedEffect.getSource(), maskedEffect.isRead(), newTarget, getEvidence(),
-                      newLocks, context.theEffects);
-                } else {
-                  /* XXX: Not sure if it is possible to get here.  External
-                   * variable references are turned into ANyInstance targets
-                   * during elaboration.
-                   */
-                  /* 2012-08-24: We have to clean the type to make sure it is not a 
-                   * type formal.
-                   */
-                  IJavaType type = thisExprBinder.getJavaType(ref);
-                  if (type instanceof IJavaTypeFormal) {
-                    type = TypeUtil.typeFormalToDeclaredClass(
-                        thisExprBinder.getTypeEnvironment(), (IJavaTypeFormal) type);
-                  }
-                  context.theEffects.add(Effect.effect(
-                      maskedEffect.getSource(), maskedEffect.isRead(),
-                      new AnyInstanceTarget(
-                          (IJavaReferenceType) type, target.getRegion(),
-                          new UnknownReferenceConversionEvidence(
-                              maskedEffect, ref, (IJavaReferenceType) type)),
-                      getEvidence(), maskedEffect.getNeededLocks()));
-                }
-              } else {
                 context.theEffects.add(
-                    maskedEffect.updateEvidence(null, ImmutableSet.of(getEvidence())));
+                    Effect.effect(
+                        maskedEffect.getSource(), maskedEffect.isRead(),
+                        new EmptyTarget(new EmptyEvidence(Reason.UNDER_CONSTRUCTION)),
+                        new MaskedEffectEvidence(maskedEffect),
+                        maskedEffect.getNeededLocks()));
+              } else {
+                @SuppressWarnings("null")
+                final Target target = maskedEffect.getTarget();
+                if (target instanceof InstanceTarget) {
+                  final IRNode ref = target.getReference();
+                  
+                  final IRNode newRef = enclosing.replace(ref);
+                  if (newRef != null) {
+                    final IRNode objectExpr = thisExprBinder.bindThisExpression(newRef);
+                    final Target newTarget = new InstanceTarget(
+                        objectExpr, target.getRegion(),
+                        new EnclosingRefEvidence(maskedEffect.getSource(), ref, newRef));
+                    final Set<NeededLock> newLocks = new HashSet<>();
+                    for (final NeededLock lock : maskedEffect.getNeededLocks()) {
+                      newLocks.add(lock.replaceEnclosingInstanceReference(enclosing));
+                    }
+                    elaborateInstanceTarget(
+                        context.bcaQuery, lockFactory, thisExprBinder, lockModel.get(),
+                        maskedEffect.getSource(), maskedEffect.isRead(), newTarget, getEvidence(),
+                        newLocks, context.theEffects);
+                  } else {
+                    /* XXX: Not sure if it is possible to get here.  External
+                     * variable references are turned into ANyInstance targets
+                     * during elaboration.
+                     */
+                    /* 2012-08-24: We have to clean the type to make sure it is not a 
+                     * type formal.
+                     */
+                    IJavaType type = thisExprBinder.getJavaType(ref);
+                    if (type instanceof IJavaTypeFormal) {
+                      type = TypeUtil.typeFormalToDeclaredClass(
+                          thisExprBinder.getTypeEnvironment(), (IJavaTypeFormal) type);
+                    }
+                    context.theEffects.add(Effect.effect(
+                        maskedEffect.getSource(), maskedEffect.isRead(),
+                        new AnyInstanceTarget(
+                            (IJavaReferenceType) type, target.getRegion(),
+                            new UnknownReferenceConversionEvidence(
+                                maskedEffect, ref, (IJavaReferenceType) type)),
+                        getEvidence(), maskedEffect.getNeededLocks()));
+                  }
+                } else {
+                  context.theEffects.add(
+                      maskedEffect.updateEvidence(null, ImmutableSet.of(getEvidence())));
+                }
               }
             }
           }
@@ -1150,7 +1151,7 @@ public final class Effects implements IBinderClient {
       // Here we are directly fixing the ThisExpression to be the receiver node
       final IRNode outerType =
           thisExprBinder.getBinding(QualifiedThisExpression.getType(expr));
-      IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
+      IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(getEnclosingSyntacticDecl(), outerType);
       addEffect(Effect.read(expr, new LocalTarget(qr), getEvidence()));
       return null;
     }

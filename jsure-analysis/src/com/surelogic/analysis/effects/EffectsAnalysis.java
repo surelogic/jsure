@@ -16,6 +16,7 @@ import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
 import com.surelogic.analysis.effects.targets.evidence.CallEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence;
+import com.surelogic.analysis.effects.targets.evidence.EnclosingRefEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
 import com.surelogic.analysis.effects.targets.evidence.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
@@ -526,6 +527,14 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 //          e.getLink(), Messages.ACE_EVIDENCE, originalEffect.unparseForMessage());
 //      accept(originalEffect.getTargetEvidence());
 //    }
+    
+    @Override
+    public void visitEnclosingRefEvidence(final EnclosingRefEvidence e) {
+      resultDrop.addInformationHint(
+          e.getLink(), Messages.ENCLOSING_REF_EVIDENCE,
+          DebugUnparser.toString(e.getOriginal()),
+          DebugUnparser.toString(e.getEnclosingRef()));
+    }
     
     @Override
     public void visitBCAEvidence(final BCAEvidence e) {

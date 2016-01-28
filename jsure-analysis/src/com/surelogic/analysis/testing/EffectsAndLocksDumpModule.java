@@ -226,7 +226,7 @@ implements IBinderClient {
     
     @Override
     protected IRNode bindQualifiedReceiver(IRNode outerType, IRNode node) {
-      return JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
+      return JavaPromise.getQualifiedReceiverNodeByName(getEnclosingSyntacticDecl(), outerType);
     }    
   }
 
@@ -301,7 +301,7 @@ implements IBinderClient {
       
       @Override
       public void tryBefore() {
-        receiverDecl = JavaPromise.getReceiverNodeOrNull(getEnclosingDecl());
+        receiverDecl = JavaPromise.getReceiverNodeOrNull(getEnclosingSyntacticDecl());
       }
       
       @Override

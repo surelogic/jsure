@@ -18,7 +18,8 @@ public final class Messages {
   public static final int REASON_FINAL_FIELD = 160;
   public static final int BCA_EVIDENCE = 161;
   public static final int AGGREGATION_EVIDENCE = 162;
-  public static final int ACE_EVIDENCE = 163;
+  public static final int ENCLOSING_REF_EVIDENCE = 163;
+//  public static final int ACE_EVIDENCE = 163;
   public static final int QRCVR_CONVERSION_EVIDENCE = 164;
   public static final int UNKNOWN_REF_CONVERSION_EVIDENCE = 165;
   public static final int REASON_NULL_REFERENCE = 166;
