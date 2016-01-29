@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinding.Util;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
+import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.ICallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8;
@@ -71,12 +72,16 @@ public class TypeInference8 {
   static final class InferenceVariable extends JavaReferenceType
       implements IJavaTypeFormal, Comparable<InferenceVariable>, Dependable {
     final IRNode formal;
+    final IDebugable origin;
+
+    // For computing the node ordering
     private int index;
     private int lowlink;
     //private final Throwable trace = new Throwable("For stack trace");
 
-    InferenceVariable(IRNode tf) {
+    InferenceVariable(IRNode tf, IDebugable orig) {
       formal = tf;
+      origin = orig;
     }
 
     @Override
@@ -86,6 +91,10 @@ public class TypeInference8 {
 
     @Override
     public String toString() {
+      return toSourceText(null);
+    }
+    
+	public String toSourceText(IDebugable context) {
       String rv = super.toString();
       int last = rv.lastIndexOf('@');
       String alpha = hexToAlpha(rv.substring(last + 1));
@@ -104,6 +113,16 @@ public class TypeInference8 {
     	sb.append(JJNode.getInfoOrNull(decl)).append('.'); 
     	sb.append(JJNode.getInfoOrNull(formal));  
       }      
+      if (origin != null && !origin.equals(context)) {
+    	  sb.append(" @");
+    	  sb.append(origin.toSourceText());
+    	  /*
+      } else {
+    	  StackTraceElement e = trace.getStackTrace()[1];
+    	  sb.append(" !");    	  
+    	  sb.append(e);
+    	  */
+      }
       return sb.toString();
     }
 
@@ -438,7 +457,20 @@ public class TypeInference8 {
       }
       
       if (!v.formals.isEmpty()) {
-        hack = constructInitialSet(v.formals, IJavaTypeSubstitution.NULL);
+    	// The code below is trying to get more accurate origin info 
+    	final IRNode rec = call.getReceiverOrNull();
+    	ICallState callForReceiver;
+    	if (MethodCall.prototype.includes(rec)) {
+    		final IBinding recB = tEnv.getBinder().getIBinding( rec );
+    		IRNode targs = MethodCall.getTypeArgs(rec);
+    		IRNode args = MethodCall.getArgs(rec);  	  
+    		IRNode rec2 = MethodCall.getObject(rec);
+    		callForReceiver = new CallState(tEnv.getBinder(), rec, targs, args, recB.getReceiverType(), rec2);
+    	} else {
+    		callForReceiver = call; // Not quite right
+    	}    	
+    	
+        hack = constructInitialSet(callForReceiver, v.formals, IJavaTypeSubstitution.NULL);
         call = new CallState((CallState) call, Util.subst(call.getReceiverType(), hack.getInitialVarSubst()));
 
         IBinding b = IBinding.Util.makeMethodBinding(m.bind, (IJavaDeclaredType) Util.subst(m.getContextType(), hack.getInitialVarSubst()), null, // TODO
@@ -454,9 +486,9 @@ public class TypeInference8 {
     final BoundSet b_0;
     if (ConstructorReference.prototype.includes(call.getNode())) {
       // Special case to handle filling the type's variables, if any
-      b_0 = constructInitialSet(getTypeFormalsForRef(m), IJavaTypeSubstitution.NULL);
+      b_0 = constructInitialSet(call, getTypeFormalsForRef(m), IJavaTypeSubstitution.NULL);
     } else {
-      b_0 = constructInitialSet(m.typeFormals, m.getSubst());
+      b_0 = constructInitialSet(call, m.typeFormals, m.getSubst());
     }
 
     if (hack != null) {
@@ -793,7 +825,7 @@ public class TypeInference8 {
         }
       }
       //if ("strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(unparse)) {
-      if (unparse != null && unparse.equals("Collectors.groupingBy((# # str) -> <implicit>.getCell(#, #), <implicit>.toCollection(#:: # new))")) {
+      if (unparse != null && unparse.equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)")) {
       //if (unparse.startsWith("strings.map(")) {      
     	  System.out.println("Looking at map()");
       }
@@ -812,13 +844,13 @@ public class TypeInference8 {
         return null;
       }
     }
-    if (unparse != null && unparse.equals("gpes.stream.map((#) -> #.gpe#).collect(Collectors.toList)")) {
+    if (unparse != null && unparse.equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)")) {
       System.out.println("About to create constraints");
     }
     final Set<ConstraintFormula> c = createInitialConstraints(call, m, b_3);
     final Set<ConstraintFormula> c2 = new HashSet<>(c);
-    if (unparse != null && unparse.equals("gpes.stream.map((#) -> #.gpe#).collect(Collectors.toList)")) {
-        System.out.println("About to create constraints");
+    if (unparse != null && unparse.equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)")) {
+        System.out.println("About to compute B4");
     }
     final BoundSet b_4 = computeB_4(b_3, c);
     if (b_4 == null) {
@@ -872,7 +904,7 @@ public class TypeInference8 {
       final int n = g.getTypeParameters().size();
       final List<InferenceVariable> newVars = new ArrayList<InferenceVariable>(n);
       for (int i = 0; i < n; i++) {
-        newVars.add(new InferenceVariable(null)); // TODO
+        newVars.add(new InferenceVariable(null, call)); // TODO
       }
       // TODO subst?
       final IJavaDeclaredType g_beta = JavaTypeFactory.getDeclaredType(g.getDeclaration(), newVars, g.getOuterType());
@@ -1610,7 +1642,7 @@ public class TypeInference8 {
     final int m = f.getTypeParameters().size();
     final List<InferenceVariable> newVars = new ArrayList<InferenceVariable>(m);
     for (int i = 0; i < m; i++) {
-      newVars.add(new InferenceVariable(null)); // TODO
+      newVars.add(new InferenceVariable(null, f)); // TODO
     }
     // TODO subst?
     final IJavaDeclaredType f_alpha = JavaTypeFactory.getDeclaredType(f.getDeclaration(), newVars, f.getOuterType());
@@ -1620,7 +1652,7 @@ public class TypeInference8 {
     if (funcType.getParameterTypes().size() != n) {
       return null; // No valid parameterization
     }
-    final BoundSet b = new BoundSet(getTypeFormalList(InterfaceDeclaration.getTypes(f.getDeclaration())),
+    final BoundSet b = new BoundSet(null, getTypeFormalList(InterfaceDeclaration.getTypes(f.getDeclaration())),
         newVars.toArray(new InferenceVariable[newVars.size()]));
     int i = 0;
     for (IRNode paramD : Parameters.getFormalIterator(lambdaParams)) {
@@ -1791,7 +1823,7 @@ public class TypeInference8 {
     final IJavaType[] s = m_1.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS, false);
     final IJavaType[] t = m_2.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS, false);
 
-    final BoundSet b = constructInitialSet(m_2.typeFormals, IJavaTypeSubstitution.NULL); // TODO
+    final BoundSet b = constructInitialSet(call, m_2.typeFormals, IJavaTypeSubstitution.NULL); // TODO
                                                                                          // is
                                                                                          // this
                                                                                          // right?
@@ -2143,8 +2175,12 @@ public class TypeInference8 {
     }
 
     @Override
-    public abstract String toString();
+    public String toString() {
+      return toSourceText(null);
+    }
 
+    public abstract String toSourceText(IDebugable context);
+    
     abstract Bound<T> subst(IJavaTypeSubstitution subst);
 
     public Iterator<T> iterator() {
@@ -2190,14 +2226,21 @@ public class TypeInference8 {
     return new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t);
   }
 
+  static String print(IDebugable context, IJavaType t) {
+	if (context != null && t instanceof InferenceVariable) {
+	  return ((InferenceVariable) t).toSourceText(context);
+	}
+	return t.toSourceText();
+  }
+  
   class EqualityBound extends Bound<IJavaReferenceType>implements IEquality {
     EqualityBound(IJavaReferenceType s, IJavaReferenceType t) {
       super(s, t);
     }
-
+    
     @Override
-    public String toString() {
-      return s.toSourceText() + " = " + t.toSourceText();
+    public String toSourceText(IDebugable context) {
+      return print(context, s) + " = " + print(context, t);
     }
 
     @Override
@@ -2252,8 +2295,8 @@ public class TypeInference8 {
     }
 
     @Override
-    public String toString() {
-      return s.toSourceText() + " <: " + t.toSourceText();
+    public String toSourceText(IDebugable context) {
+      return print(context, s) + " <: " + print(context, t);
     }
 
     @Override
@@ -2277,8 +2320,8 @@ public class TypeInference8 {
     }
 
     @Override
-    public String toString() {
-      return s.toSourceText() + " = capture(" + t.toSourceText() + ")";
+    public String toSourceText(IDebugable context) {
+      return print(context, s) + " = capture(" + print(context, t) + ')';
     }
 
     @Override
@@ -2302,21 +2345,21 @@ public class TypeInference8 {
    * proper upper bounds for α l (only dependencies), then the bound α l <:
    * Object also appears in the set.
    */
-  BoundSet constructInitialSet(IRNode typeFormals, IJavaTypeSubstitution boundSubst, IJavaType... createdVars) {
-    return constructInitialSet(getTypeFormalList(typeFormals), boundSubst, createdVars);
+  BoundSet constructInitialSet(IDebugable call, IRNode typeFormals, IJavaTypeSubstitution boundSubst, IJavaType... createdVars) {
+    return constructInitialSet(call, getTypeFormalList(typeFormals), boundSubst, createdVars);
   }
 
-  BoundSet constructInitialSet(Collection<IJavaTypeFormal> typeFormals, IJavaTypeSubstitution boundSubst,
+  BoundSet constructInitialSet(IDebugable call, Collection<IJavaTypeFormal> typeFormals, IJavaTypeSubstitution boundSubst,
       IJavaType... createdVars) {
     // Setup inference variables
     final int numFormals = typeFormals.size();
     final InferenceVariable[] vars = new InferenceVariable[numFormals];
     int i = 0;
     for (IJavaTypeFormal f : typeFormals) {
-      vars[i] = createdVars.length > 0 ? (InferenceVariable) createdVars[i] : new InferenceVariable(f.getDeclaration());
+      vars[i] = createdVars.length > 0 ? (InferenceVariable) createdVars[i] : new InferenceVariable(f.getDeclaration(), call);
       i++;
     }
-    final BoundSet set = new BoundSet(typeFormals, vars);
+    final BoundSet set = new BoundSet(call, typeFormals, vars);
     final IJavaTypeSubstitution theta = set.getInitialVarSubst();
     i = 0;
     for (IJavaTypeFormal tf : typeFormals) {
@@ -2525,6 +2568,8 @@ public class TypeInference8 {
     boolean isTrivial();
 
     InferenceVariable getRep();
+    
+    String toSourceText(IDebugable context);
   }
 
   class Equality implements IEquality {
@@ -2599,22 +2644,27 @@ public class TypeInference8 {
 
     @Override
     public String toString() {
+      return toSourceText(null);
+    }
+    
+    @Override
+    public String toSourceText(final IDebugable context) {    
       if (vars.isEmpty()) {
-        return toString(values, null);
+        return toString(context, values, null);
       }
       if (values.isEmpty()) {
-        return toString(vars, getRep());
+        return toString(context, vars, getRep());
       }
       StringBuilder sb = new StringBuilder();
-      unparseSet(sb, vars);
+      unparseSet(context, sb, vars);
       sb.append(" = ");
-      unparseSet(sb, values);
+      unparseSet(context, sb, values);
       return sb.toString();
     }
 
-    private void unparseSet(StringBuilder sb, Set<? extends IJavaReferenceType> types) {
+    private void unparseSet(final IDebugable context, StringBuilder sb, Set<? extends IJavaReferenceType> types) {
       if (types.size() == 1) {
-        sb.append(types.iterator().next().toSourceText());
+        sb.append(print(context, types.iterator().next()));
       } else {
         sb.append('{');
         boolean first = true;
@@ -2624,23 +2674,23 @@ public class TypeInference8 {
           } else {
             sb.append(", \n\t");
           }
-          sb.append(t.toSourceText());
+          sb.append(print(context, t));
         }
         sb.append('}');
       }
     }
 
-    private String toString(Set<? extends IJavaReferenceType> types, IJavaType startWith) {
+    private String toString(final IDebugable context, Set<? extends IJavaReferenceType> types, IJavaType startWith) {
       final int n = types.size();
       switch (n) {
       case 0:
         return "? = ?";
       case 1:
-        return types.iterator().next() + " = ?";
+        return print(context, types.iterator().next()) + " = ?";
       default:
         StringBuilder sb = new StringBuilder();
         if (startWith != null) {
-          sb.append(startWith);
+          sb.append(print(context, startWith));
           if (n == 2) {
             sb.append(" = ");
           } else {
@@ -2654,7 +2704,7 @@ public class TypeInference8 {
             continue; // Already handled
           }
           if (sb.length() == 0) {
-            sb.append(t);
+            sb.append(print(context, t));
             if (n == 2) {
               sb.append(" = ");
             } else {
@@ -2664,7 +2714,7 @@ public class TypeInference8 {
             if (i >= 2) {
               sb.append(", ");
             }
-            sb.append(t);
+            sb.append(print(context, t));
           }
           i++;
         }
@@ -2733,18 +2783,22 @@ public class TypeInference8 {
      */
     private final BoundSet original;
 
+    private final IDebugable originatingCall;
+    
     /**
      * Mapping from the original type variables to the corresponding inference
      * variables
      */
     final Map<IJavaTypeFormal, InferenceVariable> variableMap = new HashMap<IJavaTypeFormal, InferenceVariable>();
 
-    private BoundSet() {
+    private BoundSet(IDebugable call) {
+      originatingCall = call;
       isTemp = true;
       original = null;
     }
 
-    BoundSet(final Collection<IJavaTypeFormal> typeFormals, final InferenceVariable[] vars) {
+    BoundSet(final IDebugable call, final Collection<IJavaTypeFormal> typeFormals, final InferenceVariable[] vars) {
+      originatingCall = call;
       original = null;
       isTemp = false;
 
@@ -2759,6 +2813,7 @@ public class TypeInference8 {
       if (orig.isTemp) {
         throw new IllegalStateException();
       }
+      originatingCall = orig.originatingCall;
       isTemp = false;
       original = orig.original == null ? orig : orig.original;
       isFalse = orig.isFalse;
@@ -2771,6 +2826,10 @@ public class TypeInference8 {
       debug = orig.debug;
     }
 
+    IDebugable getCall() {
+      return originatingCall;
+    }
+    
     void debug() {
       debug = true;
     }
@@ -2870,16 +2929,16 @@ public class TypeInference8 {
         if (e.isTrivial()) {
           continue;
         }
-        b.append(e).append(", \n");
+        b.append(e.toSourceText(originatingCall)).append(", \n");
       }
       for (Bound<?> bound : subtypeBounds) {
-        b.append(bound).append(", \n");
+        b.append(bound.toSourceText(originatingCall)).append(", \n");
       }
       for (Bound<?> bound : captures) {
-        b.append(bound).append(", \n");
+        b.append(bound.toSourceText(originatingCall)).append(", \n");
       }
       for (Bound<?> bound : unincorporated) {
-        b.append(bound).append(", \n");
+        b.append(bound.toSourceText(originatingCall)).append(", \n");
       }
       return b.toString();
     }
@@ -3453,7 +3512,7 @@ public class TypeInference8 {
         i++;
       }
 
-      BoundSet newBounds = constructInitialSet(formals, IJavaTypeSubstitution.NULL, varArray);
+      BoundSet newBounds = constructInitialSet(bounds.getCall(), formals, IJavaTypeSubstitution.NULL, varArray);
       IJavaTypeSubstitution theta = newBounds.getInitialVarSubst();
       /* bounds. */merge(newBounds);
 

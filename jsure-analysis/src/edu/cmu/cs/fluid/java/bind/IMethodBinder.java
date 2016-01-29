@@ -18,7 +18,7 @@ interface IMethodBinder {
 		STRICT, LOOSE, VARARGS
 	}
 	
-	interface ICallState {
+	interface ICallState extends IDebugable {
 		IRNode getNode();	
 		
 		int numArgs();
@@ -95,7 +95,38 @@ interface IMethodBinder {
         public boolean needsExactInvocation() {
             return false;
         }
-    	
+        
+        @Override
+        public boolean equals(Object o) {
+        	if (o instanceof ICallState) {
+        		ICallState c = (ICallState) o;
+        		return call.equals(c.getNode());
+        	}
+        	return false;
+        }
+        
+        @Override 
+        public String toFullyQualifiedText() {
+        	return toSourceText(); // TODO
+        }
+	     
+		@Override
+		public String toSourceText() {
+			StringBuilder sb = new StringBuilder(JJNode.getInfoOrNull(call));
+			sb.append('(');
+			boolean first = true;
+			for(IRNode arg : args) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append(", ");
+				}
+				sb.append(DebugUnparser.toString(arg, 3));
+			}
+			sb.append(')');			
+			return sb.toString();
+		}
+		
 		@Override
     	public String toString() {
     		return DebugUnparser.toString(call);

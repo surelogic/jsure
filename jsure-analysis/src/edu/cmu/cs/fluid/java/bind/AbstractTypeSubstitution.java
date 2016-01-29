@@ -161,9 +161,13 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     boolean changed = false; // FIX unused?
     List<IJavaType> res = new ArrayList<IJavaType>();
     for (IJavaType jt : types) {
-      IJavaType jtp = jt.subst(this);
-      if (jtp != jt) changed = true;
-      res.add(jtp);
+      try {
+    	IJavaType jtp = jt.subst(this);
+    	if (jtp != jt) changed = true;
+    	res.add(jtp);
+      } catch(StackOverflowError e) {
+    	System.out.println("SOE2: "+jt);
+      }
     }
     if (!changed) return types;
     return res; //? new ImmutableList(res.toArray())
