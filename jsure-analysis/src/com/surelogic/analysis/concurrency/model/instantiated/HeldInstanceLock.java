@@ -29,7 +29,9 @@ public final class HeldInstanceLock extends AbstractHeldLock {
    */
   @Override
   public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb) {
-    if (lock instanceof HeldInstanceLock) {
+    if (this == lock) {
+      return true;
+    } else if (lock instanceof HeldInstanceLock) {
       final HeldInstanceLock o = (HeldInstanceLock) lock;
       return (holdsWrite == o.holdsWrite) && lockImpl.equals(o.lockImpl) &&
           SyntacticEquality.checkSyntacticEquality(objectRefExpr, o.objectRefExpr, teb);

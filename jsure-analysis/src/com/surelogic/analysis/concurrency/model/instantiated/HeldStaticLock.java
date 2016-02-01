@@ -22,7 +22,9 @@ public final class HeldStaticLock extends AbstractHeldLock {
    */
   @Override
   public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb) {
-    if (lock instanceof HeldStaticLock) {
+    if (this == lock) {
+      return true;
+    } else if (lock instanceof HeldStaticLock) {
       final HeldStaticLock o = (HeldStaticLock) lock;
       return (holdsWrite == o.holdsWrite) && lockImpl.equals(o.lockImpl);
     } else {

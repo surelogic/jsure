@@ -63,7 +63,9 @@ public final class BogusLock implements HeldLock {
    */
   @Override
   public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb) {
-    if (lock instanceof BogusLock) {
+    if (this == lock) {
+      return true;
+    } else if (lock instanceof BogusLock) {
       final BogusLock o = (BogusLock) lock;
       return SyntacticEquality.checkSyntacticEquality(lockExpr, o.lockExpr, teb);
     } else {

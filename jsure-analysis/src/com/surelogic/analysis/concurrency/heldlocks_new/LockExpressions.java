@@ -72,9 +72,10 @@ final class LockExpressions {
     /* non-private so that LockExpressionVisitor can access this field
      * instead of maintaining a separate copy of it. 
      */
-    IRNode enclosingFlowUnit;
+    private IRNode enclosingFlowUnit;
     private IRNode currentRcvr;
     private final LinkedList<IRNode> rcvrStack = new LinkedList<IRNode>();
+    private final LinkedList<IRNode> enclosingStack = new LinkedList<IRNode>();
     
     public TEB(final IBinder b, final IRNode mdecl) {
       super(b);
@@ -95,15 +96,15 @@ final class LockExpressions {
     
     public void newDeclaration(final IRNode decl) {
       rcvrStack.addFirst(currentRcvr);
-      /* 2016-01-21: Enclosing flow unit doesn't change, although the receiver
-       * does.  We are still inside whatever flow unit contains the anonymous
-       * class expression.  We still push the flow unit above, so that  
-       */
       currentRcvr = JavaPromise.getReceiverNodeOrNull(decl);
+      
+      enclosingStack.addFirst(decl);
+      enclosingFlowUnit = decl;
     }
     
     public void pop() {
       currentRcvr = rcvrStack.removeFirst();
+      enclosingFlowUnit = enclosingStack.removeFirst();
     }    
   }
 
@@ -612,11 +613,10 @@ final class LockExpressions {
     private LockExprInfo processLockExpression(
         final boolean convertAsIntrinsic, final IRNode lockExpr,
         final IRNode src, final Reason reason, final IRNode syncBlock) {
-      final boolean isFinal = lockUtils.isFinalExpression(
-          lockExpr, thisExprBinder.enclosingFlowUnit, syncBlock,
-          currentQuery().first(), currentQuery().second());
-
       if (convertAsIntrinsic && lockUtils.isJavaUtilConcurrentLockObject(lockExpr)) {
+        final boolean isFinal = lockUtils.isFinalExpression(
+            lockExpr, thisExprBinder.enclosingFlowUnit, syncBlock,
+            currentQuery().first(), currentQuery().second());
         return new LockExprInfo(isFinal ? Final.YES : Final.NO,
             Bogus.NO, SyncedJUC.YES, ImmutableSet.<HeldLock>of());
       } else { // !convertAsIntrinsic || !isJavaUtilConcurrentLockObject

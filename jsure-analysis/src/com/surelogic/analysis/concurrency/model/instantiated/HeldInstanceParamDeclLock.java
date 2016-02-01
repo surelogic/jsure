@@ -39,10 +39,17 @@ public final class HeldInstanceParamDeclLock extends AbstractHeldLock {
    */
   @Override
   public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb) {
-    /* The other lock must be a HeldInstanceLock whose objectRef expression
-     * is a variable use expression that binds to paramDecl.
-     */
-    if (lock instanceof HeldInstanceLock) {
+    if (this == lock) {
+      return true;
+    } else if (lock instanceof HeldInstanceParamDeclLock) {
+      final HeldInstanceParamDeclLock o = (HeldInstanceParamDeclLock) lock;
+      return (holdsWrite == o.holdsWrite) 
+          && lockImpl.equals(o.lockImpl)
+          && paramDecl.equals(o.paramDecl);
+    } else if (lock instanceof HeldInstanceLock) {
+      /* The other lock must be a HeldInstanceLock whose objectRef expression
+       * is a variable use expression that binds to paramDecl.
+       */
       final HeldInstanceLock o = (HeldInstanceLock) lock;
       return (holdsWrite == o.holdsWrite)
           && lockImpl.equals(o.lockImpl)
