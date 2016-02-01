@@ -33,6 +33,7 @@ import com.surelogic.analysis.effects.targets.evidence.EnclosingRefEvidence;
 import com.surelogic.analysis.effects.targets.evidence.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.effects.targets.evidence.QualifiedReceiverConversionEvidence;
+import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
 import com.surelogic.analysis.effects.targets.evidence.UnknownReferenceConversionEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence.Reason;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
@@ -934,9 +935,21 @@ public final class Effects implements IBinderClient {
                         new MaskedEffectEvidence(maskedEffect),
                         maskedEffect.getNeededLocks()));
               } else {
-                @SuppressWarnings("null")
                 final Target target = maskedEffect.getTarget();
-                if (target instanceof InstanceTarget) {
+                
+                final TargetEvidence te = target.getEvidence();
+                if (te instanceof EmptyEvidence
+                    && ((EmptyEvidence) te).getReason() == Reason.METHOD_CALL) {
+                  /* Special case: empty effect that carries lock preconditions */
+                  final ImmutableSet.Builder<NeededLock> newLockSet = ImmutableSet.builder();
+                  for (final NeededLock lock : maskedEffect.getNeededLocks()) {
+                    newLockSet.add(lock.replaceEnclosingInstanceReference(enclosing));
+                  }
+                  context.theEffects.add(
+                      Effect.empty(maskedEffect.getSource(),
+                          new EmptyEvidence(Reason.METHOD_CALL), 
+                          ImmutableSet.of(getEvidence()), newLockSet.build()));
+                } else if (target instanceof InstanceTarget) {
                   final IRNode ref = target.getReference();
                   
                   final IRNode newRef = enclosing.replace(ref);
@@ -976,7 +989,7 @@ public final class Effects implements IBinderClient {
                   }
                 } else {
                   context.theEffects.add(
-                      maskedEffect.updateEvidence(null, ImmutableSet.of(getEvidence())));
+                      maskedEffect.updateEvidence(target.getEvidence(), ImmutableSet.of(getEvidence())));
                 }
               }
             }
