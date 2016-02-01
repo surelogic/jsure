@@ -203,9 +203,11 @@ public final class PackageDrop extends CUDrop {
 
     PackageDrop pkg = new PackageDrop(proj.getTypeEnv(), name, root, n, pd != null && proj != pd.getProject() ? pd : null);
     PackageDrop old = NAME_TO_INSTANCE.put(name, pkg);
+    /*
     if (old != null) {
     	System.out.println("Replacing "+pkg);
     }
+    */
     if (DEFAULT_NAME.equals(name)) {
       NAME_TO_INSTANCE.put("", pkg);
     }

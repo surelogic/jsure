@@ -26,7 +26,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * @see IJavaVoidType
  * @see JavaTypeFactory
  */
-public interface IJavaType extends IType {
+public interface IJavaType extends IType, IDebugable {
   @Override
   public String getName();
   

@@ -1423,6 +1423,10 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 			if (m.isGeneric()) {
 				if (call.getNumTypeArgs() == 0) {				
+					final boolean debug = false && call.toString().equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)");
+		    		if (debug) {		
+		    			System.out.println("Checking if applicable: "+m);
+		    		}
 					BoundSet bounds = typeInfer.inferForInvocationApplicability(call, m, getKind());
 					return bounds == null ? null : MethodBinding8WithBoundSet.create(MethodBinder8.this, call, m, tEnv, bounds, getKind());
 				} else {							
@@ -1789,9 +1793,8 @@ public class MethodBinder8 implements IMethodBinder {
     	}
     	
     	static MethodBinding8 create(MethodBinder8 mb, ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		final boolean debug = false; //c.toString().equals("c.asSubclass(clazz)");
-    		if (debug) {
-    		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
+    		final boolean debug = false && c.toString().equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)");
+    		if (debug) {		
     			System.out.println("Creating boundset: "+b);
     		}
     		IBinding newB;
@@ -2720,8 +2723,18 @@ public class MethodBinder8 implements IMethodBinder {
 			return false;
 		}
 		
+        @Override 
+        public String toFullyQualifiedText() {
+        	return toSourceText(); // TODO
+        }
+        
 		@Override
-		public String toString() {
+    	public String toString() {
+			return toSourceText();
+		}
+	     
+		@Override
+		public String toSourceText() {
 			return DebugUnparser.toString(ref)+" ("+type+")";
 		}
 
