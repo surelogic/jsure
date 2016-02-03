@@ -63,4 +63,15 @@ public class Triple<T1, T2, T3> {
     hash += 31 * hash + ((elem3 == null) ? 0 : elem3.hashCode());
     return hash;
   }
+  
+  @Override
+  public String toString() {
+	StringBuilder sb = new StringBuilder();
+	sb.append('<');
+	sb.append(elem1).append(",\n\t");
+	sb.append(elem2).append(",\n\t");
+	sb.append(elem3);
+	sb.append('>');
+	return sb.toString();
+  }
 }

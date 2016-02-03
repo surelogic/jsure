@@ -122,7 +122,7 @@
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="generate-java-antlr">
+	<target name="generate-java-antlr" depends="ensure-gensrc-exists">
 		<genAntlr target="${src}/com/surelogic/parse/JavaToken.g" outputdir="${gensrc}/com/surelogic/parse" />
 		<genAntlr target="${src}/com/surelogic/parse/JavaPrimitives.g" outputdir="${gensrc}/com/surelogic/parse" />
 		<genAntlr target="${src}/com/surelogic/annotation/parse/SLAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
@@ -137,15 +137,19 @@
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="generate-from-operators">
+    <target name="ensure-gensrc-exists">
+        <mkdir dir="${gensrc}"/>
+    </target>
+
+	<target name="generate-from-operators" depends="ensure-gensrc-exists">
 		<opgen classname="com.surelogic.opgen.OperatorGen" />
 	</target>
 
-	<target name="generate-asts-from-operators">
+	<target name="generate-asts-from-operators" depends="ensure-gensrc-exists">
 		<opgen classname="com.surelogic.opgen.InterfaceGen" />
 	</target>
 
-	<target name="generate-crystal-from-operators">
+	<target name="generate-crystal-from-operators" depends="ensure-gensrc-exists">
 		<opgen classname="com.surelogic.opgen.CrystalGen" />
 	</target>
 
@@ -165,20 +169,20 @@
 
 	<!-- Expermenatal build-src stuff that is not currently used -->
 
-	<target name="generate-nodes-from-operators">
+	<target name="generate-nodes-from-operators" depends="ensure-gensrc-exists">
 		<opgen classname="com.surelogic.opgen.OperatorNodeGen" />
 	</target>
 
-	<target name="generate-proxies-from-operators">
+	<target name="generate-proxies-from-operators" depends="ensure-gensrc-exists">
 		<opgen classname="com.surelogic.opgen.OperatorProxyNodeGen" />
 
 	</target>
 
-	<target name="generate-eager-proxies-from-operators">
+	<target name="generate-eager-proxies-from-operators" depends="ensure-gensrc-exists">
 		<opgen classname="com.surelogic.opgen.OperatorEagerProxyNodeGen" />
 	</target>
 
-	<target name="generate-syntaxTreeNodes-from-operators">
+	<target name="generate-syntaxTreeNodes-from-operators" depends="ensure-gensrc-exists">
 		<opgen classname="com.surelogic.opgen.SyntaxTreeNodeGen" />
 	</target>
 
