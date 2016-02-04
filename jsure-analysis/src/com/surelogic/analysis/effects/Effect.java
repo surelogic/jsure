@@ -1,6 +1,8 @@
 package com.surelogic.analysis.effects;
 
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.common.collect.ImmutableSet;
 import com.surelogic.analysis.alias.IMayAlias;
@@ -155,6 +157,14 @@ public abstract class Effect {
   @Override
   public abstract String toString();
   
+  protected final String neededLocksToString() {
+    final SortedSet<String> locks = new TreeSet<String>();
+    for (final NeededLock lock : neededLocks) {
+      locks.add(lock.toString());
+    }
+    return locks.toString();
+  }
+  
   /**
    * Compare two effects. Two effects are equal if the have the same target and
    * are either both read or both write effects and they have the same source.
@@ -272,7 +282,7 @@ public abstract class Effect {
     
     @Override
     public String toString() {
-      return "nothing " + neededLocks.toString();
+      return "nothing " + neededLocksToString();
     }
     
     @Override
@@ -402,7 +412,7 @@ public abstract class Effect {
       final StringBuilder sb = new StringBuilder("reads ");
       target.toString(sb);
       sb.append(' ');
-      sb.append(neededLocks.toString());
+      sb.append(neededLocksToString());
       return sb.toString();
     }
     
@@ -490,7 +500,7 @@ public abstract class Effect {
       final StringBuilder sb = new StringBuilder("writes ");
       target.toString(sb);
       sb.append(' ');
-      sb.append(neededLocks.toString());
+      sb.append(neededLocksToString());
       return sb.toString();
     }
     
