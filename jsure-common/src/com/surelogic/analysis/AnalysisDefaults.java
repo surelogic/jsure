@@ -57,14 +57,14 @@ public final class AnalysisDefaults {
 		        "com.surelogic.jsure.client.eclipse.LockModelBuilder", true,
 		        "Lock Model Builder");
 		init("com.surelogic.analysis.concurrency.driver.ThreadSafeAnalysis",
-		    "com.surelogic.jsure.client.eclipse.ThreadSafe", false,
+		    "com.surelogic.jsure.client.eclipse.ThreadSafe", true,
 		    "ThreadSafe / Containable / Immutable", lockBuilder, annoBoundsChecking);
 		
     init("com.surelogic.analysis.concurrency.driver.NewLockAnalysis",
-        "com.surelogic.jsure.client.eclipse.LockAssurance4", false, "New Lock policy",
+        "com.surelogic.jsure.client.eclipse.LockAssurance4", true, "Lock policy",
         lockBuilder);
 		init("com.surelogic.analysis.concurrency.driver.LockAnalysis",
-		    "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
+		    "com.surelogic.jsure.client.eclipse.LockAssurance3", false, "Old Lock policy",
 		    lockBuilder, annoBoundsChecking);
     init("com.surelogic.analysis.testing.EffectsAndLocksDumpModule",
         "com.surelogic.jsure.client.eclipse.EffectsAndLocks", false, "Effects and Locks Dump",
