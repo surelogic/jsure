@@ -37,11 +37,14 @@ import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.annotation.rules.JcipRules;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -505,6 +508,25 @@ implements IBinderClient {
           
           // ==== Add evidence and supporting information ====
           
+          /* Add constructor initialization information to help disambiguate
+           * field initialization results. 
+           * MUST BE DONE BEFORE ADDING SINGLE-THREADED EVIDENCE BECAUSE
+           * WE NEED TO SET THE DROPSEA DIFFHINT FIRST.
+           */
+          new EffectEvidenceProcessor() {
+            @Override
+            public void visitInitializationEffectEvidence(final InitializationEffectEvidence e) {
+              final IRNode constructorDecl = e.getConstructorDeclaration();
+              final IKeyValue diffInfo = KeyValueUtility.getStringInstance(
+                  DiffHeuristics.ANALYSIS_DIFF_HINT,
+                  JavaNames.genMethodConstructorName(constructorDecl));
+              resultDrop.addOrReplaceDiffInfo(diffInfo);
+              resultDrop.addInformationHint(
+                  constructorDecl, ON_BEHALF_OF_CONSTRUCTOR,
+                  JavaNames.genMethodConstructorName(constructorDecl));
+            }
+          }.accept(e.getEvidence());
+          
           // Thread-confined constructor information
           /* Cannot get this at the top of the method before the loop because
            * in cases where the flow-unit is an init-block, the queries in the
@@ -526,19 +548,6 @@ implements IBinderClient {
             resultDrop.addInformationHint(heldLock.getSource(),
                 heldLock.getReason().getInformationMessage(), heldLock);
           }
-          
-          /* Add constructor initialization information to help disambiguate
-           * field initialization results. 
-           */
-          new EffectEvidenceProcessor() {
-            @Override
-            public void visitInitializationEffectEvidence(final InitializationEffectEvidence e) {
-              final IRNode constructorDecl = e.getConstructorDeclaration();
-              resultDrop.addInformationHint(
-                  constructorDecl, ON_BEHALF_OF_CONSTRUCTOR,
-                  JavaNames.genMethodConstructorName(constructorDecl));
-            }
-          }.accept(e.getEvidence());
           
           /* Add "held as" information that describes the mapping of 
            * qualified receivers inside of anonymous classes into 
