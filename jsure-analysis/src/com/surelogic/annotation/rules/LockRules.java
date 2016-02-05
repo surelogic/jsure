@@ -174,25 +174,24 @@ public class LockRules extends AnnotationRules {
   }
   
   private static class ProtectedRegions implements IProtectedRegions {
-	private final Map<String,IProtectedRegions> projects = 
-		new HashMap<String,IProtectedRegions>();
-	  
-	@Override
-  public boolean addIfNotAlreadyProtected(ITypeEnvironment tenv, 
-			String qualifiedRegionName, IJavaDeclaredType clazz) {
-		final IIRProject p = Projects.getEnclosingProject(clazz.getDeclaration());
-		IProtectedRegions state = projects.get(p.getName());
-		if (state == null) {
-			state = new Project_ProtectedRegions();
-			projects.put(p.getName(), state);
-		}
-		return state.addIfNotAlreadyProtected(tenv, qualifiedRegionName, clazz);
-	}
+    private final Map<String, IProtectedRegions> projects = new HashMap<String, IProtectedRegions>();
 
-	@Override
-  public void clear() {
-		projects.clear();
-	}
+    @Override
+    public boolean addIfNotAlreadyProtected(ITypeEnvironment tenv,
+        String qualifiedRegionName, IJavaDeclaredType clazz) {
+      final IIRProject p = Projects.getEnclosingProject(clazz.getDeclaration());
+      IProtectedRegions state = projects.get(p.getName());
+      if (state == null) {
+        state = new Project_ProtectedRegions();
+        projects.put(p.getName(), state);
+      }
+      return state.addIfNotAlreadyProtected(tenv, qualifiedRegionName, clazz);
+    }
+
+    @Override
+    public void clear() {
+      projects.clear();
+    }
   }
   
   private static class Project_ProtectedRegions implements IProtectedRegions {

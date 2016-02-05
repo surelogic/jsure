@@ -9,19 +9,26 @@ import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 
-public final class HeldInstanceLock extends AbstractHeldLock {
+public final class HeldFieldRefLock extends AbstractHeldLock {
   // default visibility so HeldInstaceParameterDeclLock can use it
   final IRNode objectRefExpr;
   
+  /**
+   * VariableDeclarator of the field that is being referenced.
+   */
+  final IRNode varDecl;
+
   // Must use the HeldLockFactory
-  HeldInstanceLock(
-      final IRNode objectRefExpr, final LockImplementation lockImpl,
+  HeldFieldRefLock(
+      final IRNode objectRefExpr, final IRNode varDecl, final LockImplementation lockImpl,
       final IRNode source, final Reason reason, final boolean needsWrite,
       final PromiseDrop<?> lockPromise,
       final RequiresLockPromiseDrop supportingDrop) {
     super(source, reason, needsWrite, lockImpl, lockPromise, supportingDrop);
     this.objectRefExpr = objectRefExpr;
+    this.varDecl = varDecl;
   }
 
   /**
@@ -32,19 +39,20 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb) {
     if (this == lock) {
       return true;
-    } else if (lock instanceof HeldInstanceLock) {
-      final HeldInstanceLock o = (HeldInstanceLock) lock;
-      return (holdsWrite == o.holdsWrite) && lockImpl.equals(o.lockImpl) &&
-          SyntacticEquality.checkSyntacticEquality(objectRefExpr, o.objectRefExpr, teb);
     } else if (lock instanceof HeldFieldRefLock) {
-      // Only continue if objectRefExpr is "o.f"
-      if (FieldRef.prototype.includes(objectRefExpr)) {
-        final IRNode objectRef2 = teb.bindThisExpression(FieldRef.getObject(objectRefExpr));
-        final IRNode varDecl2 = teb.getBinding(objectRefExpr);
-        final HeldFieldRefLock o = (HeldFieldRefLock) lock;
+      final HeldFieldRefLock o = (HeldFieldRefLock) lock;
+      return (holdsWrite == o.holdsWrite) && lockImpl.equals(o.lockImpl) &&
+          varDecl.equals(o.varDecl) && 
+          SyntacticEquality.checkSyntacticEquality(objectRefExpr, o.objectRefExpr, teb);
+    } else if (lock instanceof HeldInstanceLock) {
+      // Only proceed if the other lock has a fieldRef expression for its object expr
+      final HeldInstanceLock o = (HeldInstanceLock) lock;
+      if (FieldRef.prototype.includes(o.objectRefExpr)) {
+        final IRNode objectRef2 = teb.bindThisExpression(FieldRef.getObject(o.objectRefExpr));
+        final IRNode varDecl2 = teb.getBinding(o.objectRefExpr);
         return (holdsWrite == o.holdsWrite) && lockImpl.equals(o.lockImpl) &&
-            varDecl2.equals(o.varDecl) && 
-            SyntacticEquality.checkSyntacticEquality(objectRef2, o.objectRefExpr, teb);
+            varDecl.equals(varDecl2) && 
+            SyntacticEquality.checkSyntacticEquality(objectRefExpr, objectRef2, teb);
       } else {
         return false;
       }
@@ -55,21 +63,22 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   
   @Override
   public boolean mustSatisfy(final NeededLock lock, final ThisExpressionBinder teb) {
-    if (lock instanceof NeededInstanceLock) {
-      final NeededInstanceLock o = (NeededInstanceLock) lock;
+    if (lock instanceof NeededFieldRefLock) {
+      final NeededFieldRefLock o = (NeededFieldRefLock) lock;
       return (holdsWrite || (!holdsWrite && !o.needsWrite())) &&
           lockImpl.equals(o.lockImpl) &&
+          varDecl.equals(o.varDecl) &&
           SyntacticEquality.checkSyntacticEquality(objectRefExpr, o.objectRefExpr, teb);
-    } else if (lock instanceof NeededFieldRefLock) {
-      // Only continue if objectRefExpr is "o.f"
-      if (FieldRef.prototype.includes(objectRefExpr)) {
-        final IRNode objectRef2 = teb.bindThisExpression(FieldRef.getObject(objectRefExpr));
-        final IRNode varDecl2 = teb.getBinding(objectRefExpr);
-        final NeededFieldRefLock o = (NeededFieldRefLock) lock;
+    } else if (lock instanceof NeededInstanceLock) {
+      // Only proceed if the other lock has a fieldRef expression for its object expr
+      final NeededInstanceLock o = (NeededInstanceLock) lock;
+      if (FieldRef.prototype.includes(o.objectRefExpr)) {
+        final IRNode objectRef2 = teb.bindThisExpression(FieldRef.getObject(o.objectRefExpr));
+        final IRNode varDecl2 = teb.getBinding(o.objectRefExpr);
         return (holdsWrite || (!holdsWrite && !o.needsWrite())) &&
             lockImpl.equals(o.lockImpl) &&
-            varDecl2.equals(o.varDecl) &&
-            SyntacticEquality.checkSyntacticEquality(objectRef2, o.objectRefExpr, teb);
+            varDecl.equals(varDecl2) &&
+            SyntacticEquality.checkSyntacticEquality(objectRefExpr, objectRef2, teb);
       } else {
         return false;
       }
@@ -86,6 +95,7 @@ public final class HeldInstanceLock extends AbstractHeldLock {
     result += 31 * lockImpl.hashCode();
     result += 31 * source.hashCode();
     result += 31 * objectRefExpr.hashCode();
+    result += 31 * varDecl.hashCode();
     result += 31 * ((lockPromise == null) ? 0 : lockPromise.hashCode());
     result += 31 * ((supportingDrop == null) ? 0 : supportingDrop.hashCode());
     return result;
@@ -95,12 +105,13 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   public boolean equals(final Object other) {
     if (other == this) { 
       return true;
-    } else if (other instanceof HeldInstanceLock) {
-      final HeldInstanceLock o = (HeldInstanceLock) other;
+    } else if (other instanceof HeldFieldRefLock) {
+      final HeldFieldRefLock o = (HeldFieldRefLock) other;
       return this.reason == o.reason &&
           this.holdsWrite == o.holdsWrite &&
           this.lockImpl.equals(o.lockImpl) && 
           this.objectRefExpr.equals(o.objectRefExpr) &&
+          this.varDecl.equals(o.varDecl) &&
           this.source.equals(o.source) &&
           (this.lockPromise == null ? o.lockPromise == null : this.lockPromise.equals(o.lockPromise)) && 
           (this.supportingDrop == null ? o.supportingDrop == null : this.supportingDrop.equals(o.supportingDrop));
@@ -112,6 +123,7 @@ public final class HeldInstanceLock extends AbstractHeldLock {
   @Override
   public String toString() {
     return "<" + DebugUnparser.toString(objectRefExpr) +
+        "." + VariableDeclarator.getId(varDecl) +
         lockImpl.getPostfixId() + ">." + 
         (holdsWrite ? "write" : "read");
   }

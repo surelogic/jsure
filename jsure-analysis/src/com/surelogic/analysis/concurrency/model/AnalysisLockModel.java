@@ -871,16 +871,12 @@ public final class AnalysisLockModel {
               /* Lock is "<field>.<LockName>".  Need to make into a field 
                * reference on the actual receiver.
                */
-              // XXX: Ignore field ref locks for now
-              objExpr = null;
-//              return createFieldRefLock(
-//                  map.get(JavaPromise.getReceiverNodeOrNull(mdecl)),
-//                  node, lockModel, type);
+              return createFieldRefLock(
+                  lockModel, JavaPromise.getReceiverNodeOrNull(mdecl), node, lockImpl, source, needsWrite);
             } else { // operator is ParameterDeclaration, find the actual
               // Lock is "<UseExpression>.<LockName>"
               // special case!
               return createInstanceParameterDeclLock(lockModel, node, lockImpl, source, needsWrite);
-//              objExpr = node;
             }
           }
         }
@@ -903,6 +899,10 @@ public final class AnalysisLockModel {
     protected abstract T createInstanceLock(LockModel lockModel,
         IRNode objectRefExpr, LockImplementation lockImpl, IRNode source,
         boolean needsWrite);
+    
+    protected abstract T createFieldRefLock(LockModel lockModel,
+        IRNode objectRefExpr, IRNode varDecl, LockImplementation lockImpl,
+        IRNode source, boolean needsWrite);
 
     protected abstract T createInstanceParameterDeclLock(LockModel lockModel,
         IRNode paramDecl, LockImplementation lockImpl, IRNode source,
@@ -965,6 +965,20 @@ public final class AnalysisLockModel {
       } else {
         return heldLockFactory.createInstanceLock(
             mappedObjectExpr, lockImpl, source, reason, needsWrite, lockModel, null);
+      }
+    }
+    
+    @Override
+    protected HeldLock createFieldRefLock(final LockModel lockModel,
+        final IRNode objectRefExpr, final IRNode varDecl, final LockImplementation lockImpl,
+        final IRNode source, final boolean needsWrite) {
+      final IRNode mappedObjectExpr = 
+          (formalsToActuals == null) ? objectRefExpr : formalsToActuals.get(objectRefExpr);
+      if (mappedObjectExpr == null) {
+        return null;
+      } else {
+        return heldLockFactory.createFieldRefLock(
+            mappedObjectExpr, varDecl, lockImpl, source, reason, needsWrite, lockModel, null);
       }
     }
     
@@ -1068,6 +1082,19 @@ public final class AnalysisLockModel {
     }
     
     @Override
+    protected NeededLock createFieldRefLock(final LockModel lockModel,
+        final IRNode objectRefExpr, final IRNode varDecl, final LockImplementation lockImpl,
+        final IRNode source, final boolean needsWrite) {
+      final IRNode mappedObjectExpr = formalToActualMap.get(objectRefExpr);
+      if (mappedObjectExpr == null) {
+        return null;
+      } else {
+        return lockFactory.createFieldRefLock(mappedObjectExpr, varDecl, lockImpl, source,
+            NeededLock.Reason.LOCK_PRECONDITION, requiresLockDrop, needsWrite);
+      }
+    }
+    
+    @Override
     protected NeededLock createInstanceParameterDeclLock(
         final LockModel lockModel, final IRNode paramDecl,
         final LockImplementation lockImpl, final IRNode source,
@@ -1121,6 +1148,15 @@ public final class AnalysisLockModel {
         final IRNode source, final boolean needsWrite) {
       return heldLockFactory.createInstanceLock(
           objectRefExpr, lockImpl, source, HeldLock.Reason.METHOD_PRECONDITION,
+          needsWrite, lockModel, supportingDrop);
+    }
+    
+    @Override
+    protected HeldLock createFieldRefLock(final LockModel lockModel,
+        final IRNode objectRefExpr, final IRNode varDecl, final LockImplementation lockImpl,
+        final IRNode source, final boolean needsWrite) {
+      return heldLockFactory.createFieldRefLock(
+          objectRefExpr, varDecl, lockImpl, source, HeldLock.Reason.METHOD_PRECONDITION,
           needsWrite, lockModel, supportingDrop);
     }
     

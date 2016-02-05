@@ -44,6 +44,17 @@ public final class HeldLockFactory {
         modelLock.getSourceAnnotation(), supportingDrop);
   }
 
+  public HeldLock createFieldRefLock(
+      final IRNode objectRefExpr, final IRNode varDecl,
+      final LockImplementation lockImpl,
+      final IRNode source, final Reason reason, final boolean needsWrite,
+      final PromiseDrop<?> lockPromise,
+      final RequiresLockPromiseDrop supportingDrop) {
+    return new HeldFieldRefLock(
+        thisExprBinder.bindThisExpression(objectRefExpr),  varDecl,
+        lockImpl, source, reason, needsWrite, lockPromise, supportingDrop);
+  }
+  
   public HeldLock createInstanceParameterDeclLock(
       final IRNode paramDecl, final LockImplementation lockImpl,
       final IRNode source, final Reason reason, final boolean needsWrite,

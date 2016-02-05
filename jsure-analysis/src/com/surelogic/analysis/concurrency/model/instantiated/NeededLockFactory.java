@@ -31,6 +31,15 @@ public final class NeededLockFactory {
         thisExprBinder.bindThisExpression(objectRefExpr), 
         lockImpl, source, reason, assuredPromise, needsWrite);
   }
+  
+  public NeededLock createFieldRefLock(
+      final IRNode objectRefExpr, final IRNode varDecl, final LockImplementation lockImpl,
+      final IRNode source, final Reason reason,
+      final PromiseDrop<? extends IAASTNode> assuredPromise, final boolean needsWrite) {
+    return new NormalNeededFieldRefLock(
+        thisExprBinder.bindThisExpression(objectRefExpr), varDecl,
+        lockImpl, source, reason, assuredPromise, needsWrite);
+  }
     
   public NeededLock createStaticLock(
       final LockImplementation lockImpl, final IRNode source,
