@@ -1,6 +1,7 @@
 package com.surelogic.analysis.concurrency.heldlocks_new;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -185,11 +186,12 @@ public final class LockUtils {
    */
   public boolean isLockGetterMethod(final IRNode mcall) {
     final IRNode mdecl = thisExprBinder.getBinding(mcall);
-    final IRNode returnNode = JavaPromise.getReturnNodeOrNull(mdecl);
-    if (returnNode == null) {
-      return false;
+    if (LockRules.getReturnedLock(mdecl) != null) {
+      return true;
     } else {
-      return LockRules.getReturnsLock(returnNode) != null;
+      final IRNode object = MethodCall.getObject(mcall);
+      return analysisLockModel.get().getLocksImplementedByMethod(
+          thisExprBinder.getJavaType(object), mdecl).iterator().hasNext();
     }
   }
   
@@ -405,11 +407,14 @@ public final class LockUtils {
           /* Object expression must be final or method must be static, and the method
            * must have a @returnsLock annotation (which we are using as a very
            * specific idempotency annotation) or a call to readLock() or writeLock().
+           * Or if the method is a lock in a @GuardedBy annotation.  This last
+           * case is actually not really a guarntee of finality, but we have
+           * to assume that it is.
            */
           final IRNode mdecl = thisExprBinder.getBinding(exprToTest);
-          if (TypeUtil.isStatic(mdecl)
-              || isFinal(mcall.get_Object(exprToTest))) {
-            return (LockRules.getReturnedLock(mdecl) != null) ||
+          final IRNode object = mcall.get_Object(exprToTest);
+          if (TypeUtil.isStatic(mdecl) || isFinal(object)) {
+            return isLockGetterMethod(exprToTest) ||
                 isMethodFromJavaUtilConcurrentLocksReadWriteLock(exprToTest);
           }
         } else if (ClassExpression.prototype.includes(op)) {
@@ -521,19 +526,66 @@ public final class LockUtils {
           modelLock, src, reason, isWrite, null));
     }
     
-    private HeldLock convertReturnedLock(
+    private boolean convertReturnedLock(
         final IRNode methodCall, final boolean isWrite) {
+      /* Two cases to look for: (1) The called method is annotated with
+       * @ReturnsLock, and (2) the called method "o.m()" is named in a
+       * @GuardedBy annotation in type typeOf(o).   
+       */
       final IRNode methodDecl = thisExprBinder.getBinding(methodCall);
       final ReturnsLockPromiseDrop returnsLock = LockRules.getReturnedLock(methodDecl);
-      if (returnsLock != null) {
+      if (returnsLock != null) { // case (1)
         final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
             thisExprBinder, methodCall, methodDecl, enclosingDecl);
-        return analysisLockModel.get().getHeldLockFromReturnsLock(
+        final HeldLock returnedLock = analysisLockModel.get().getHeldLockFromReturnsLock(
             returnsLock, methodDecl, isWrite, src, reason, m, heldLockFactory);
-      } else {
-        return null;
+        if (returnedLock != null) {
+          locks.add(returnedLock);
+          return true;
+        } else {
+          return false;
+        }
+      } else { // try to find case (2)
+        final IRNode obj = MethodCall.getObject(methodCall);
+        final IJavaType objType = thisExprBinder.getJavaType(obj);
+        final Iterable<ModelLock<?, ?>> locks =
+            analysisLockModel.get().getLocksImplementedByMethod(objType, methodDecl);
+        final Iterator<ModelLock<?, ?>> locksIter = locks.iterator();
+        if (locksIter.hasNext()) {
+          final boolean isStatic = TypeUtil.isStatic(methodDecl);
+          while (locksIter.hasNext()) {
+            final ModelLock<?, ?> modelLock = locksIter.next();
+            if (isStatic) {
+              addStaticLock(modelLock, isWrite);
+            } else {
+              addInstanceLock(obj, modelLock, isWrite);
+            }
+          }
+          return true;
+        } else {
+          return false;
+        }
       }
     }
+    
+    
+//    private HeldLock convertReturnedLock(
+//        final IRNode methodCall, final boolean isWrite) {
+//      /* Two cases to look for: (1) The called method is annotated with
+//       * @ReturnsLock, and (2) the called method "o.m()" is named in a
+//       * @GuardedBy annotation in type typeOf(o).   
+//       */
+//      final IRNode methodDecl = thisExprBinder.getBinding(methodCall);
+//      final ReturnsLockPromiseDrop returnsLock = LockRules.getReturnedLock(methodDecl);
+//      if (returnsLock != null) { // case (1)
+//        final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
+//            thisExprBinder, methodCall, methodDecl, enclosingDecl);
+//        return analysisLockModel.get().getHeldLockFromReturnsLock(
+//            returnsLock, methodDecl, isWrite, src, reason, m, heldLockFactory);
+//      } else {
+//        return null;
+//      }
+//    }
     
     // Returns true if the expression was successfully converted to a lock
     private boolean convertMethodCallToLock(
@@ -549,15 +601,15 @@ public final class LockUtils {
         return true;
       } else {
         // Try to see if we have a lock-getter method
-        final HeldLock returnedLock =
-          convertReturnedLock(methodCall, createWrite);
-        if (returnedLock != null) {
-          locks.add(returnedLock);
-          return true;
-        } else {
-          // method doesn't return a known lock, so nothing to do.
-          return false;
-        }
+        return convertReturnedLock(methodCall, createWrite);
+//        final HeldLock returnedLock = convertReturnedLock(methodCall, createWrite);
+//        if (returnedLock != null) {
+//          locks.add(returnedLock);
+//          return true;
+//        } else {
+//          // method doesn't return a known lock, so nothing to do.
+//          return false;
+//        }
       }
     }
     

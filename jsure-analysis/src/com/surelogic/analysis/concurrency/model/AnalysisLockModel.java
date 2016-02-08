@@ -657,6 +657,20 @@ public final class AnalysisLockModel {
     }
   }
   
+  public Iterable<ModelLock<?, ?>> getLocksImplementedByMethod(
+      final IJavaType objType, final IRNode mdecl) {
+    final Set<ModelLock<?, ?>> locks;
+    synchronized (membersToLocks) {
+      locks = membersToLocks.get(new Method(mdecl));
+    }
+    if (TypeUtil.isStatic(mdecl)) {
+      // Static locks don't use filtering
+      return locks;
+    } else {
+      return filterOutNonAncestorLocks(objType, locks);
+    }
+  }
+  
   // ----------------------------------------------------------------------
 
   private void insertLockIntoModel(final IRNode lockDeclaredInClassDecl,
