@@ -671,6 +671,12 @@ public final class AnalysisLockModel {
     }
   }
   
+  public Iterable<ModelLock<?, ?>> getAllLocksImplementedByMethod(final IRNode mdecl) {
+    synchronized (membersToLocks) {
+      return membersToLocks.get(new Method(mdecl));
+    }
+  }
+  
   // ----------------------------------------------------------------------
 
   private void insertLockIntoModel(final IRNode lockDeclaredInClassDecl,

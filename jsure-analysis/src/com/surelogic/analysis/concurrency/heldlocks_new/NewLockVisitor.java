@@ -112,6 +112,8 @@ implements IBinderClient {
   private static final int UNLOCK_NO_MATCHES = 2064;
   private static final int UNLOCK_MATCH = 2065;
 
+  private static final int GUARDED_BY_METHOD = 2080;
+  
   /**
    * The receiver declaration of the current instance method or constructor
    * being visited. If the current method is static or we are in the static
@@ -636,6 +638,15 @@ implements IBinderClient {
         }
       }
 
+      /* If the method is named in a GuardedBy annotation, output a result
+       * that indicates the results are trusted.
+       */
+      for (final ModelLock<?, ?> mlock : analysisLockModel.get().getAllLocksImplementedByMethod(mdecl)) {
+        final ResultDrop resultDrop = ResultsBuilder.createResult(
+            true, mlock.getSourceAnnotation(), mdecl, 
+            GUARDED_BY_METHOD, JavaNames.genMethodConstructorName(mdecl));
+      }
+      
       doAcceptForChildren(mdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
