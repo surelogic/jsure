@@ -31,208 +31,72 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The field or method to which this annotation is applied can only be accessed
+ * The field to which this annotation is applied can only be accessed
  * when holding a particular lock, which may be a built-in (synchronization)
- * lock, or may be an explicit java.util.concurrent.Lock.
+ * lock, or may be an explicit <code>java.util.concurrent</code> lock.
  * <p>
- * The argument determines which lock guards the annotated field, method, or
- * constructor:
+ * The argument determines which lock guards the annotated field:
  * <ul>
  * <li>
  * <tt>this</tt>: The intrinsic lock of the object in whose class the annotated
- * method, constructor, or field is defined. When this annotation is applied to
- * a field, the field must be mutable and non-<code>static</code>.  When applied to a method, the method
- * must not be <code>static</code>.  Cannot be applied to a constructor.</li>
+ * field is defined.  The field must be mutable and non-<code>static</code>.  
+ * </li>
  * <li>
  * <em>field-name</em>: The lock object is referenced by the (instance or
- * static) field specified by <em>field-name</em>. The field that references the
- * lock must be {@code final} and, if non-<code>static</code>, be declared in the same class
+ * static) field specified by <em>field-name</em>. The field <em>field-name</em>
+ * must be {@code final} and, if non-<code>static</code>, be declared in the same class as,
  * or be a visible
- * field declaration in a superclass as the method, constructor, or field on
- * which this annotation appears. When this annotation is applied to a field,
- * the field must be mutable. In the case that both a <em>field-name</em> and a
- * <em>lock-name</em> (see below) have the same name, the binding is to the
- * <em>lock-name</em>.  If the annotated field is <code>static</code> the
+ * field declaration in a superclass of, the class in which the annotated field 
+ * is declared. The annotated field must be mutable. 
+ * If the annotated field is <code>static</code> the
  * referenced field must also be <code>static</code>.  The referenced field 
  * must have a reference type.</li>
  * <li>
- * <em>lock-name</em>: For methods and constructors only (meaningless when
- * applied to a field). The referenced <em>lock-name</em>, which is defined by
- * {@link RegionLock} annotation must be held when invoking the method or
- * constructor. In this use, <tt>@GuardedBy("</tt><em>lock-name</em><tt>")</tt>
- * is equivalent to the annotation <tt>@RequiresLock("</tt><em>lock-name</em>
- * <tt>")</tt>. In the case that both a <em>field-name</em> and a
- * <em>lock-name</em> have the same name, the binding is to the
- * <em>lock-name</em>.</li>
- * <li>
  * <tt>itself</tt>: For reference fields only (meaningless when applied to a
- * method, constructor, or a field of a primitive type); the object to which the
+ * field of a primitive type); the object to which the
  * field refers. The field must be {@code final} and contain a unique reference
- * to the referenced object.</li>
+ * to the referenced object.  The lock on the object referenced by the 
+ * annotated field must be held before accessing the state of the referenced
+ * object.</li>
  * <li>
  * <em>method-name</em><tt>()</tt>: The lock object is returned by calling the
  * named nil-ary method. If the named method is non-<code>static</code>, it must be declared in
  * the same class (or be a visible method declaration in a superclass) as the
- * method, constructor, or field on which this annotation appears. Note that
- * <em>method-name</em><tt>()</tt> is trusted to return a consistent object to
- * guard the annotated field or method&mdash;so take particular care with its
- * implementation. When this annotation is applied to a field, the field must be
+ * field on which this annotation appears. Note that
+ * <em>method-name</em><tt>()</tt> is trusted to return a consistent non-<code>null</code> object to
+ * guard the annotated field&mdash;so take particular care with its
+ * implementation. The annotated field must be
  * mutable.  The named method must return a reference type.  If the annotated
- * field is <code>static</codd> the named method must also be <code>static</code>.
+ * field is <code>static</code> the named method must also be <code>static</code>.
  * </li>
  * <li>
  * <em>class-name</em><tt>.class</tt>: The {@link Class} object for the
- * specified class should be used as the lock object. When this annotation is
- * applied to a field, the field must be mutable.</li>
+ * specified class should be used as the lock object. The 
+ * annotated field must be mutable.</li>
  * <li>
  * <em>class-name</em><tt>.</tt><em>field-name</em>: The lock object is
  * reference by the static field specified by <em>class-name</em><tt>.</tt>
  * <em>field-name</em>. The static field that references the lock must be
- * {@code final}. When this annotation is applied to a field, the field must be
+ * {@code final}. The annotated field must be
  * mutable.</li>
  * <li>
  * <em>class-name</em><tt>.this</tt>: For inner classes, it may be necessary to
  * disambiguate 'this'; the <em>class-name</em><tt>.this</tt> designation allows
- * you to specify which 'this' reference is intended. When this annotation is
- * applied to a field, the field must be mutable and non-<code>static</code>.
- * When applied to a method, the method
- * must not be <code>static</code>.  Unlike <code>this</code>, this may be
- * applied to a constructor as long as <i>class-name</i> is not the name
- * of the class to which the constructor belongs.</li>
+ * you to specify which 'this' reference is intended. The annotated
+ * field must be mutable and non-<code>static</code>.
+ * </li>
  * </ul>
- * <p>
- * When this annotation is applied to a method a comma separated list may be
- * provided if more than one lock needs to be held, e.g.
- * <tt>@GuardedBy("this, C.class, myLock")</tt>.
- * <p>
- * This annotation interacts with {@link RegionLock} defined locks when applied
- * to methods or constructors. As noted above, holding <em>lock-name</em> may be
- * expressed as a prerequisite to invoking the method. Also, non-
- * <em>lock-name</em> lock preconditions expressed by {@link GuardedBy} should
- * be resolved to named locks as applicable. This is best illustrated by
- * example. In the listing below the lock preconditions on <tt>m1()</tt>,
- * <tt>m2()</tt>, and <tt>m3()</tt> are semantically equivalent. In particular,
- * a lock precondition on <tt>this</tt> resolves to both named locks:
- * <tt>l1</tt> and <tt>l2</tt>
- * 
- * <pre>
- * &#064;RegionLocks({ @RegionLock(&quot;l1 is this protects f1&quot;), @RegionLock(&quot;l2 is this protects f2&quot;) })
- * public class C {
- * 
- *   int f1;
- * 
- *   int f2;
- * 
- *   &#064;GuardedBy(&quot;this&quot;)
- *   void m1() {
- *     f1 = 4;
- *     f2 = 5;
- *   }
- * 
- *   &#064;GuardedBy(&quot;l1, l2&quot;)
- *   void m2() {
- *     f1 = 4;
- *     f2 = 5;
- *   }
- * 
- *   &#064;RequiresLock(&quot;this&quot;)
- *   void m3() {
- *     f1 = 4;
- *     f2 = 5;
- *   }
- * 
- *   &#064;RequiresLock(&quot;l1, l2&quot;)
- *   void m4() {
- *     f1 = 4;
- *     f2 = 5;
- *   }
- * }
- * </pre>
- * <p>
- * {@link GuardedBy} some <em>expression</em> expressed on a method may be
- * thought of as semantically equivalent to a {@link RequiresLock} annotation
- * with the same <em>expression</em>. Which annotation you choose to use is a
- * style preference.
- * <p>
- * A subtlety of use of this annotation with {@link RegionLock} defined locking
- * models as opposed to {@link GuardedBy} defined locking models is the use a
- * method (or constructor) precondition that gets the required lock via a method
- * call. In this case of a {@link RegionLock} defined locking model the method
- * that returns the lock <em>must</em> be annotated with a {@link ReturnsLock}
- * annotation. The listing below shows an example. The {@link RegionLock}
- * defined locking model <tt>dLock</tt> would not verify without the
- * {@link ReturnsLock} annotation on the <tt>getLock1()</tt> method because the
- * precondition on <tt>getState1Helper()</tt> would not be known to return the
- * needed lock. In the case of the {@link GuardedBy} defined locking model on
- * the field <tt>state2</tt> the {@link ReturnsLock} annotation is not required.
- * The {@link RegionLock} model is a stronger result because it verifies the
- * correct lock is returned. In the case of the {@link GuardedBy} defined
- * locking model on the field <tt>state2</tt> it is marked with as contingent on
- * the implementation of <tt>getLock2</tt> because the "correct" lock is unknown
- * to this model.
- * 
- * <pre>
- * &#064;RegionLock(&quot;dLock is lock protects state&quot;)
- * public class D {
- * 
- *   private final Object lock = new Object();
- * 
- *   &#064;ReturnsLock(&quot;dlock&quot;)
- *   Object getLock1() {
- *     return lock;
- *   }
- * 
- *   private int state1;
- * 
- *   &#064;GuardedBy(&quot;getLock1()&quot;)
- *   private int getState1Helper() {
- *     return state1;
- *   }
- * 
- *   public int getState1() {
- *     final int result;
- *     synchronized (getLock1()) {
- *       result = getState1Helper();
- *     }
- *     return result;
- *   }
- * 
- *   Object getLock2() {
- *     return lock;
- *   }
- * 
- *   &#064;GuardedBy(&quot;getLock2()&quot;)
- *   private int state2;
- * 
- *   &#064;GuardedBy(&quot;getLock2()&quot;)
- *   private int getState2Helper() {
- *     return state2;
- *   }
- * 
- *   public int getState2() {
- *     final int result;
- *     synchronized (getLock2()) {
- *       result = getState2Helper();
- *     }
- *     return result;
- *   }
- * }
- * </pre>
  * 
  * <h3>Semantics:</h3>
  * 
  * <i>Field:</i> The program must be holding the specified lock when the
  * annotated field is read or written.
- * <p>
- * <i>Method:</i> The program must be holding the specified lock when the
- * annotated method is invoked.
  * 
  * <h3>Examples:</h3>
  * 
- * The immutable {@code Point} class below is considered thread-safe.
+ * The {@code Point} class below is considered thread-safe.
  * 
  * <pre>
- * &#064;ThreadSafe
  * public class ex1 {
  * 
  *   &#064;GuardedBy(&quot;this&quot;)
@@ -259,26 +123,52 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * 
- * The example below shows how <a href="#note">the generated lock name</a> may
- * be referenced in a <code>RequiresLock</code> annotation:
+ * <p>If the named field or method in an annotation has the type 
+ * {@link java.util.concurrent.locks.Lock} or {@link java.util.concurrent.locks.ReadWriteLock}
+ * then the lock must be acquired according to the rules of those classes.  For
+ * example, consider the highly contrived class below:
  * 
  * <pre>
- * public class Var {
- *   &#064;GuardedBy(&quot;this&quot;)
- *   private int value;
- * 
- *   public synchronized void set(final int v) {
- *     value = v;
- *   }
- * 
- *   &#064;RequiresLock(&quot;Guard$_value&quot;)
- *   public int get() {
- *     return value;
+ * public class ex2 {
+ *   private final Object lock = new Object();
+ *   private final Lock jucLock = new ReentrantLock();
+ *   private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+ *   
+ *   &#064;GuardedBy(&quot;lock&quot;)
+ *   private int x;
+ *   
+ *   &#064;GuardedBy(&quot;jucLock&quot;)
+ *   private int y;
+ *   
+ *   &#064;GuardedBy(&quot;rwLock&quot;)
+ *   private int z;
+ *   
+ *   &#064;Unique(&quot;return&quot;)
+ *   public ex2() {}
+ *   
+ *   public void set(int a, int b, int c) {
+ *     synchronized (lock) { 
+ *       x = a;
+ *     }
+ *     
+ *     jucLock.lock(); 
+ *     try { 
+ *      y = b;
+ *     } finally {
+ *       jucLock.unlock();
+ *     }
+ *     
+ *     rwLock.writeLock().lock();
+ *     try {
+ *       z = c;
+ *     } finally {
+ *       rwLock.writeLock().unlock();
+ *     }
  *   }
  * }
  * </pre>
  * 
- * <b>Constructor annotation to support locking policies:</b> To support the
+ * <p><b>Constructor annotation to support locking policies:</b> To support the
  * {@link GuardedBy} annotation, a {@link Unique} or {@link Borrowed} annotation
  * is needed on each constructor to assure that the object being constructed is
  * confined to the thread that invoked {@code new}. A second less common
@@ -360,49 +250,14 @@ import java.lang.annotation.Target;
  * </pre>
  * 
  * <a name="note"><i>Implementation note:</i></a> This annotation is derived
- * from <code>&#064;GuardedBy</code> proposed by Brian Goetz and Tim Peierls in
+ * from the <code>&#064;GuardedBy</code> proposed by Brian Goetz and Tim Peierls in
  * the book <i>Java Concurrency in Practice</i> (Addison-Wesley 2006) we have
  * simply adapted it to have semantics as a promise. Further, the annotation in
  * {@code net.jcip.annotations} may be used instead of this one with the same
  * tool behavior.
- * <p>
- * The SureLogic JSure tool supports verification of all the above forms except
- * for <code>itself</code> and <code>method-name()</code>. The other forms are
- * supported by translating this annotation into a {@link RegionLock} annotation
- * on the class that contains the annotated field. A lock name is generated to
- * use with {@link RegionLock} annotation: for a {@link GuardedBy} annotation on
- * a field <code>f</code> we generate the lock name <code>Guard$_f</code>, where
- * <code>$</code> is meant to be pronounced as an <i>S</i>. The supported cases
- * are translated as follows:
- * 
- * <ul>
- * <li><b><code>&#64;GuardedBy("this")</code></b> on field <code>f</code> in
- * class <code>C</code> generates a <code>&#64;RegionLock("Guard$_f is this
- * protects f")</code> on class <code>C</code>.
- * 
- * <li><b><code>&#64;GuardedBy("class-name.this")</code></b> on field
- * <code>f</code> in class <code>C</code> generates a
- * <code>&#64;RegionLock("Guard$_f is class-name.this protects f")</code> on
- * class <code>C</code>.
- * 
- * <li><b><code>&#64;GuardedBy("field-name")</code></b> on field <code>f</code>
- * in class <code>C</code> generates a <code>&#64;RegionLock("Guard$_f is
- * field-name protects f")</code> on class <code>C</code>.
- * 
- * <li><b><code>&#64;GuardedBy("class-name.field-name")</code></b> on field
- * <code>f</code> in class <code>C</code> generates a
- * <code>&#64;RegionLock("Guard$_f is class-name.field-name")</code> on class
- * <code>C</code>.
- * 
- * <li><b><code>&#64;GuardedBy("class-name.class")</code></b> on field
- * <code>f</code> in class <code>C</code> generates a
- * <code>&#64;RegionLock("Guard$_f is class-name.class")</code> on class
- * <code>C</code>.
- * </ul>
- * This implementation approach may be changed in future releases of the JSure
- * tool.
  * 
  * @see RegionLock
+ * @see RequiresLock
  * @see ThreadSafe
  */
 @Documented
