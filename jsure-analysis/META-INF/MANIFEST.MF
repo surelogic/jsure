@@ -22,8 +22,6 @@ Export-Package:
  com.surelogic.analysis.cfg,
  com.surelogic.analysis.concurrency.detector,
  com.surelogic.analysis.concurrency.driver,
- com.surelogic.analysis.concurrency.heldlocks,
- com.surelogic.analysis.concurrency.heldlocks.locks,
  com.surelogic.analysis.concurrency.threadsafe,
  com.surelogic.analysis.effects,
  com.surelogic.analysis.effects.targets,

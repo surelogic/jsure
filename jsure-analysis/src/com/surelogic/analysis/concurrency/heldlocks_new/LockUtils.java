@@ -320,6 +320,44 @@ public final class LockUtils {
     return isJavaUtilConcurrentLockObject;
   }
 
+  /**
+   * Test if a class implements {@code java.util.concurrent.locks.Lock}.
+   * 
+   * @param type
+   *          The java type to test
+   */
+  public boolean implementsLock(final IJavaType type) {
+    if (lockType == null) {
+        // Probably running on pre-1.5 code
+      return false;
+    }
+    if (type instanceof IJavaDeclaredType) {
+      return thisExprBinder.getTypeEnvironment().isRawSubType(type, lockType);
+    } else {
+      // Arrays and primitives are not lock types
+      return false;
+    }
+  }
+
+  /**
+   * Test if a class implements {@code java.util.concurrent.locks.ReadWriteLock}.
+   * 
+   * @param type
+   *          The java type to test
+   */
+  public boolean implementsReadWriteLock(final IJavaType type) {
+    if (readWriteLockType == null) {
+        // Probably running on pre-1.5 code
+      return false;
+    }
+    if (type instanceof IJavaDeclaredType) {
+      return thisExprBinder.getTypeEnvironment().isRawSubType(type, readWriteLockType);
+    } else {
+      // Arrays and primitives are not lock types
+      return false;
+    }
+  }
+
   
   
   // ========================================================================
@@ -569,24 +607,6 @@ public final class LockUtils {
     }
     
     
-//    private HeldLock convertReturnedLock(
-//        final IRNode methodCall, final boolean isWrite) {
-//      /* Two cases to look for: (1) The called method is annotated with
-//       * @ReturnsLock, and (2) the called method "o.m()" is named in a
-//       * @GuardedBy annotation in type typeOf(o).   
-//       */
-//      final IRNode methodDecl = thisExprBinder.getBinding(methodCall);
-//      final ReturnsLockPromiseDrop returnsLock = LockRules.getReturnedLock(methodDecl);
-//      if (returnsLock != null) { // case (1)
-//        final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
-//            thisExprBinder, methodCall, methodDecl, enclosingDecl);
-//        return analysisLockModel.get().getHeldLockFromReturnsLock(
-//            returnsLock, methodDecl, isWrite, src, reason, m, heldLockFactory);
-//      } else {
-//        return null;
-//      }
-//    }
-    
     // Returns true if the expression was successfully converted to a lock
     private boolean convertMethodCallToLock(
         final IRNode methodCall, final boolean createWrite) {
@@ -602,14 +622,6 @@ public final class LockUtils {
       } else {
         // Try to see if we have a lock-getter method
         return convertReturnedLock(methodCall, createWrite);
-//        final HeldLock returnedLock = convertReturnedLock(methodCall, createWrite);
-//        if (returnedLock != null) {
-//          locks.add(returnedLock);
-//          return true;
-//        } else {
-//          // method doesn't return a known lock, so nothing to do.
-//          return false;
-//        }
       }
     }
     

@@ -1,6 +1,8 @@
 package com.surelogic.analysis.concurrency.driver;
 
-import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.IKeyValue;
@@ -39,8 +41,8 @@ public class ConcurrentStateMetrics {
 		binder = b;
 	}
 	
-	void summarizeFieldInfo(final IRNode typeDecl, final IRNode typeBody, LockUtils lockUtils) {		
-		final FieldCounts counts = new FieldCounts(typeDecl, lockUtils);
+	void summarizeFieldInfo(final IRNode typeDecl, final IRNode typeBody, AtomicReference<AnalysisLockModel> lockModel) {		
+		final FieldCounts counts = new FieldCounts(typeDecl, lockModel);
 		counts.summarizeFields();
 
 		// For enums
@@ -58,15 +60,15 @@ public class ConcurrentStateMetrics {
 	
 	class FieldCounts {
 		final IJavaDeclaredType clazz;
-		final LockUtils lockUtils;
+		final AtomicReference<AnalysisLockModel> lockModel;
 		final PartStatus instancePart, staticPart;
 		
 		int threadSafe = 0, immutable = 0, locked = 0, threadConfined = 0, other = 0;
 		int notThreadSafe = 0, finalFields = 0;
 
-		FieldCounts(IRNode t, LockUtils utils) {
+		FieldCounts(IRNode t, AtomicReference<AnalysisLockModel> lm) {
 			clazz = (IJavaDeclaredType) binder.getTypeEnvironment().convertNodeTypeToIJavaType(t);
-			lockUtils = utils;
+			lockModel = lm;
 			
 			// Figure out what annotations are on the type decl
 			PartStatus iPart = PartStatus.NO_POLICY, sPart = PartStatus.NO_POLICY;
@@ -174,7 +176,7 @@ public class ConcurrentStateMetrics {
 			final IRNode decls = FieldDeclaration.getVars(field);
 			for(final IRNode vd : VariableDeclarators.getVarIterator(decls)) {
 				IRegion region = RegionModel.getInstance(vd);
-				if (lockUtils.getLockForRegion(clazz, region) != null) {
+				if (lockModel.get().getLockForRegion(clazz, region) != null) {
 					locked++;
 					continue;
 				}
@@ -232,7 +234,7 @@ public class ConcurrentStateMetrics {
 		void handleEnumConstant(PartStatus classStatus, IRNode constant, Operator op) {
 			if (EnumConstantClassDeclaration.prototype.includes(op)) {
 				// Look at its fields to determine its status
-				final FieldCounts temp = new FieldCounts(constant, lockUtils);
+				final FieldCounts temp = new FieldCounts(constant, lockModel);
 				temp.summarizeFields();
 				count(temp.summarizeStatusSoFar());
 			} 

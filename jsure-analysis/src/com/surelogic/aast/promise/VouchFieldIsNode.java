@@ -3,9 +3,13 @@ package com.surelogic.aast.promise;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
-import com.surelogic.analysis.concurrency.heldlocks.FieldKind;
 
 public final class VouchFieldIsNode extends AASTRootNode { 
+  public enum FieldKind {
+    Final, Immutable, ThreadSafe, Containable, AnnotationBounds; 
+  }
+
+  
   public static final String NO_REASON = "";
   
   public static final String REASON = "reason";

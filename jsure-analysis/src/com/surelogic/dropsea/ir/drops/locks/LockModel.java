@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
-import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -94,18 +93,6 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
   @Override
   public LockModel getModel() {
     return this;
-  }
-
-  public boolean isReadWriteLock() {
-    return getAAST().isReadWriteLock();
-  }
-
-  public boolean isJUCLock() {
-    return getAAST().isJUCLock();
-  }
-
-  public boolean isJUCLock(LockUtils u) {
-    return getAAST().isJUCLock(u);
   }
 
   public boolean isLockStatic() {

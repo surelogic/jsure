@@ -7,7 +7,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils;
 import com.surelogic.analysis.concurrency.model.AnalysisLockModel;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;

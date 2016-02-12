@@ -5,7 +5,7 @@ import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.INodeVisitor;
 import com.surelogic.aast.bind.IHasVariableBinding;
 import com.surelogic.aast.java.*;
-import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
+import com.surelogic.analysis.concurrency.heldlocks_new.LockUtils;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.java.bind.*;

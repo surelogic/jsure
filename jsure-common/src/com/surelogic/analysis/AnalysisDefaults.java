@@ -63,9 +63,9 @@ public final class AnalysisDefaults {
     init("com.surelogic.analysis.concurrency.driver.NewLockAnalysis",
         "com.surelogic.jsure.client.eclipse.LockAssurance4", true, "Lock policy",
         lockBuilder);
-		init("com.surelogic.analysis.concurrency.driver.LockAnalysis",
-		    "com.surelogic.jsure.client.eclipse.LockAssurance3", false, "Old Lock policy",
-		    lockBuilder, annoBoundsChecking);
+//		init("com.surelogic.analysis.concurrency.driver.LockAnalysis",
+//		    "com.surelogic.jsure.client.eclipse.LockAssurance3", false, "Old Lock policy",
+//		    lockBuilder, annoBoundsChecking);
     init("com.surelogic.analysis.testing.EffectsAndLocksDumpModule",
         "com.surelogic.jsure.client.eclipse.EffectsAndLocks", false, "Effects and Locks Dump",
         lockBuilder);
