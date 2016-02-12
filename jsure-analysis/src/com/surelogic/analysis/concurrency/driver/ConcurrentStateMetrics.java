@@ -77,7 +77,8 @@ public class ConcurrentStateMetrics {
 				switch (immutable.getAppliesTo()) {
 				case InstanceAndStatic:
 					sPart = PartStatus.IMMUTABLE;				
-				case Instance:
+          //$FALL-THROUGH$
+        case Instance:
 					iPart = PartStatus.IMMUTABLE;
 					break;
 				case Static:
@@ -90,7 +91,8 @@ public class ConcurrentStateMetrics {
 				switch (threadSafe.getAppliesTo()) {
 				case InstanceAndStatic:
 					sPart = PartStatus.THREADSAFE;				
-				case Instance:
+          //$FALL-THROUGH$
+        case Instance:
 					iPart = PartStatus.THREADSAFE;
 					break;
 				case Static:
@@ -103,7 +105,8 @@ public class ConcurrentStateMetrics {
 				switch (notThreadSafe.getAppliesTo()) {
 				case InstanceAndStatic:
 					sPart = PartStatus.NOT_THREADSAFE;				
-				case Instance:
+          //$FALL-THROUGH$
+        case Instance:
 					iPart = PartStatus.NOT_THREADSAFE;
 					break;
 				case Static:

@@ -147,6 +147,15 @@ public class LockRules extends AnnotationRules {
   public static final String THREAD_SAFE_PROP = "threadSafe";
   public static final String VALUE_PROP = "valueObject";
   
+  private static final int LOCK_VISIBILITY_CATEGORY = 200;
+  private static final int UNSUPPORTED_MODEL_CATEGORY = 217;
+
+  private static final int LOCK_VISIBILITY = 257;
+  private static final int UNSUPPORTED_MODEL = 258;
+  private static final int VOUCHED_FINAL = 259;
+  private static final int VOUCHED_FINAL_WITH_REASON = 260;
+
+  
 	private static final AnnotationRules instance = new LockRules();
 
 	private static final IProtectedRegions protectedRegions = new ProtectedRegions();
@@ -978,12 +987,9 @@ public class LockRules extends AnnotationRules {
           rd.addTrusted(vouchFieldIs);
           final String id = VariableDeclarator.getId(lockFieldNode);
           if (reason == VouchFieldIsNode.NO_REASON) {
-            rd.setMessage(
-                com.surelogic.analysis.concurrency.driver.Messages.VOUCHED_FINAL, id);
+            rd.setMessage(VOUCHED_FINAL, id);
           } else {
-            rd.setMessage(
-                com.surelogic.analysis.concurrency.driver.Messages.VOUCHED_FINAL_WITH_REASON,
-                id, reason);
+            rd.setMessage(VOUCHED_FINAL_WITH_REASON, id, reason);
           }
         }
       }
@@ -1121,8 +1127,8 @@ public class LockRules extends AnnotationRules {
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
           final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
-          wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
-          wd.setCategorizingMessage(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
+          wd.setMessage(UNSUPPORTED_MODEL);
+          wd.setCategorizingMessage(UNSUPPORTED_MODEL_CATEGORY);
           model.addDependent(wd);
         }
         if (JSureScanInfo.printBadLocks && RegionModel.INSTANCE.equals(regionBinding.getModel().getRegionName())) {
@@ -1173,8 +1179,8 @@ public class LockRules extends AnnotationRules {
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
           final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
-          wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_UnsupportedModel);
-          wd.setCategorizingMessage(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
+          wd.setMessage(UNSUPPORTED_MODEL);
+          wd.setCategorizingMessage(UNSUPPORTED_MODEL_CATEGORY);
           model.addDependent(wd);
         }
 
@@ -2873,8 +2879,8 @@ public class LockRules extends AnnotationRules {
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
         final ModelingProblemDrop wd = new ModelingProblemDrop(lockDecl.getPromisedFor());
-        wd.setMessage(com.surelogic.analysis.concurrency.driver.Messages.LockAnalysis_ds_LockViz, field, lockViz.nameLowerCase(), region, regionViz.nameLowerCase());
-        wd.setCategorizingMessage(com.surelogic.analysis.concurrency.driver.Messages.DSC_LOCK_VIZ);
+        wd.setMessage(LOCK_VISIBILITY, field, lockViz.nameLowerCase(), region, regionViz.nameLowerCase());
+        wd.setCategorizingMessage(LOCK_VISIBILITY_CATEGORY);
         model.addDependent(wd);
       }
     }

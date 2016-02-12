@@ -74,7 +74,18 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,TypeBodyPair> {	
-	/** Should we try to run things in parallel */
+  private static final int UNACCOUNTED_FOR = 150;
+  private static final int CHECKED_BY = 151;
+  private static final int EMPTY_EFFECTS = 152;
+  private static final int CONSTRUCTOR_RULE = 153;
+  private static final int PARAMETER_EVIDENCE = 154;
+  private static final int BCA_EVIDENCE = 161;
+  private static final int AGGREGATION_EVIDENCE = 162;
+  private static final int ENCLOSING_REF_EVIDENCE = 163;
+  private static final int QRCVR_CONVERSION_EVIDENCE = 164;
+  private static final int UNKNOWN_REF_CONVERSION_EVIDENCE = 165;
+
+  /** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = false;
 
 	/**
@@ -187,7 +198,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 					final ResultDrop rd = new ResultDrop(member);
 					rd.addChecked(declaredEffectsDrop);
 					rd.setConsistent();
-					rd.setMessage(Messages.EMPTY_EFFECTS);
+					rd.setMessage(EMPTY_EFFECTS);
 				}
 			} else {
 				// NULL if there are no declared effects
@@ -207,7 +218,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 						final ResultDrop rd = new ResultDrop(member);
 						rd.addChecked(declaredEffectsDrop);
 						rd.setConsistent();
-						rd.setMessage(Messages.EMPTY_EFFECTS);
+						rd.setMessage(EMPTY_EFFECTS);
 					} else {
 						if (isConstructor) {
 							checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
@@ -384,7 +395,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			 */
 			if (eff.affectsReceiver(receiverNode)) {
 				constructResultDrop(constructor, declEffDrop, true, eff,
-				    Messages.CONSTRUCTOR_RULE, eff.unparseForMessage());
+				    CONSTRUCTOR_RULE, eff.unparseForMessage());
 			} else {
         final ResultDrop r = 
           checkEffect(constructor, declEffDrop, eff, declFx, missing);
@@ -458,14 +469,14 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
   		if (implEff.isCheckedBy(getBinder(), eff2)) {
   			checked = true;
   			constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
-  					Messages.CHECKED_BY, implEff.unparseForMessage(), eff2.unparseForMessage());
+  					CHECKED_BY, implEff.unparseForMessage(), eff2.unparseForMessage());
   		}
   	}
   	if (!checked) {
   	  missing.add(implEff);
   		return 
   		  constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
-  		      Messages.UNACCOUNTED_FOR, implEff.unparseForMessage());
+  		      UNACCOUNTED_FOR, implEff.unparseForMessage());
   	} else {
   	  return null;
   	}
@@ -510,7 +521,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
        * if it's an IFQR, then the destination of the aggregation is "this"
        */
       resultDrop.addInformationHint(
-          e.getLink(), Messages.AGGREGATION_EVIDENCE,
+          e.getLink(), AGGREGATION_EVIDENCE,
           e.getOriginalRegion().getName(),
           DebugUnparser.toString(originalExpression),
           e.getMappedRegion().getName(),
@@ -520,18 +531,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       accept(e.getMoreEvidence());
     }
     
-//    @Override
-//    public void visitAnonClassEvidence(final AnonClassEvidence e) {
-//      final Effect originalEffect = e.getOriginalEffect();
-//      resultDrop.addInformationHint(
-//          e.getLink(), Messages.ACE_EVIDENCE, originalEffect.unparseForMessage());
-//      accept(originalEffect.getTargetEvidence());
-//    }
-    
     @Override
     public void visitEnclosingRefEvidence(final EnclosingRefEvidence e) {
       resultDrop.addInformationHint(
-          e.getLink(), Messages.ENCLOSING_REF_EVIDENCE,
+          e.getLink(), ENCLOSING_REF_EVIDENCE,
           DebugUnparser.toString(e.getOriginal()),
           DebugUnparser.toString(e.getEnclosingRef()));
     }
@@ -539,7 +542,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     @Override
     public void visitBCAEvidence(final BCAEvidence e) {
       resultDrop.addInformationHint(
-          e.getLink(), Messages.BCA_EVIDENCE,
+          e.getLink(), BCA_EVIDENCE,
           DebugUnparser.toString(e.getUseExpression()), 
           DebugUnparser.toString(e.getSourceExpression()));
       accept(e.getMoreEvidence());
@@ -588,7 +591,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
         }
         final String actualString = DebugUnparser.toString(e.getActual());
         resultDrop.addInformationHint(
-            e.getLink(), Messages.PARAMETER_EVIDENCE,
+            e.getLink(), PARAMETER_EVIDENCE,
             formalString, actualString);
       }
     }
@@ -605,7 +608,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
                 binder, e.getQualifiedReceiver())) + " .this";
         final String tString = JavaNames.getQualifiedTypeName(e.getType());
         resultDrop.addInformationHint(
-            e.getLink(), Messages.QRCVR_CONVERSION_EVIDENCE,
+            e.getLink(), QRCVR_CONVERSION_EVIDENCE,
             qString, tString);
       }
     }
@@ -614,7 +617,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
     public void visitUnknownReferenceConversionEvidence(
         final UnknownReferenceConversionEvidence e) {
       resultDrop.addInformationHint(
-          e.getUnknownRef(), Messages.UNKNOWN_REF_CONVERSION_EVIDENCE,
+          e.getUnknownRef(), UNKNOWN_REF_CONVERSION_EVIDENCE,
           DebugUnparser.toString(e.getUnknownRef()), 
           JavaNames.getQualifiedTypeName(e.getType()));
       super.visitUnknownReferenceConversionEvidence(e);

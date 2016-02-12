@@ -370,36 +370,6 @@ public final class Effects implements IBinderClient {
   //----------------------------------------------------------------------
   // -- Get the effects of a method call
   //----------------------------------------------------------------------
-
-  /**
-   * Get the effects of a method/constructor call.
-   * 
-   * @param call
-   *          The node of the call. This node must have an operator type that
-   *          implements {@link #CallInterface}.
-   * @param caller
-   *          The node of the method declaration or constructor declaration that
-   *          contains the call.
-   * @return An unmodifiable set of effects.
-   */
-  // XXX: This is obsolete after we get rid of the old lock analysis?
-  public Set<Effect> getMethodCallEffects(
-      final BindingContextAnalysis.Query bcaQuery,
-      final IRNode call, final IRNode caller) {
-    final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(caller);
-    final ThisExpressionBinder teb = new AbstractThisExpressionBinder(binder) {
-      @Override
-      protected IRNode bindReceiver(final IRNode node) {
-        return rcvr;
-      }
-      
-      @Override
-      protected IRNode bindQualifiedReceiver(final IRNode outerType, final IRNode node) {
-        return JavaPromise.getQualifiedReceiverNodeByName(caller, outerType);
-      }
-    };
-    return getMethodCallEffects(bcaQuery, new NeededLockFactory(teb), teb, call, caller, NoEffectEvidence.INSTANCE);
-  }
   
   /**
    * Get the effects of a specific method/constructor call. The effects are
@@ -491,33 +461,6 @@ public final class Effects implements IBinderClient {
   // ----------------------------------------------------------------------
   // Target elaboration methods
   // ----------------------------------------------------------------------
-  
-  /**
-   * XXX: Only public so that lock assurance can have access to it.  This itself
-   * is questionable.  I really need to replace the lock assurance with a flow
-   * analysis that uses regular effects results, instead of one that duplicates
-   * the work of effects analysis.  This would eliminate the need for this
-   * method to be public or even to exist at all.
-   */
-  // XXX: To be eliminated
-  public static Set<Effect> elaborateEffect(
-      final BindingContextAnalysis.Query bcaQuery,
-      final ThisExpressionBinder thisExprBinder,
-      final IRNode src, final boolean isRead, final Target target,
-      final EffectEvidence evidence) {
-    if (target instanceof InstanceTarget) {
-      final ImmutableSet.Builder<Effect> elaboratedEffects = ImmutableSet.builder();
-      // XXX: Using bogus lock model and empty lock
-      elaborateInstanceTarget(
-          bcaQuery, new NeededLockFactory(thisExprBinder), thisExprBinder, new AnalysisLockModel(thisExprBinder), src,
-          isRead, target, evidence, ImmutableSet.<NeededLock>of(), elaboratedEffects);
-      return elaboratedEffects.build();
-    } else {
-      return Collections.singleton(Effect.effect(src, isRead, target, evidence));
-    }
-  }
-  
-  
 
   private static void elaborateInstanceTarget(
       final BindingContextAnalysis.Query bcaQuery,

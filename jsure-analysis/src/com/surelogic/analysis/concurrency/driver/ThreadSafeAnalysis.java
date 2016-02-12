@@ -15,7 +15,6 @@ import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.common.util.Iteratable;
 import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ThreadSafePromiseDrop;

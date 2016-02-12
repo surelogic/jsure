@@ -133,8 +133,6 @@ implements IBinderClient {
   
   /* Analyses for creating queries */
   private final BindingContextAnalysis bca;
-//  private final SimpleNonnullAnalysis simpleNonNull; // no queries needed for this one
-//  private final DefiniteAssignment definiteAssignment;
   private final IntrinsicLockAnalysis intrinsicLocks;
   private final MustHoldAnalysis mustHold;
   private final MustReleaseAnalysis mustRelease;
@@ -152,8 +150,6 @@ implements IBinderClient {
     this.effects = new Effects(binder, analysisLockModel);
     
     this.bca = bca;
-//    this.simpleNonNull = new SimpleNonnullAnalysis(binder);
-//    this.definiteAssignment = new DefiniteAssignment(binder);
     
     final SimpleNonnullAnalysis simpleNonNull = new SimpleNonnullAnalysis(binder);
     final DefiniteAssignment definiteAssignment = new DefiniteAssignment(binder);
@@ -173,16 +169,12 @@ implements IBinderClient {
   // ======================================================================
   
   final class Queries implements HasSubQuery {
-//    private final BindingContextAnalysis.Query exprObjects;
-//    private final ProvablyUnassignedQuery provablyUnassigned;
     private final IntrinsicLockAnalysis.Query heldIntrinsicLocks;
     private final JavaFlowAnalysisQuery<HeldLocks> heldJUCLocks;
     private final MustHoldAnalysis.LocksForQuery lockCalls;
     private final MustReleaseAnalysis.Query unlockCalls;
 
     public Queries(final IRNode decl) {
-//      exprObjects = bca.getExpressionObjectsQuery(decl);
-//      provablyUnassigned = definiteAssignment.getProvablyUnassignedQuery(decl);
       heldIntrinsicLocks = intrinsicLocks.getHeldLocksQuery(decl);
       heldJUCLocks = mustHold.getHeldLocksQuery(decl);
       lockCalls = mustHold.getLocksForQuery(decl);
@@ -190,8 +182,6 @@ implements IBinderClient {
     }
     
     private Queries(final Queries q, final IRNode caller) {
-//      exprObjects = q.exprObjects.getSubAnalysisQuery(caller);
-//      provablyUnassigned = q.provablyUnassigned.getSubAnalysisQuery(caller);
       heldIntrinsicLocks = q.heldIntrinsicLocks.getSubAnalysisQuery(caller);
       heldJUCLocks = q.heldJUCLocks.getSubAnalysisQuery(caller);
       lockCalls = q.lockCalls.getSubAnalysisQuery(caller);
@@ -464,7 +454,7 @@ implements IBinderClient {
   // == The lock-checking magic is here
   // ======================================================================
   
-  private void reportEffects(final IRNode mdecl) {
+  private void checkHeldLocks(final IRNode mdecl) {
     final ImplementedEffects implementationEffects =
         effects.getImplementationEffects(mdecl, bca);
     for (final Effect e : implementationEffects) {
@@ -609,7 +599,7 @@ implements IBinderClient {
       receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
       
       // Check locks
-      reportEffects(mdecl);
+      checkHeldLocks(mdecl);
       
       /* If the method is synchronized, but now programmer-declared locks are 
        * associated with it, then we add a warning.  This check is sleazy because
@@ -642,7 +632,7 @@ implements IBinderClient {
        * that indicates the results are trusted.
        */
       for (final ModelLock<?, ?> mlock : analysisLockModel.get().getAllLocksImplementedByMethod(mdecl)) {
-        final ResultDrop resultDrop = ResultsBuilder.createResult(
+        ResultsBuilder.createResult(
             true, mlock.getSourceAnnotation(), mdecl, 
             GUARDED_BY_METHOD, JavaNames.genMethodConstructorName(mdecl));
       }
@@ -660,7 +650,7 @@ implements IBinderClient {
     try {
       receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
       
-      reportEffects(cdecl);
+      checkHeldLocks(cdecl);
 
       doAcceptForChildren(cdecl);
     } finally {
@@ -670,7 +660,7 @@ implements IBinderClient {
 
   @Override
   protected void handleClassInitDeclaration(final IRNode classBody, final IRNode node) {
-    reportEffects(node);
+    checkHeldLocks(node);
   }
   
   @Override

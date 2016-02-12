@@ -1,21 +1,20 @@
 package com.surelogic.analysis.effects.targets.evidence;
 
-import com.surelogic.analysis.effects.Messages;
 import com.surelogic.analysis.effects.targets.Target;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
 public final class EmptyEvidence implements TargetEvidence {
   public enum Reason {
-    DECLARES_NO_EFFECTS(Messages.REASON_NO_DECLARED_EFFECT),
-    RECEIVER_IS_IMMUTABLE(Messages.REASON_RECEIVER_IS_IMMUTABLE),
-    FINAL_FIELD(Messages.REASON_FINAL_FIELD),
-    NULL_REFERENCE(Messages.REASON_NULL_REFERENCE),
-    NEW_OBJECT(Messages.REASON_NEW_OBJECT),
-    UNIQUE_RETURN(Messages.REASON_UNIQUE_RETURN),
-    UNIQUE_PARAMETER(Messages.REASON_UNIQUE_PARAM),
-    METHOD_CALL(Messages.REASON_METHOD_CALL),
-    UNDER_CONSTRUCTION(Messages.REASON_UNDER_CONSTRUCTION);
+    DECLARES_NO_EFFECTS(157),
+    RECEIVER_IS_IMMUTABLE(158),
+    FINAL_FIELD(160),
+    NULL_REFERENCE(166),
+    NEW_OBJECT(167),
+    UNIQUE_RETURN(168),
+    UNIQUE_PARAMETER(170),
+    METHOD_CALL(172),
+    UNDER_CONSTRUCTION(173);
     
     private int msg;
 
