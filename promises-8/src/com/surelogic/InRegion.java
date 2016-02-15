@@ -17,6 +17,7 @@ package com.surelogic;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -195,6 +196,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD })
+@Repeatable(InRegions.class)
 public @interface InRegion {
   /**
    * On a field the value of this attribute indicates the abstract region that

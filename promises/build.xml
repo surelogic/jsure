@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="fresh-everything">
 
-	<!-- Note that you must have the 'promises' project checked out from /svn/public -->
-
-	<!-- ENSURE THAT THIS MATCHES 'pom.xml' in the 'promises' project -->
-	<property name="promises-version" value="5.6.0" />
+	<include file="${basedir}/promises-version.xml"/>
 
 	<!-- Production promises go into '/build' -->
 	<property name="build" location="${basedir}/build" />
 
-	<property name="promises-x-src" location="${basedir}/src" />
+	<property name="promises-src" location="${basedir}/src" />
 
 	<property name="promises-jar" location="${build}/promises-${promises-version}.jar" />
 
@@ -26,7 +23,7 @@
 	<!-- Production promises go into '/build' -->
 
 	<target name="build" depends="setup">
-		<javac srcdir="${promises-x-src}" destdir="${build}/bin" classpath="." debug="on" source="1.6" target="1.6" includeantruntime="false" />
+		<javac srcdir="${promises-src}" destdir="${build}/bin" classpath="." debug="on" source="1.6" target="1.6" includeantruntime="false" />
 		<jar destfile="${promises-jar}">
 			<fileset dir="${build}/bin" />
 			<manifest />
@@ -35,7 +32,7 @@
 
 	<target name="src" depends="build">
 		<jar destfile="${promises-jar}" update="true">
-			<fileset dir="${promises-x-src}">
+			<fileset dir="${promises-src}">
 				<filename name="**/*.java" />
 			</fileset>
 			<manifest />
@@ -43,7 +40,7 @@
 	</target>
 
 	<target name="javadoc" depends="src">
-		<javadoc access="public" destdir="${build}/javadoc" source="1.6" sourcepath="${promises-x-src}" notree="true" nodeprecatedlist="true">
+		<javadoc access="public" destdir="${build}/javadoc" source="1.6" sourcepath="${promises-src}" notree="true" nodeprecatedlist="true">
 		</javadoc>
 	</target>
 
