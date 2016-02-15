@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="fresh-everything">
+
+	<!-- Note that you must have the 'promises' project checked out from /svn/public -->
+
+	<!-- ENSURE THAT THIS MATCHES 'pom.xml' in the 'promises' project -->
+	<property name="promises-version" value="5.6.0" />
+
+	<!-- Production promises go into '/build' -->
+	<property name="build" location="${basedir}/build" />
+
+	<property name="promises-x-src" location="${basedir}/src" />
+
+	<property name="promises-jar" location="${build}/promises-${promises-version}.jar" />
+
+	<target name="clean">
+		<delete quiet="true" dir="${build}" />
+		<!-- obsolete -->
+		<delete quiet="true" dir="${basedir}/build-x" />
+	</target>
+
+	<target name="setup">
+		<mkdir dir="${build}/bin" />
+	</target>
+
+	<!-- Production promises go into '/build' -->
+
+	<target name="build" depends="setup">
+		<javac srcdir="${promises-x-src}" destdir="${build}/bin" classpath="." debug="on" source="1.6" target="1.6" includeantruntime="false" />
+		<jar destfile="${promises-jar}">
+			<fileset dir="${build}/bin" />
+			<manifest />
+		</jar>
+	</target>
+
+	<target name="src" depends="build">
+		<jar destfile="${promises-jar}" update="true">
+			<fileset dir="${promises-x-src}">
+				<filename name="**/*.java" />
+			</fileset>
+			<manifest />
+		</jar>
+	</target>
+
+	<target name="javadoc" depends="src">
+		<javadoc access="public" destdir="${build}/javadoc" source="1.6" sourcepath="${promises-x-src}" notree="true" nodeprecatedlist="true">
+		</javadoc>
+	</target>
+
+	<target name="fresh-everything" depends="clean, src, javadoc" />
+
+</project>
