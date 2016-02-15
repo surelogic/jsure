@@ -1,6 +1,7 @@
 package com.surelogic.jsure.core;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,15 +67,19 @@ public final class JSureUtility {
    *          an Eclipse Java Project
    * @param jpName
    *          the name of the passed Eclipse Java project.
+   * @param java8Source
+   *          {@code true} indicates a Java 8 (or above) source project,
+   *          {@code false} indicates prior to Java 8.
    * @return an Eclipse workspace job.
    */
-  public static WorkspaceJob getJobToAddUpdatePromisesJar(final IJavaProject jp, final String jpName) {
+  public static WorkspaceJob getJobToAddUpdatePromisesJar(final IJavaProject jp, final String jpName, final boolean java8Source) {
     final WorkspaceJob wJob = new WorkspaceJob("Add/Update SureLogic Promises Jar") {
 
       @Override
       public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+        final String jarName = java8Source ? LibResources.PROMISES8_JAR : LibResources.PROMISES_JAR;
         try {
-
+          final InputStream jarStream = java8Source ? LibResources.getPromises8Jar() : LibResources.getPromisesJar();
           /*
            * State holding the workspace or non-workspace proposed locations of
            * the new/updated promises.jar file.
@@ -86,7 +91,7 @@ public final class JSureUtility {
 
           final List<IPath> promisesJarsOnClasspath = findPromisesJarsOnClasspath(jp);
           for (IPath path : promisesJarsOnClasspath) {
-            final boolean isCurrentVersion = LibResources.PROMISES_JAR.equals(path.lastSegment());
+            final boolean isCurrentVersion = jarName.equals(path.lastSegment());
             /*
              * Unless the promises.jar is the current version we remove it from
              * the project's classpath.
@@ -130,7 +135,7 @@ public final class JSureUtility {
                 if (!wsFileIsCurrentVersion) {
                   final IContainer parent = fPath.getParent();
                   if (parent != null) {
-                    IFile newFileSamePlace = parent.getFile(new Path(LibResources.PROMISES_JAR));
+                    IFile newFileSamePlace = parent.getFile(new Path(jarName));
                     if (newFileSamePlace != null)
                       wsFile = newFileSamePlace;
                   }
@@ -166,7 +171,7 @@ public final class JSureUtility {
                   if (!fsFileIsCurrentVersion) {
                     File parent = fsPath.getParentFile();
                     if (parent != null) {
-                      File newFileSamePlace = new File(parent, LibResources.PROMISES_JAR);
+                      File newFileSamePlace = new File(parent, jarName);
                       fsFile = newFileSamePlace;
                     }
                   }
@@ -181,12 +186,12 @@ public final class JSureUtility {
            * Now go ahead and add/update the promises.jar
            */
           if ((wsFile != null && wsFileIsCurrentVersion) || (wsFile != null && !fsFileIsCurrentVersion)) {
-            EclipseUtility.copy(LibResources.getPromisesJar(), wsFile);
+            EclipseUtility.copy(jarStream, wsFile);
             if (!wsFileIsCurrentVersion) {
               JDTUtility.addToEndOfClasspath(jp, wsFile.getFullPath());
             }
           } else if (fsFile != null) {
-            FileUtility.copy(LibResources.PROMISES_JAR, LibResources.getPromisesJar(), fsFile);
+            FileUtility.copy(jarName, jarStream, fsFile);
             if (!fsFileIsCurrentVersion) {
               final IPath path = new Path(fsFile.getAbsolutePath());
               JDTUtility.addToEndOfClasspath(jp, path);
@@ -196,13 +201,13 @@ public final class JSureUtility {
              * Use the default location at the root of the project for the
              * promises.jar file. Also add the jar to the project's classpath.
              */
-            final IFile jarFile = jp.getProject().getFile(LibResources.PROMISES_JAR);
-            EclipseUtility.copy(LibResources.getPromisesJar(), jarFile);
+            final IFile jarFile = jp.getProject().getFile(jarName);
+            EclipseUtility.copy(jarStream, jarFile);
             JDTUtility.addToEndOfClasspath(jp, jarFile.getFullPath());
           }
         } catch (final Exception e) {
           final int code = 221;
-          return SLEclipseStatusUtility.createErrorStatus(code, I18N.err(code, LibResources.PROMISES_JAR, jpName), e);
+          return SLEclipseStatusUtility.createErrorStatus(code, I18N.err(code, jarName, jpName), e);
         }
         return Status.OK_STATUS;
       }
@@ -254,6 +259,18 @@ public final class JSureUtility {
       }
       // Check if path is the current version of the promises
       if (LibResources.PROMISES_JAR.equals(path.lastSegment())) {
+        results.add(path);
+        return true;
+      }
+      // Check if path is an older version of the promises8
+      for (String name : LibResources.PROMISES8_JAR_OLD_VERSIONS) {
+        if (name.equals(path.lastSegment())) {
+          results.add(path);
+          return true;
+        }
+      }
+      // Check if path is the current version of the promises8
+      if (LibResources.PROMISES8_JAR.equals(path.lastSegment())) {
         results.add(path);
         return true;
       }

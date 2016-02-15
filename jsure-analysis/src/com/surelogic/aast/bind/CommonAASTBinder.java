@@ -631,7 +631,7 @@ public class CommonAASTBinder extends AASTBinder {
     final IRNode fast = t.getNode();
     final IRNode tdecl = VisitUtil.getClosestType(fast);
     @SuppressWarnings("unchecked")
-    final IRNode method = eb.findClassBodyMembers(tdecl,
+    final IRNode method = (IRNode) eb.findClassBodyMembers(tdecl,
         new FindMethodStrategy(binder, node.getId(), JavaGlobals.noTypes),
         false);
     if (method != null) {
