@@ -2026,7 +2026,7 @@ public class TypeUtils {
       IRNode decl = bi.getNode();
       if (decl != null) {
         MethodBinder8 mb = new MethodBinder8((IPrivateBinder) tEnv.getBinder(), false);
-        CallState state = mb.getCallState(call, bi);
+        CallState state = CallState.create(tEnv.getBinder(), call, bi);
         IJavaFunctionType ftype = mb.computeInvocationType(state, bi, eliminateTypeVars);
         /*
         IJavaFunctionType temp = ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());

@@ -6,6 +6,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
+import edu.cmu.cs.fluid.java.operator.CallInterface;
+import edu.cmu.cs.fluid.java.operator.CallInterface.NoArgs;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
@@ -33,6 +35,8 @@ interface IMethodBinder {
 		IJavaType getReceiverType();
 		boolean needsVarArgs();
 		boolean needsExactInvocation();
+
+		ICallState replaceReceiverType(IJavaType newRec);
 	}
 	
 	class CallState implements ICallState {
@@ -55,6 +59,15 @@ interface IMethodBinder {
     		final IRNode receiver = MethodCall.prototype.includes(call) ? MethodCall.getObject(call) : null;
     		return new CallState(b, call, targs, args, recType, receiver);
     	}
+    	
+    	static CallState create(IBinder binder, IRNode call, IBinding b) {
+    		final CallInterface op = (CallInterface) JJNode.tree.getOperator(call);
+    		try {
+    			return create(binder, call, op.get_TypeArgs(call), op.get_Args(call), b.getReceiverType());
+    		} catch (NoArgs e) {
+    			throw new IllegalStateException("No args");
+    		}
+    	}    	
     	
     	/**
     	 * For methods
@@ -92,6 +105,10 @@ interface IMethodBinder {
       		constructorType = null;
 		}
 
+    	public ICallState replaceReceiverType(IJavaType newRecT) {
+    		return new CallState(this, newRecT);
+    	}
+    	
         public boolean needsExactInvocation() {
             return false;
         }
