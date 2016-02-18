@@ -1397,13 +1397,18 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 		  if (!oldTypes.isEmpty()) {
 			  final List<IJavaType> newTypes = new ArrayList<IJavaType>(oldTypes.size());
 			  final IRNode formals = getTypes(jdt.getDeclaration());
+			  final IJavaTypeSubstitution jdtSubst = jdt.getTypeParameters().size() > 1 ?
+				  JavaTypeSubstitution.create(binder.getTypeEnvironment(), jdt) : IJavaTypeSubstitution.NULL;		      
+			  if (false && jdtSubst != IJavaTypeSubstitution.NULL && jdt.toString().contains("AbstractListAssert")) {
+				  System.out.println("Got problematic type");
+			  }			  
 			  boolean different = false;
 			  int i = 0;
 			  for(final IRNode formal : TypeFormals.getTypeIterator(formals)) {
 				  final IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(formal);
 				  final IJavaType old = oldTypes.get(i);
 				  final IJavaType captured = captureWildcards(binder, old);
-				  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, captured, IJavaTypeSubstitution.NULL); // TODO what should it use?
+				  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, captured, jdtSubst); 
 				  newTypes.add(t);
 				  i++;
 				  if (old != t) {
