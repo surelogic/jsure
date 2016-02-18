@@ -238,7 +238,26 @@ public class DeclFactory {
         c.setIsFinal(JavaNode.isSet(mods, JavaNode.FINAL));
         c.setIsStatic(JavaNode.isSet(mods, JavaNode.STATIC));
         c.setVisibility(getVisibility(mods));
-      } else {
+      }
+      else if (JavaNode.getModifier(decl, JavaNode.IMPLICIT)) {
+    	  // This should have been converted from a lambda
+          final LambdaBuilder lambda = new LambdaBuilder();
+          final IRNode type = AnonClassExpression.getType(decl);
+          final TypeRef tr = computeTypeRef(type, useBinder);
+          lambda.setFunctionalInterfaceTypeOf(tr);
+      
+          // Assume that there is one and only one method decl to look at
+          final IRNode method = VisitUtil.getClassMethodsOnly(decl).next();
+          IRNode params = MethodDeclaration.getParams(method);
+          int i = 0;
+          for (IRNode param : Parameters.getFormalIterator(params)) {
+        	  ParameterBuilder pb = buildParameter(param, i, useBinder);
+        	  lambda.addParameter(pb);
+        	  i++;
+          }
+          return lambda;   
+      }
+      else {
         c.setVisibility(IDecl.Visibility.ANONYMOUS);
         c.setAnonymousDeclPosition(computePositionWithinEnclosingDecl(decl));
         c.setTypeOfAnonymousDecl(computeTypeRef(AnonClassExpression.getType(decl), useBinder));
@@ -361,6 +380,7 @@ public class DeclFactory {
         m.setIsStatic(JavaNode.isSet(mods, JavaNode.STATIC));
         m.setVisibility(getVisibility(mods));
         m.setIsImplicit(JavaNode.isSet(mods, JavaNode.IMPLICIT));
+        m.setIsDefault(JavaNode.isSet(mods, JavaNode.DEFAULT));
 
         params = MethodDeclaration.getParams(decl);
         for (IRNode param : Parameters.getFormalIterator(params)) {
