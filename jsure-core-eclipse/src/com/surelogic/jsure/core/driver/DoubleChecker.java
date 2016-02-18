@@ -440,6 +440,9 @@ public class DoubleChecker implements IAnalysisContainer {
 		// check that all prerequisites are in that list
 		for (IAnalysisInfo analysisModule : ams) {
 			for(String prereq : analysisModule.getPrerequisiteIds()) {
+				if (prereq == null) {
+					continue;
+				}
 				if (!ids.contains(CommonStrings.intern(prereq))) {
 					String logMessage = "The identified prerequisite \""
 						+ prereq

@@ -166,6 +166,9 @@ public final class AnalysisDefaults {
 			} else {
 				dependencies = new ArrayList<>(deps.length);
 				for (AnalysisInfo info : deps) {
+					if (info == null) {
+						throw new NullPointerException();
+					}
 					dependencies.add(info);
 				}
 			}
@@ -208,6 +211,9 @@ public final class AnalysisDefaults {
 			String[] result = new String[dependencies.size()];
 			int i=0;
 			for(AnalysisInfo ai : dependencies) {
+				if (ai.id == null) {
+					throw new NullPointerException(ai.label+" has no id");
+				}
 				result[i] = ai.id;
 			}
 			return result;
