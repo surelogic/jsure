@@ -871,7 +871,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     	  }
     	  for(IRNode b : MoreBounds.getBoundIterator(moreBounds)) {
     		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
-    		  final IJavaReferenceType btSubst = bt;// TODO (IJavaReferenceType) bt.subst(subst);
+    		  final IJavaReferenceType btSubst = (IJavaReferenceType) bt.subst(subst);
     		  bounds.add(btSubst);
     	  }
     	  return new TypeUtils(binder.getTypeEnvironment()).getGreatestLowerBound(bounds.toArray(new IJavaReferenceType[bounds.size()]));
