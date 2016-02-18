@@ -20,7 +20,6 @@ import edu.cmu.cs.fluid.java.bind.TypeInference8.LambdaCache;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeFormalCollector;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeVariable;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.operator.CallInterface.NoArgs;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -1024,7 +1023,7 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 			else if (MethodCall.prototype.includes(op) || NonPolymorphicNewExpression.prototype.includes(op)) {
 				MethodBinding8 b = (MethodBinding8) binder.getIBinding(arg);
-				CallState call = getCallState(arg, b);								
+				CallState call = CallState.create(binder, arg, b);								
 				if (tryUnBoxingForPoly) {
 					boolean result = false;
 					if (pType instanceof IJavaPrimitiveType) {
@@ -1082,6 +1081,14 @@ public class MethodBinder8 implements IMethodBinder {
 		final IJavaType rtype_subst = TypeInference8.eliminateReboundedTypeFormals(tEnv, ftype.getReturnType());
 		if (rtype_subst != ftype.getReturnType()) {
 			return tEnv.isCallCompatible(pType, rtype_subst);
+		} else {
+			final IJavaTypeSubstitution s = b.getBoundSetSubst();
+			if (s != IJavaTypeSubstitution.NULL) {
+				final IJavaType pType_subst = pType.subst(s);
+				if (pType != pType_subst) {
+					return tEnv.isCallCompatible(pType_subst, rtype_subst);
+				}
+			}
 		}
 		return false;
 	}
@@ -1146,19 +1153,10 @@ public class MethodBinder8 implements IMethodBinder {
 		}
 		return rv;
 	}
-	
-	CallState getCallState(IRNode call, IBinding b) {
-		final CallInterface op = (CallInterface) JJNode.tree.getOperator(call);
-		try {
-			return CallState.create(binder, call, op.get_TypeArgs(call), op.get_Args(call), b.getReceiverType());
-		} catch (NoArgs e) {
-			throw new IllegalStateException("No args");
-		}
-	}
 		
 	IJavaType getCompileTimeResultType(IRNode call, IBinding b, IJavaType targetType) {
 	  if (b instanceof MethodBinding8) {
-		CallState state = getCallState(call, b);
+		CallState state = CallState.create(binder, call, b);
 		IJavaFunctionType ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);  
 		if (ftype == null) {
 			ftype = getCompileTimeFunctionType(state, (MethodBinding8) b, targetType);  
@@ -1427,7 +1425,7 @@ public class MethodBinder8 implements IMethodBinder {
 		    		if (debug) {		
 		    			System.out.println("Checking if applicable: "+m);
 		    		}
-					BoundSet bounds = typeInfer.inferForInvocationApplicability(call, m, getKind());
+					BoundSet bounds = typeInfer.inferForInvocationApplicability(call, m, getKind(), false);
 					return bounds == null ? null : MethodBinding8WithBoundSet.create(MethodBinder8.this, call, m, tEnv, bounds, getKind());
 				} else {							
 					if (call.getNumTypeArgs() != m.numTypeFormals) {
@@ -1781,6 +1779,30 @@ public class MethodBinder8 implements IMethodBinder {
 		public BoundSet getInitialBoundSet() {
 			return null;
 		}
+
+		/**
+		 * Apply the substitution to the receiver/context type and 
+		 */
+		final MethodBinding8 substReceiver(ITypeEnvironment tEnv, IJavaTypeSubstitution s) {
+			if (s == IJavaTypeSubstitution.NULL) {
+				return this;
+			}
+			final ICallState origCall  = state;
+			final IJavaType newRec     = getReceiverType().subst(s);
+			final ICallState newCall   = origCall.replaceReceiverType(newRec);
+			final IJavaDeclaredType newContext = getContextType().subst(s);
+			// TODO do I need to combine the subst with the original one?
+			final IBinding newB        = IBinding.Util.makeMethodBinding(this, newContext, getSubst()/*s*/, newRec, tEnv);
+    		return create(tEnv, newCall, newB); 
+		}
+
+		MethodBinding8 create(ITypeEnvironment tEnv, ICallState call, IBinding b) {
+			return new MethodBinding8(tEnv, call, b, kind);
+		}
+		
+		IJavaTypeSubstitution getBoundSetSubst() {
+			return IJavaTypeSubstitution.NULL;
+		}
     }
     
     static class MethodBinding8WithBoundSet extends MethodBinding8 {
@@ -1838,7 +1860,13 @@ public class MethodBinder8 implements IMethodBinder {
     		}
     		return new MethodBinding8WithBoundSet(te, c, newB, b, kind);
     	}
+  
+    	@Override
+		MethodBinding8 create(ITypeEnvironment tEnv, ICallState call, IBinding b) {
+			return new MethodBinding8WithBoundSet(tEnv, call, b, bounds, kind);
+		}
     	
+    	@Override
 		IJavaTypeSubstitution getBoundSetSubst() {
       		final BoundSet result = TypeInference8.resolve(bounds, null, false);   
       		return result.getFinalTypeSubst(true, true);			
@@ -2300,7 +2328,7 @@ public class MethodBinder8 implements IMethodBinder {
 					newFormals.add(p_i);
 					i++;
 				}
-				IJavaTypeSubstitution subst = new TypeInference8.TypeSubstitution(tEnv.getBinder(), map);
+				IJavaTypeSubstitution subst = TypeInference8.TypeSubstitution.create(tEnv.getBinder(), map);
 				IJavaFunctionType mtype = computeMethodType(mb);
 				
 				if (b_2 == null) {
@@ -2746,6 +2774,11 @@ public class MethodBinder8 implements IMethodBinder {
 		public boolean needsExactInvocation() {
 			return false;
 		}
+
+		@Override
+		public ICallState replaceReceiverType(IJavaType newRec) {
+			throw new IllegalStateException("Not possible!?!  Have to change the function type");
+		}
 	}
 
 	/**
@@ -2772,7 +2805,7 @@ public class MethodBinder8 implements IMethodBinder {
 		MethodBinder8 mb = new MethodBinder8(b, false);
 		IRNode call = JJNode.tree.getParentOrNull(paramdType);
 		MethodBinding8 bi = (MethodBinding8) b.getIBinding(call);
-		CallState state = mb.getCallState(call, bi);
+		CallState state = CallState.create(mb.binder, call, bi);
 		IJavaFunctionType ft = mb.computeInvocationType(state, bi, false);
 		return (IJavaDeclaredType) ft.getReturnType();
 	}
