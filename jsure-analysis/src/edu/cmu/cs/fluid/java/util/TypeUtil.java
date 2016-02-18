@@ -390,14 +390,22 @@ public class TypeUtil implements JavaGlobals {
     } else if (FieldDeclaration.prototype.includes(op)) {
       return isFieldDeclarationFinal(node);
     } else if (ParameterDeclaration.prototype.includes(op)) {
-      final IRNode parent  = JJNode.tree.getParent(node);
-      if (CatchClause.prototype.includes(JJNode.tree.getOperator(parent))) {
-        final IRNode typeNode = ParameterDeclaration.getType(node);
-        if (UnionType.prototype.includes(typeNode)) {
-          return true; // MULTI-CATCH CLAUSE IS ALWAYS FINAL
+      if (JavaNode.getModifier(node, JavaNode.FINAL)) {
+        return true;
+      } else {
+        final IRNode parent  = JJNode.tree.getParent(node);
+        final Operator parentOp = JJNode.tree.getOperator(parent);
+        if (CatchClause.prototype.includes(parentOp)) {
+          final IRNode typeNode = ParameterDeclaration.getType(node);
+          if (UnionType.prototype.includes(typeNode)) {
+            return true; // MULTI-CATCH CLAUSE IS ALWAYS FINAL
+          }
+        } else if (Parameters.prototype.includes(parentOp)) {
+          // parameter is final if the method is abstract
+          return JavaNode.getModifier(
+              JJNode.tree.getParent(parent), JavaNode.ABSTRACT);
         }
       }
-      return JavaNode.getModifier(node, JavaNode.FINAL);
     }
     return false;
   }
