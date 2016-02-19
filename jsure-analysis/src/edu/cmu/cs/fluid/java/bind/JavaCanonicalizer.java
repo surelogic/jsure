@@ -1562,8 +1562,11 @@ public class JavaCanonicalizer {
     		IRNode ftype = ParameterDeclaration.getType(formal);
     		if (JJNode.tree.getOperator(ftype) == Type.prototype) {
     			IRNode ptype = createType(rqdit.next(), true);
+    			SkeletonJavaRefUtility.copyIfPossible(ftype, ptype);
+    			
     			IRNode annos = Annotations.createNode(none); 
     			IRNode newParam = ParameterDeclaration.createNode(annos, JavaNode.ALL_FALSE, ptype, JJNode.getInfo(formal));
+    			SkeletonJavaRefUtility.copyIfPossible(formal, newParam);
     			newParamList.add(newParam);
     		} else {
     			doAccept(formal);
@@ -1587,6 +1590,8 @@ public class JavaCanonicalizer {
 		IRNode rtype = createType(fty.getReturnType(), true);
 		
 		IRNode mdecl = MethodDeclaration.createNode(annos,modifiers, types, rtype, methodName, newParams, 0, exceptions, newBody);
+	    SkeletonJavaRefUtility.copyIfPossible(node, mdecl);
+	    
 		IRNode cbody = ClassBody.createNode(new IRNode[]{mdecl});
 		
 		List<IRNode> typeArgList = new ArrayList<IRNode>();
