@@ -1551,7 +1551,10 @@ public class JavaCanonicalizer {
 			} else {
 				newStmt = ReturnStatement.createNode(origBody);
 			}
-			newBody = MethodBody.createNode(BlockStatement.createNode(new IRNode[]{newStmt}));
+			SkeletonJavaRefUtility.copyIfPossible(origBody, newStmt);
+			IRNode block = BlockStatement.createNode(new IRNode[]{newStmt});
+			SkeletonJavaRefUtility.copyIfPossible(origBody, block);
+			newBody = MethodBody.createNode(block);
 		} else {
 			newBody = origBody;
     	}
