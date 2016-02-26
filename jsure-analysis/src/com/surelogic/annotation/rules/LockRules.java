@@ -552,6 +552,7 @@ public class LockRules extends AnnotationRules {
 			AnnotationScrubberContext context, ReturnsLockNode node) {
 		final IRNode returnNode = node.getPromisedFor();
     final IRNode annotatedMethod = JavaPromise.getPromisedFor(returnNode);
+    final IBinder binder = context.getBinder(annotatedMethod);
     final LockNameNode lockName = node.getLock();
 
     boolean okay = false;
@@ -563,13 +564,13 @@ public class LockRules extends AnnotationRules {
 			// Check if the lock name is good; if not we cannot continue
 			lockDecl = isLockNameOkay(
 			    JavaNode.getModifier(annotatedMethod, JavaNode.STATIC),
-			    lockName, context, TypeUtil.isBinary(annotatedMethod));
+			    lockName, context, TypeUtil.isBinary(annotatedMethod), binder);
 			okay = (lockDecl != null);
 		}
 		
 		/* Check consistency with ancestors */
 		if (okay) {
-      for (final IBinding pBinding : context.getBinder(annotatedMethod).findOverriddenParentMethods(annotatedMethod)) {
+      for (final IBinding pBinding : binder.findOverriddenParentMethods(annotatedMethod)) {
         final IRNode parent = pBinding.getNode();
         final IRNode parentReturn = JavaPromise.getReturnNode(parent);
         final ReturnsLockPromiseDrop superDrop = getReturnsLock(parentReturn);
@@ -738,7 +739,8 @@ public class LockRules extends AnnotationRules {
 			// If the lock name is bad we cannot continue
 			final LockModel lockModel =
 			  isLockNameOkay(TypeUtil.isStatic(annotatedMethod),
-			      lockName, context, TypeUtil.isBinary(annotatedMethod));
+			      lockName, context, TypeUtil.isBinary(annotatedMethod),
+			      context.getBinder(annotatedMethod));
 			if (lockModel != null) {
 				lockDecls.add(lockModel);
 
@@ -1487,7 +1489,7 @@ public class LockRules extends AnnotationRules {
 					if (returnedLock != null) {
 						final LockModel returnedLockModel = isLockNameOkay(
 						    TypeUtil.isStatic(member), returnedLock.getAAST().getLock(),
-						    null, true);
+						    null, true, binder);
 						// Check for null because the requiresLock annotation
 						// could be bad
 						if (returnedLockModel != null
@@ -1625,7 +1627,7 @@ public class LockRules extends AnnotationRules {
 	 */
   private static LockModel isLockNameOkay(final boolean isStatic,
       final LockNameNode lockName, final AnnotationScrubberContext report,
-      final boolean isBinary) {
+      final boolean isBinary, final IBinder binder) {
     // Default to assuming we should not get the binding
     boolean getBinding = false;
     boolean deferCheckForStaticUseOfThis = false;
@@ -1651,7 +1653,12 @@ public class LockRules extends AnnotationRules {
            * a final instance field. whose type is a user-declared type.
            */
           if (ParameterDeclaration.prototype.includes(n)) {
-            if (!TypeUtil.isJSureFinal(n)) {
+            /* XXX: This is sloppy: can only pass null as theq uery to
+             * isEffectivelyFinal() because we know that we are dealing
+             * with a ParameterDeclaration, and that case doesn't use the
+             * query.
+             */
+            if (!TypeUtil.isJSureFinal(n) && !TypeUtil.isEffectivelyFinal(n, binder , null)) {
               final IJavaRef srcRef = JavaNode.getJavaRef(n);
               // only complain if the annotation is in real source code.  
               if (srcRef != null && srcRef.isFromSource()) {
