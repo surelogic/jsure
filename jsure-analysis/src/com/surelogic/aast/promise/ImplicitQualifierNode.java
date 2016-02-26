@@ -45,7 +45,7 @@ public class ImplicitQualifierNode extends ExpressionNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new ImplicitQualifierNode(getOffset());
   }
 }

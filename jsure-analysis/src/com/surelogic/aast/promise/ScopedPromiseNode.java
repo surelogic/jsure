@@ -89,8 +89,8 @@ public class ScopedPromiseNode extends TargetedAnnotationNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new ScopedPromiseNode(getOffset(), new String(getPromise()), (PromiseTargetNode)getTargets().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new ScopedPromiseNode(getOffset(), getPromise(), (PromiseTargetNode)getTargets().cloneOrModifyTree(mod));
   }
 
   public void markAsSubsumed(ScopedPromiseNode wildcard) {

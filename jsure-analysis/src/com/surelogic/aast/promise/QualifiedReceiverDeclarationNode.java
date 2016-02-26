@@ -57,8 +57,8 @@ public class QualifiedReceiverDeclarationNode extends AASTNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new QualifiedReceiverDeclarationNode(getOffset(), (ClassTypeNode)getBase().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new QualifiedReceiverDeclarationNode(getOffset(), (ClassTypeNode)getBase().cloneOrModifyTree(mod));
   }
 }
 

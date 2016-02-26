@@ -21,7 +21,7 @@ public class NonNullNode extends AbstractBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new NonNullNode(offset);
   }
 }

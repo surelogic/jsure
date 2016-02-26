@@ -4,7 +4,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 /**
  * Represents an AAST node for the @ProhibitsLock annotation
@@ -43,7 +42,7 @@ public class ProhibitsLockNode extends AbstractLockListNode {
 	}
 	
   @Override
-  public IAASTNode cloneTree(){
-  	return new ProhibitsLockNode(getOffset(), cloneLockList());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new ProhibitsLockNode(getOffset(), cloneLockList(mod));
   }
 }

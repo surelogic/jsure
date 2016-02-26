@@ -83,8 +83,8 @@ implements IHasVariableBinding {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
-		return new VariableUseExpressionNode(getOffset(), new String(getId()));
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new VariableUseExpressionNode(getOffset(), getId());
 	}
 }
 

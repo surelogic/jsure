@@ -17,7 +17,7 @@ public class MutableNode extends AbstractModifiedBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new MutableNode(mods, appliesTo);
   }
 }

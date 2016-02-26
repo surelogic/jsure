@@ -4,7 +4,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 /**
  * Represents an AAST node for the @IsLock annotation
@@ -42,8 +41,8 @@ public class IsLockNode extends AbstractSingleLockNode {
 	}
 	
   @Override
-  public IAASTNode cloneTree(){
-  	return new IsLockNode(getOffset(), (LockNameNode)getLock().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new IsLockNode(getOffset(), (LockNameNode)getLock().cloneOrModifyTree(mod));
   }
 
 }

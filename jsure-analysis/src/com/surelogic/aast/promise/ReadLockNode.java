@@ -81,8 +81,8 @@ public final class ReadLockNode extends JUCLockNode {
 	}
 	
   @Override
-  public IAASTNode cloneTree(){
-  	return new ReadLockNode(getOffset(), (LockNameNode)getLock().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new ReadLockNode(getOffset(), (LockNameNode)getLock().cloneOrModifyTree(mod));
   }
 	
   

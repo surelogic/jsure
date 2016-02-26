@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -77,8 +76,8 @@ public class NotTargetNode extends ComplexTargetNode {
 	}
 	
   @Override
-  public IAASTNode cloneTree(){
-  	return new NotTargetNode(getOffset(), (PromiseTargetNode)getTarget().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new NotTargetNode(getOffset(), (PromiseTargetNode)getTarget().cloneOrModifyTree(mod));
   }
 }
 

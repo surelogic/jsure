@@ -7,6 +7,7 @@ import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 
 public class ModuleChoiceNode extends AASTRootNode {
@@ -52,15 +53,15 @@ public class ModuleChoiceNode extends AASTRootNode {
   }
   
   @Override
-  public IAASTNode cloneTree() {
+  protected IAASTNode internalClone(final INodeModifier mod) {
     if (modWrapper != null) {
-      ModuleWrapperNode modWrapperCopy = (ModuleWrapperNode) modWrapper.cloneTree();
+      ModuleWrapperNode modWrapperCopy = (ModuleWrapperNode) modWrapper.cloneOrModifyTree(mod);
       return new ModuleChoiceNode(getOffset(), modWrapperCopy);
     } else if (modScope != null) {
-    	ModuleScopeNode modScopeCopy = (ModuleScopeNode) modScope.cloneTree();
+    	ModuleScopeNode modScopeCopy = (ModuleScopeNode) modScope.cloneOrModifyTree(mod);
     	return new ModuleChoiceNode(getOffset(), modScopeCopy);
     } else {
-      ModulePromiseNode modPromiseCopy = (ModulePromiseNode) modPromise.cloneTree();
+      ModulePromiseNode modPromiseCopy = (ModulePromiseNode) modPromise.cloneOrModifyTree(mod);
       return new ModuleChoiceNode(getOffset(), modPromiseCopy);
     }
    }

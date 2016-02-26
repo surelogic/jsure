@@ -37,7 +37,7 @@ public class ThreadRoleTransparentNode extends AbstractBooleanNode {
   }
 
   @Override
-  public IAASTNode cloneTree() {
+  protected IAASTNode internalClone(final INodeModifier mod) {
     return new ThreadRoleTransparentNode();
   }
 }

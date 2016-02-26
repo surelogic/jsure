@@ -255,14 +255,14 @@ public class MethodDeclPatternNode extends ConcreteTargetNode {
 	}
 
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		List<TypeNode> sigCopy = new ArrayList<TypeNode>(sig.size());
 		for (TypeNode typeNode : sig) {
-			sigCopy.add((TypeNode) typeNode.cloneTree());
+			sigCopy.add((TypeNode) typeNode.cloneOrModifyTree(mod));
 		}
 		return new MethodDeclPatternNode(getOffset(), getMods(),
-				(TypeNode) getRtype().cloneTree(), new String(getName()), sigCopy,
-				(InPatternNode) getInPattern().cloneTree());
+				(TypeNode) getRtype().cloneOrModifyTree(mod), getName(), sigCopy,
+				(InPatternNode) getInPattern().cloneOrModifyTree(mod));
 	}
 
 	@Override

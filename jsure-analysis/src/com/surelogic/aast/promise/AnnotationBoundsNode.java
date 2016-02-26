@@ -2,7 +2,6 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
-
 import com.surelogic.aast.java.NamedTypeNode;
 
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -103,7 +102,7 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new AnnotationBoundsNode(containable, immutable, reference, threadSafe, value);
   }
   

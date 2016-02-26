@@ -78,8 +78,8 @@ public class QualifiedRegionNameNode extends RegionSpecificationNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new QualifiedRegionNameNode(getOffset(), (NamedTypeNode)getType().cloneTree(), new String(getId()));
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new QualifiedRegionNameNode(getOffset(), (NamedTypeNode)getType().cloneOrModifyTree(mod), getId());
   }
 }
 

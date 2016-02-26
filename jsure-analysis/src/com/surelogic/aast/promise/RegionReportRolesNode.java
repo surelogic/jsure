@@ -63,10 +63,10 @@ public class RegionReportRolesNode extends DataThreadRoleAnnotationNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		List<RegionSpecificationNode> cRegionsCopy = new ArrayList<RegionSpecificationNode>(trRegions.size());
 		for (RegionSpecificationNode regionSpecificationNode : trRegions) {
-			cRegionsCopy.add((RegionSpecificationNode)regionSpecificationNode.cloneTree());
+			cRegionsCopy.add((RegionSpecificationNode)regionSpecificationNode.cloneOrModifyTree(mod));
 		}	
 		return new RegionReportRolesNode(getOffset(), cRegionsCopy);
 	}

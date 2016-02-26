@@ -134,9 +134,6 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
     status = AASTStatus.UNASSOCIATED;
   }
   
-  @Override
-  public abstract IAASTNode cloneTree();
-  
   protected boolean isAbstract(int mods) {
     return JavaNode.isSet(mods, JavaNode.ABSTRACT);
   }

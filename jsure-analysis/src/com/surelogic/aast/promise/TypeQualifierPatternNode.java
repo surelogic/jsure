@@ -3,7 +3,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -130,7 +129,7 @@ public class TypeQualifierPatternNode extends AASTNode {
 	}
 	
   @Override
-  public IAASTNode cloneTree(){
-  	return new TypeQualifierPatternNode(getOffset(), new String(getPkg()), new String(getType()));
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new TypeQualifierPatternNode(getOffset(), getPkg(), getType());
   }
 }

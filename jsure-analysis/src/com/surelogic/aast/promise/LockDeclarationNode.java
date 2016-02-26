@@ -75,9 +75,9 @@ public class LockDeclarationNode extends AbstractLockDeclarationNode {
 	}
 
 	@Override
-	public IAASTNode cloneTree() {
-		return new LockDeclarationNode(getOffset(), new String(getId()),
-				(ExpressionNode) getField().cloneTree(),
-				(RegionNameNode) getRegion().cloneTree());
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new LockDeclarationNode(getOffset(), getId(),
+				(ExpressionNode) getField().cloneOrModifyTree(mod),
+				(RegionNameNode) getRegion().cloneOrModifyTree(mod));
 	}
 }

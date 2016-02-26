@@ -4,8 +4,6 @@ package com.surelogic.aast.promise;
 
 import java.util.*;
 
-
-
 import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
@@ -64,10 +62,10 @@ public class SubtypedBySpecificationNode extends AASTNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	List<NamedTypeNode> typesCopy = new ArrayList<NamedTypeNode>(types.size());
   	for (NamedTypeNode namedTypeNode : types) {
-			typesCopy.add((NamedTypeNode)namedTypeNode.cloneTree());
+			typesCopy.add((NamedTypeNode)namedTypeNode.cloneOrModifyTree(mod));
 		}
   	return new SubtypedBySpecificationNode(getOffset(), typesCopy);
   }

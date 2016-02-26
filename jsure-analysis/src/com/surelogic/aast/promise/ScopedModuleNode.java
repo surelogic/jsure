@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ScopedModuleNode extends ModuleNode { 
   // Fields
@@ -62,8 +61,8 @@ public class ScopedModuleNode extends ModuleNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new ScopedModuleNode(getOffset(), new String(getId()), (PromiseTargetNode)getTargets().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new ScopedModuleNode(getOffset(), getId(), (PromiseTargetNode)getTargets().cloneOrModifyTree(mod));
   }
 }
 

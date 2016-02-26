@@ -4,8 +4,6 @@ package com.surelogic.aast.promise;
 
 import java.util.*;
 
-
-
 import com.surelogic.aast.*;
 import com.surelogic.annotation.rules.AnnotationRules.ParameterMap;
 
@@ -86,10 +84,10 @@ public class EffectsSpecificationNode extends AASTNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	final List<EffectSpecificationNode> effectsCopy = new ArrayList<EffectSpecificationNode>(effect.size());
   	for (EffectSpecificationNode effectSpecificationNode : effect) {
-			effectsCopy.add((EffectSpecificationNode)effectSpecificationNode.cloneTree());
+			effectsCopy.add((EffectSpecificationNode)effectSpecificationNode.cloneOrModifyTree(mod));
 		}
   	return new EffectsSpecificationNode(getOffset(), effectsCopy);
   }

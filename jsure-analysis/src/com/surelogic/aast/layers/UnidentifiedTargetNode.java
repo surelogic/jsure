@@ -55,7 +55,7 @@ public class UnidentifiedTargetNode extends AbstractLayerMatchTarget implements 
 	}
 
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new UnidentifiedTargetNode(offset, qname);
 	}
 

@@ -17,7 +17,7 @@ public final class ThreadSafeNode extends AbstractModifiedBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new ThreadSafeNode(mods, appliesTo);
   }
 }

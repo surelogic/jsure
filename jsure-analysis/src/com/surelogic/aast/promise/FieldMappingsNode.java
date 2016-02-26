@@ -4,8 +4,6 @@ package com.surelogic.aast.promise;
 
 import java.util.*;
 
-
-
 import com.surelogic.aast.*;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.parse.TempListNode;
@@ -98,12 +96,12 @@ public class FieldMappingsNode extends AASTRootNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	List<RegionSpecificationNode> fieldsCopy = new ArrayList<RegionSpecificationNode>(fields.size());
   	for (RegionSpecificationNode regionSpecificationNode : fields) {
-			fieldsCopy.add((RegionSpecificationNode)regionSpecificationNode.cloneTree());
+			fieldsCopy.add((RegionSpecificationNode)regionSpecificationNode.cloneOrModifyTree(mod));
 		}
-  	return new FieldMappingsNode(getOffset(), fieldsCopy, (RegionSpecificationNode)getTo().cloneTree());
+  	return new FieldMappingsNode(getOffset(), fieldsCopy, (RegionSpecificationNode)getTo().cloneOrModifyTree(mod));
   }
 }
 

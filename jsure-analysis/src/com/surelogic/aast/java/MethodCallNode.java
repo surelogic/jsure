@@ -101,8 +101,8 @@ public class MethodCallNode extends PrimaryExpressionNode implements
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new MethodCallNode(getOffset(), (ExpressionNode) getObject()
-				.cloneTree(), new String(getId()));
+				.cloneOrModifyTree(mod), getId());
 	}
 }

@@ -27,4 +27,11 @@ public interface IAASTNode {
   public IRNode getAnnoContext();
   
   public IAASTNode cloneTree();
+  
+  /**
+   * This is meant to clone the given AAST, if there are  
+   * nodes modified by 'mod', and otherwise return the 
+   * original AAST
+   */
+  public IAASTNode modifyTree(INodeModifier mod);  
 }

@@ -90,9 +90,9 @@ public final class QualifiedLockNameNode extends LockNameNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
     return new QualifiedLockNameNode(getOffset(),
-        (ExpressionNode)getBase().cloneTree(), new String(getId()));
+        (ExpressionNode)getBase().cloneOrModifyTree(mod), getId());
   }
 
   

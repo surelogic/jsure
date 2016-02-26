@@ -32,8 +32,8 @@ public class RawNode extends AbstractBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new RawNode(offset, upTo, upToType);
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new RawNode(offset, upTo, (NamedTypeNode) upToType.cloneOrModifyTree(mod));
   }
   
   public String getUpTo() {

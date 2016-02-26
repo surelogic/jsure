@@ -36,7 +36,7 @@ public final class BorrowedNode extends AbstractBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new BorrowedNode(offset);
   }
 }

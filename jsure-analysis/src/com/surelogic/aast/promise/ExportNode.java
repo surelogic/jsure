@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
@@ -55,7 +56,7 @@ public class ExportNode extends ModuleAnnotationNode {
    * @see com.surelogic.aast.AASTRootNode#cloneTree()
    */
   @Override
-  public IAASTNode cloneTree() {
+  protected IAASTNode internalClone(final INodeModifier mod) {
     List<String> exportNamesCopy = new ArrayList<String>(exportNames.size());
     exportNamesCopy.addAll(exportNames);
     return new ExportNode(getOffset(), exportNamesCopy, toModuleName);

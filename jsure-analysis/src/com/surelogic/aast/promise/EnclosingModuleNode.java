@@ -4,8 +4,6 @@ package com.surelogic.aast.promise;
 
 import java.util.*;
 
-
-
 import com.surelogic.aast.*;
 import com.surelogic.parse.TempListNode;
 
@@ -69,13 +67,13 @@ public class EnclosingModuleNode extends ModuleNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	List<ModuleNode> modulesCopy = new ArrayList<ModuleNode>(modules.size());
   	for (ModuleNode moduleNode : modules) {
-			modules.add((ModuleNode)moduleNode.cloneTree());
+			modules.add((ModuleNode)moduleNode.cloneOrModifyTree(mod));
 		}
   	
-  	return new EnclosingModuleNode(getOffset(), new String(getId()), modulesCopy);
+  	return new EnclosingModuleNode(getOffset(), getId(), modulesCopy);
   }
 }
 

@@ -189,8 +189,8 @@ public class TypeDeclPatternNode extends ConcreteTargetNode implements
 	}
 	
   @Override
-  public IAASTNode cloneTree(){
-  	return new TypeDeclPatternNode(getOffset(), getMods(), new String(getType()), (InPatternNode)getInPattern().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new TypeDeclPatternNode(getOffset(), getMods(), getType(), (InPatternNode)getInPattern().cloneOrModifyTree(mod));
   }
 
   @Override

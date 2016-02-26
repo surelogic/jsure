@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
@@ -69,7 +70,7 @@ public class ModulePromiseNode extends ModuleAnnotationNode  {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-    return new ModulePromiseNode(getOffset(), new String(id));
+  protected IAASTNode internalClone(final INodeModifier mod) {
+    return new ModulePromiseNode(getOffset(), id);
   }
 }

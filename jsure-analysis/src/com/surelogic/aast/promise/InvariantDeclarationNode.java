@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class InvariantDeclarationNode extends AASTNode { 
   // Fields
@@ -85,8 +84,8 @@ public class InvariantDeclarationNode extends AASTNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new InvariantDeclarationNode(getOffset(), getMods(), new String(getId()), (ConditionNode)cond.cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new InvariantDeclarationNode(getOffset(), getMods(), getId(), (ConditionNode)cond.cloneOrModifyTree(mod));
   }
 }
 

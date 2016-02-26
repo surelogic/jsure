@@ -171,10 +171,10 @@ public class FieldDeclPatternNode extends ConcreteTargetNode {
 	}
 
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new FieldDeclPatternNode(getOffset(), getMods(),
-				(TypeNode) getFtype().cloneTree(), (InPatternNode) getInPattern().cloneTree(),
-				new String(getName()));
+				(TypeNode) getFtype().cloneOrModifyTree(mod), (InPatternNode) getInPattern().cloneOrModifyTree(mod),
+				getName());
 	}
 	
 	@Override

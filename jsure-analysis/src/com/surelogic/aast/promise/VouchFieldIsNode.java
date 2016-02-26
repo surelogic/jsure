@@ -2,6 +2,7 @@ package com.surelogic.aast.promise;
 
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 
 public final class VouchFieldIsNode extends AASTRootNode { 
@@ -42,7 +43,7 @@ public final class VouchFieldIsNode extends AASTRootNode {
   }
 
   @Override
-  public IAASTNode cloneTree() {
+  protected IAASTNode internalClone(final INodeModifier mod) {
 	  return new VouchFieldIsNode(offset, kind, reason);
   }
 

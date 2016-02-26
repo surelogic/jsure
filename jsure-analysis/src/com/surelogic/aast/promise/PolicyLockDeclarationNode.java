@@ -61,8 +61,8 @@ public class PolicyLockDeclarationNode extends AbstractLockDeclarationNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new PolicyLockDeclarationNode(getOffset(), new String(getId()), (ExpressionNode)getField().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new PolicyLockDeclarationNode(getOffset(), getId(), (ExpressionNode)getField().cloneOrModifyTree(mod));
   }
 }
 

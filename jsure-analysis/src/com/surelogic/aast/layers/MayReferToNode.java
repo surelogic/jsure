@@ -21,8 +21,8 @@ public class MayReferToNode extends AbstractLayerMatchRootNode {
 	}
 	
 	@Override
-	public IAASTNode cloneTree() {
-		return new MayReferToNode(offset, getTarget());
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new MayReferToNode(offset, (PromiseTargetNode) getTarget().cloneOrModifyTree(mod));
 	}
 
 	@Override

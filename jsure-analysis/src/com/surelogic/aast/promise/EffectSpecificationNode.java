@@ -146,10 +146,10 @@ public class EffectSpecificationNode extends AASTNode {
 	}
 
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new EffectSpecificationNode(getOffset(), getIsWrite(),
-				(ExpressionNode) getContext().cloneTree(),
-				(RegionSpecificationNode) getRegion().cloneTree());
+				(ExpressionNode) getContext().cloneOrModifyTree(mod),
+				(RegionSpecificationNode) getRegion().cloneOrModifyTree(mod));
 	}
 	
 	

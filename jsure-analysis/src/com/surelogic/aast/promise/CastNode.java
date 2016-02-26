@@ -2,6 +2,7 @@ package com.surelogic.aast.promise;
 
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -34,7 +35,7 @@ public final class CastNode extends AASTRootNode {
   }
 
   @Override
-  public IAASTNode cloneTree() {
+  protected IAASTNode internalClone(final INodeModifier mod) {
 	  return new CastNode(offset, kind);
   }
 

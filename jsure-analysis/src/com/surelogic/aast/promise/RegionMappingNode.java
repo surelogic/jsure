@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class RegionMappingNode extends AASTNode { 
   // Fields
@@ -76,8 +75,8 @@ public class RegionMappingNode extends AASTNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new RegionMappingNode(getOffset(), (RegionNameNode)getFrom().cloneTree(), (RegionSpecificationNode)getTo().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new RegionMappingNode(getOffset(), (RegionNameNode)getFrom().cloneOrModifyTree(mod), (RegionSpecificationNode)getTo().cloneOrModifyTree(mod));
   }
 }
 

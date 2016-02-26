@@ -60,8 +60,8 @@ public class QualifiedClassLockExpressionNode extends ClassLockExpressionNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new QualifiedClassLockExpressionNode(getOffset(), (NamedTypeNode)getType().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new QualifiedClassLockExpressionNode(getOffset(), (NamedTypeNode)getType().cloneOrModifyTree(mod));
   }
 }
 

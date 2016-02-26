@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ReceiverDeclarationNode extends AASTNode { 
   // Fields
@@ -42,7 +41,7 @@ public class ReceiverDeclarationNode extends AASTNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new ReceiverDeclarationNode(getOffset());
   }
 }

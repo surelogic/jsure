@@ -5,6 +5,7 @@ import java.util.*;
 
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
@@ -54,10 +55,10 @@ public class TargetListNode extends AbstractLayerMatchTarget {
 	}
 
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		List<AbstractLayerMatchTarget> clonedUnion = new ArrayList<AbstractLayerMatchTarget>();
 		for(AbstractLayerMatchTarget ut : union) {
-			clonedUnion.add((UnidentifiedTargetNode) ut.cloneTree());
+			clonedUnion.add((UnidentifiedTargetNode) ut.cloneOrModifyTree(mod));
 		}
 		return new TargetListNode(offset, clonedUnion);
 	}

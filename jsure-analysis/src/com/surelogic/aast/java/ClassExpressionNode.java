@@ -4,7 +4,6 @@ package com.surelogic.aast.java;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ClassExpressionNode extends ExpressionNode { 
   // Fields
@@ -61,8 +60,8 @@ public class ClassExpressionNode extends ExpressionNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
-		return new ClassExpressionNode(getOffset(), (ReturnTypeNode)getType().cloneTree());
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new ClassExpressionNode(getOffset(), (ReturnTypeNode)getType().cloneOrModifyTree(mod));
 	}
 }
 

@@ -3,6 +3,7 @@ package com.surelogic.aast.promise;
 
 
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 
 public class TrackPartiallyInitializedNode extends AbstractBooleanNode 
@@ -35,7 +36,7 @@ public class TrackPartiallyInitializedNode extends AbstractBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new TrackPartiallyInitializedNode(offset,verifyParent);
   }
 

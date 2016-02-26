@@ -106,8 +106,8 @@ public class TypeRefNode extends ClassTypeNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
-		return new TypeRefNode(getOffset(), (ClassTypeNode)getBase().cloneTree(), new String(getId()));
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new TypeRefNode(getOffset(), (ClassTypeNode)getBase().cloneOrModifyTree(mod), getId());
 	}
 }
 

@@ -37,10 +37,10 @@ public abstract class AbstractLockListNode extends AASTRootNode {
 		return locks;
 	}
 	
-	protected final List<LockSpecificationNode> cloneLockList() {
+	protected final List<LockSpecificationNode> cloneLockList(final INodeModifier mod) {
 		List<LockSpecificationNode> locksCopy = new ArrayList<LockSpecificationNode>(locks.size());
 	  	for (LockSpecificationNode lockSpecificationNode : locks) {
-				locksCopy.add((LockSpecificationNode)lockSpecificationNode.cloneTree());
+				locksCopy.add((LockSpecificationNode)lockSpecificationNode.cloneOrModifyTree(mod));
 			}
 		return locksCopy;
 	}

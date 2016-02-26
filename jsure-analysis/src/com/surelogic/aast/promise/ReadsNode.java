@@ -7,6 +7,7 @@ import java.util.List;
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
+import com.surelogic.aast.INodeModifier;
 
 public class ReadsNode extends EffectsSpecificationNode {
 	public static final AbstractAASTNodeFactory factory =
@@ -29,10 +30,10 @@ public class ReadsNode extends EffectsSpecificationNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	List<EffectSpecificationNode> effectsCopy = new ArrayList<EffectSpecificationNode>(getEffectList().size());
   	for (EffectSpecificationNode effectSpecificationNode : getEffectList()) {
-			effectsCopy.add((EffectSpecificationNode)effectSpecificationNode.cloneTree());
+			effectsCopy.add((EffectSpecificationNode)effectSpecificationNode.cloneOrModifyTree(mod));
 		}
   	return new ReadsNode(getOffset(), effectsCopy);
   }

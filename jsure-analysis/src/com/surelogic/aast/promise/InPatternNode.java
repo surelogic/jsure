@@ -4,7 +4,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -125,10 +124,10 @@ public class InPatternNode extends AASTNode {
 	}
 
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new InPatternNode(getOffset(),
-				getInTypePattern() != null ? (InTypePatternNode) getInTypePattern().cloneTree() : null,
-				getInPackagePattern() != null ? (InPackagePatternNode) getInPackagePattern().cloneTree() : null);
+				getInTypePattern() != null ? (InTypePatternNode) getInTypePattern().cloneOrModifyTree(mod) : null,
+				getInPackagePattern() != null ? (InPackagePatternNode) getInPackagePattern().cloneOrModifyTree(mod) : null);
 	}
 
 	public boolean isFullWildcard() {

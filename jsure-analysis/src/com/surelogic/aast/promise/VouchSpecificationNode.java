@@ -62,7 +62,7 @@ public class VouchSpecificationNode extends TargetedAnnotationNode
   }
 
   @Override
-  public IAASTNode cloneTree() {
+  protected IAASTNode internalClone(final INodeModifier mod) {
 	  return new VouchSpecificationNode(offset, reason);
   }
 

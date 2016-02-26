@@ -123,9 +123,9 @@ public class NewRegionDeclarationNode extends RegionDeclarationNode {
 	}
 	
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new NewRegionDeclarationNode(getOffset(), getModifiers(),
-				new String(getId()), (RegionSpecificationNode) getRegionParent()
-						.cloneTree());
+				getId(), (RegionSpecificationNode) getRegionParent()
+						.cloneOrModifyTree(mod));
 	}
 }

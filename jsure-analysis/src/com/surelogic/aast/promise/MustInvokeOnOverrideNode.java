@@ -21,7 +21,7 @@ public class MustInvokeOnOverrideNode extends AbstractBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new MustInvokeOnOverrideNode();
   }
 }

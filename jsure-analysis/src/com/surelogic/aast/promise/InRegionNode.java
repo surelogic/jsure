@@ -35,8 +35,8 @@ public class InRegionNode extends AbstractSingleRegionNode<RegionSpecificationNo
   }
   
   @Override
-  public IAASTRootNode cloneTree() {
-	return cloneTree(factory, JavaNode.ALL_FALSE);
+  protected IAASTNode internalClone(final INodeModifier mod) {
+	return cloneTree(mod, factory, JavaNode.ALL_FALSE);
   }
 }
 

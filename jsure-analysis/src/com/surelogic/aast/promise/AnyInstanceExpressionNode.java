@@ -64,7 +64,7 @@ public class AnyInstanceExpressionNode extends ExpressionNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new AnyInstanceExpressionNode(getOffset(), (NamedTypeNode)getType().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new AnyInstanceExpressionNode(getOffset(), (NamedTypeNode)getType().cloneOrModifyTree(mod));
   }
 }

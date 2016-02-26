@@ -24,8 +24,8 @@ public class LayerNode extends AbstractLayerMatchDeclNode {
 	}
 	
 	@Override
-	public IAASTNode cloneTree() {
-		return new LayerNode(offset, getId(), getTarget());
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new LayerNode(offset, getId(), (PromiseTargetNode) getTarget().cloneOrModifyTree(mod));
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 
 public class UtilityNode extends AbstractBooleanNode {
@@ -9,7 +10,7 @@ public class UtilityNode extends AbstractBooleanNode {
 	}
 	
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new UtilityNode();
 	}
 

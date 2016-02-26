@@ -5,6 +5,7 @@ package com.surelogic.aast.java;
 import java.util.List;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.promise.AndTargetNode;
 import com.surelogic.common.ref.IDecl;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -101,8 +102,8 @@ public class ArrayTypeNode extends ReferenceTypeNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
-		return new ArrayTypeNode(getOffset(), (TypeNode)getBase().cloneTree(), getDims());
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new ArrayTypeNode(getOffset(), (TypeNode)getBase().cloneOrModifyTree(mod), getDims());
 	}
 }
 

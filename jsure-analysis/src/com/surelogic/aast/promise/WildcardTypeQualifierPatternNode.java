@@ -100,8 +100,8 @@ public class WildcardTypeQualifierPatternNode extends InTypePatternNode {
 	 * @see com.surelogic.aast.IAASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
-		return new WildcardTypeQualifierPatternNode(offset, new String(typePattern));
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new WildcardTypeQualifierPatternNode(offset, typePattern);
 	}
 	
 	@Override

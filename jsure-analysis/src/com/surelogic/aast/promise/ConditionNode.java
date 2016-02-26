@@ -57,8 +57,8 @@ public class ConditionNode extends AASTNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new ConditionNode(getOffset(), (ExpressionNode)getCond().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new ConditionNode(getOffset(), (ExpressionNode)getCond().cloneOrModifyTree(mod));
   }
 }
 

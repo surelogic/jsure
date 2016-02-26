@@ -228,15 +228,15 @@ public class ConstructorDeclPatternNode extends ConcreteTargetNode {
 	*/
 
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		List<TypeNode> sigCopy = new ArrayList<TypeNode>(sig.size());
 		// Clone the list
 		for (TypeNode typeNode : sig) {
-			sigCopy.add((TypeNode) typeNode.cloneTree());
+			sigCopy.add((TypeNode) typeNode.cloneOrModifyTree(mod));
 		}
 
 		return new ConstructorDeclPatternNode(getOffset(), getMods(),
-				sigCopy, (InPatternNode) getInPattern().cloneTree());
+				sigCopy, (InPatternNode) getInPattern().cloneOrModifyTree(mod));
 	}
 
 	@Override

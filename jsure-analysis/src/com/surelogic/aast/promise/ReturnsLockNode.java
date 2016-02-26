@@ -4,7 +4,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 /**
  * Represents an AAST node for the @ReturnsLock annotation
@@ -49,8 +48,8 @@ public class ReturnsLockNode extends AbstractSingleLockNode {
 	}
 	
   @Override
-  public IAASTNode cloneTree(){
-  	return new ReturnsLockNode(getOffset(), (LockNameNode)getLock().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new ReturnsLockNode(getOffset(), (LockNameNode)getLock().cloneOrModifyTree(mod));
   }
 	
 }

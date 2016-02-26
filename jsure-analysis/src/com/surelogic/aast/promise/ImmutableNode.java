@@ -17,7 +17,7 @@ public final class ImmutableNode extends AbstractModifiedBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new ImmutableNode(mods, appliesTo);
   }
 }

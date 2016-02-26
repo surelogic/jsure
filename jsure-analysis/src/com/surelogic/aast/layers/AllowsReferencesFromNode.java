@@ -21,8 +21,8 @@ public class AllowsReferencesFromNode extends AbstractLayerMatchRootNode {
 	}
 	
 	@Override
-	public IAASTNode cloneTree() {
-		return new AllowsReferencesFromNode(offset, getTarget());
+	protected AllowsReferencesFromNode internalClone(final INodeModifier mod) {
+		return new AllowsReferencesFromNode(offset, (PromiseTargetNode) getTarget().cloneOrModifyTree(mod));
 	}
 
 	@Override

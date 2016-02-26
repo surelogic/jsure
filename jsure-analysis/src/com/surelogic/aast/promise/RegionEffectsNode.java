@@ -46,10 +46,10 @@ public class RegionEffectsNode extends AbstractNonSequenceNode {
    * Creates a copy of this AAST and all sub-AASTs
    */
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	List<EffectsSpecificationNode> effectCopy = new ArrayList<EffectsSpecificationNode>(effects.size());
   	for (EffectsSpecificationNode effectsSpecificationNode : effects) {
-			effectCopy.add((EffectsSpecificationNode)effectsSpecificationNode.cloneTree());
+			effectCopy.add((EffectsSpecificationNode)effectsSpecificationNode.cloneOrModifyTree(mod));
 		}
   	return new RegionEffectsNode(getOffset(), effectCopy);
   }

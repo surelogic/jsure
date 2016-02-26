@@ -73,8 +73,8 @@ public class InNotPatternNode extends InTypePatternNode {
 	 * @see com.surelogic.aast.IAASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
-		InTypePatternNode t = (InTypePatternNode) getTarget().cloneTree();
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		InTypePatternNode t = (InTypePatternNode) getTarget().cloneOrModifyTree(mod);
 		
 		return new InNotPatternNode(offset, t);
 	}

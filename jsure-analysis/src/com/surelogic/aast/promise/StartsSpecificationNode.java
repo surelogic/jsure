@@ -51,7 +51,7 @@ public class StartsSpecificationNode extends AbstractNonSequenceNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new StartsSpecificationNode(getOffset());
   }
 

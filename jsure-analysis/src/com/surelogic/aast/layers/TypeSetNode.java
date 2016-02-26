@@ -20,8 +20,8 @@ public class TypeSetNode extends AbstractLayerMatchDeclNode {
 	}
 	
 	@Override
-	public IAASTNode cloneTree() {
-		return new TypeSetNode(offset, getId(), getTarget());
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new TypeSetNode(offset, getId(), (PromiseTargetNode) getTarget().cloneOrModifyTree(mod));
 	}
 
 	@Override

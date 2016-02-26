@@ -1,7 +1,9 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -48,8 +50,8 @@ public class UniqueInRegionNode extends AbstractSingleRegionNode<RegionSpecifica
   }
   
   @Override
-  public IAASTRootNode cloneTree() {
-	return cloneTree(factory, JavaNode.ALL_FALSE);    
+  protected IAASTNode internalClone(final INodeModifier mod) {
+	return cloneTree(mod, factory, JavaNode.ALL_FALSE);    
   }
 }
 

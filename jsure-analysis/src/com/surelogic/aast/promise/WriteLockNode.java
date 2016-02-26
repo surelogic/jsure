@@ -81,8 +81,8 @@ public final class WriteLockNode extends JUCLockNode {
 	}
 	
   @Override
-  public IAASTNode cloneTree(){
-  	return new WriteLockNode(getOffset(), (LockNameNode)getLock().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new WriteLockNode(getOffset(), (LockNameNode)getLock().cloneOrModifyTree(mod));
   }
   
   

@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class APINode extends AASTNode { 
   // Fields
@@ -57,8 +56,8 @@ public class APINode extends AASTNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new APINode(getOffset(), new String(getId()));
+  protected APINode internalClone(final INodeModifier mod) {
+  	return new APINode(getOffset(), getId());
   }
 }
 

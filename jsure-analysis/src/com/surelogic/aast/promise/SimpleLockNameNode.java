@@ -70,8 +70,8 @@ public final class SimpleLockNameNode extends LockNameNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new SimpleLockNameNode(getOffset(), new String(getId()));
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new SimpleLockNameNode(getOffset(), getId());
   }
   
   

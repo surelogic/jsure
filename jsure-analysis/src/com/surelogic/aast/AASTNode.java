@@ -6,6 +6,9 @@ import java.util.List;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
+import com.surelogic.aast.INodeModifier.Status;
+import com.surelogic.aast.visitor.DescendingVisitor;
+
 public abstract class AASTNode implements IAASTNode {
   protected final int offset;
   protected AASTNode parent;
@@ -87,8 +90,58 @@ public abstract class AASTNode implements IAASTNode {
   public abstract <T> T accept(INodeVisitor<T> visitor);
   
   @Override
-  public abstract IAASTNode cloneTree();
+  public final IAASTNode cloneTree() {
+	return cloneOrModifyTree(INodeModifier.CLONE, Status.CLONE);
+  }
 
+  @Override
+  public final IAASTNode modifyTree(final INodeModifier mod) {
+	final Status status = mod.createNewAAST(this);
+	if (status == Status.KEEP) {
+	  // Need to check the rest of the AAST
+	  final boolean changing = this.accept(new DescendingVisitor<Boolean>(Boolean.FALSE) {
+		@Override	  
+		public Boolean doAccept(AASTNode node) {
+		  if (node != null && mod.createNewAAST(node) != Status.KEEP) {
+			return Boolean.TRUE;
+		  }
+		  return super.doAccept(node);
+		}
+		protected Boolean combineResults(Boolean before, Boolean next) {
+		  return before || next;
+		}
+	  });
+	  if (!changing) {
+		return this;
+	  }
+	}
+	return cloneOrModifyTree(mod, status);
+  }
+  
+  public final IAASTNode cloneOrModifyTree(final INodeModifier mod) {
+	return cloneOrModifyTree(mod, mod.createNewAAST(this));
+  }
+  
+  /**
+   * If mod says to KEEP, then we'll clone it
+   */
+  protected final IAASTNode cloneOrModifyTree(final INodeModifier mod, final Status status) {
+	switch (status) {
+	case CLONE:
+	case KEEP:
+		return internalClone(mod);
+	case MODIFY:
+		return mod.modify(this);
+	default:
+		throw new IllegalStateException("Unknown: "+status);
+	}
+  }
+  
+  /**
+   * Clone this node, but call cloneOrModifyTree() on children
+   */
+  protected abstract IAASTNode internalClone(final INodeModifier mod);
+  
   @Override
   public IRNode getPromisedFor() {
     AASTNode n    = this;

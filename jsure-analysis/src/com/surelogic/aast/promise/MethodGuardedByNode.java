@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
@@ -30,8 +31,8 @@ public final class MethodGuardedByNode extends GuardedByNode
   }
 
   @Override
-  public IAASTNode cloneTree() {
-	  return new MethodGuardedByNode(offset, (ExpressionNode) getLock().cloneTree());
+  protected IAASTNode internalClone(final INodeModifier mod) {
+	  return new MethodGuardedByNode(offset, (ExpressionNode) getLock().cloneOrModifyTree(mod));
   }
 }
 

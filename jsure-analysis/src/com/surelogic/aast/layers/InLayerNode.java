@@ -28,8 +28,8 @@ public class InLayerNode extends AASTRootNode {
   }
   
   @Override
-  public IAASTNode cloneTree() {
-	  return new InLayerNode(offset, layerNames);
+  protected IAASTNode internalClone(final INodeModifier mod) {
+	  return new InLayerNode(offset, (AbstractLayerMatchTarget) layerNames.cloneOrModifyTree(mod));
   }
 
   @Override

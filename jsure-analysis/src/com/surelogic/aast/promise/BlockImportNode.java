@@ -42,11 +42,11 @@ public class BlockImportNode extends ModuleAnnotationNode {
      * @see com.surelogic.aast.AASTRootNode#cloneTree()
      */
     @Override
-    public IAASTNode cloneTree() {
+    protected IAASTNode internalClone(final INodeModifier mod) {
       List<String> fromModuleNamesCopy = new ArrayList<String>(fromModuleNames.size());
       fromModuleNamesCopy.addAll(fromModuleNames);
       OfNamesClauseNode ofNamesCopy = 
-        ofNamesClause == null ? null : (OfNamesClauseNode) ofNamesClause.cloneTree();
+        ofNamesClause == null ? null : (OfNamesClauseNode) ofNamesClause.cloneOrModifyTree(mod);
       
       return new BlockImportNode(getOffset(), ofNamesCopy, fromModuleNamesCopy );
     }

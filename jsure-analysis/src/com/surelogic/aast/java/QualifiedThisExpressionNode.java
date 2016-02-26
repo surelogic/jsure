@@ -86,8 +86,8 @@ public class QualifiedThisExpressionNode extends SomeThisExpressionNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
-		return new QualifiedThisExpressionNode(getOffset(), (ClassTypeNode)getType().cloneTree());
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new QualifiedThisExpressionNode(getOffset(), (ClassTypeNode)getType().cloneOrModifyTree(mod));
 	}
 
 	/**

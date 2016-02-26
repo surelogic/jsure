@@ -5,7 +5,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ThreadRoleCardNNode extends ThreadRoleCardChoiceNode { 
   // Fields
@@ -45,7 +44,7 @@ public class ThreadRoleCardNNode extends ThreadRoleCardChoiceNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new ThreadRoleCardNNode(getOffset());
 	}
 }

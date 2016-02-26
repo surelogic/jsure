@@ -62,8 +62,8 @@ public class RegionNameNode extends RegionSpecificationNode {
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new RegionNameNode(getOffset(), new String(getId()));
+  protected IAASTNode internalClone(final INodeModifier mod) {
+  	return new RegionNameNode(getOffset(), getId());
   }
 }
 

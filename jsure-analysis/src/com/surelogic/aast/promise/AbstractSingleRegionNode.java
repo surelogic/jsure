@@ -65,9 +65,9 @@ public abstract class AbstractSingleRegionNode<T extends FieldRegionSpecificatio
     return spec;
   }
   
-  protected IAASTRootNode cloneTree(Factory<T> f, int mods) {
+  protected IAASTRootNode cloneTree(INodeModifier mod, Factory<T> f, int mods) {
 	@SuppressWarnings("unchecked")
-    T s = (T)spec.cloneTree();
+    T s = (T)spec.cloneOrModifyTree(mod);
     return f.create(offset, s, mods);
   }
 }

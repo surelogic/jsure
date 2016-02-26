@@ -19,7 +19,7 @@ public class NotThreadSafeNode extends AbstractModifiedBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new NotThreadSafeNode(appliesTo);
   }
 }

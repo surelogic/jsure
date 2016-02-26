@@ -2,6 +2,7 @@
 package com.surelogic.aast.promise;
 
 import java.util.List;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 
@@ -77,7 +78,7 @@ public class InPackagePatternNode extends InTypePatternNode {
 	}
 	
 	@Override
-	public IAASTNode cloneTree(){
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new InPackagePatternNode(getOffset(), pattern);		
 	}
 	

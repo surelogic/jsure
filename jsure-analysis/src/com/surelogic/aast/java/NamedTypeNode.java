@@ -117,7 +117,7 @@ public class NamedTypeNode extends ClassTypeNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
-		return new NamedTypeNode(getOffset(), new String(getType()));
+	protected IAASTNode internalClone(final INodeModifier mod) {
+		return new NamedTypeNode(getOffset(), getType());
 	}
 }

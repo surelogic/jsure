@@ -5,7 +5,6 @@ package com.surelogic.aast.java;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.LongType;
@@ -60,7 +59,7 @@ public class LongTypeNode extends IntegralTypeNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		return new LongTypeNode(getOffset());
 	}
 }

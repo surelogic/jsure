@@ -3,6 +3,7 @@ package com.surelogic.aast.promise;
 
 
 import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeModifier;
 import com.surelogic.aast.INodeVisitor;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -39,7 +40,7 @@ public class UniqueNode extends AbstractBooleanNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
+  protected IAASTNode internalClone(final INodeModifier mod) {
   	return new UniqueNode(offset);
   }
 }
