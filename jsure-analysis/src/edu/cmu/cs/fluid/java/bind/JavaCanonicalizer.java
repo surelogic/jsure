@@ -6,10 +6,7 @@ package edu.cmu.cs.fluid.java.bind;
 
 import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -1559,23 +1556,39 @@ public class JavaCanonicalizer {
 			newBody = origBody;
     	}
     	
+		final IRNode methodParams = MethodDeclaration.getParams(fty.getDecl());
     	List<IRNode> newParamList = new ArrayList<IRNode>();
     	Iterator<IJavaType> rqdit = fty.getParameterTypes().iterator();
+    	Iterator<IRNode> paramIt = Parameters.getFormalIterator(methodParams);
+    	//final Map<String,String> paramMapping = new HashMap<>();
     	for (IRNode formal : JJNode.tree.children(LambdaExpression.getParams(node))) {
+    		final IRNode mParam = paramIt.next();
+    		//final String mName = JJNode.getInfo(mParam);
+    		final String fName = JJNode.getInfo(formal);
+    		/*
+    		if (!mName.equals(fName)) {
+    			paramMapping.put(mName, fName);
+    		} 
+    		*/
     		IRNode ftype = ParameterDeclaration.getType(formal);
     		if (JJNode.tree.getOperator(ftype) == Type.prototype) {
     			IRNode ptype = createType(rqdit.next(), true);
     			SkeletonJavaRefUtility.copyIfPossible(ftype, ptype);
     			
-    			IRNode annos = Annotations.createNode(none); 
-    			IRNode newParam = ParameterDeclaration.createNode(annos, JavaNode.ALL_FALSE, ptype, JJNode.getInfo(formal));
+    			if (JJNode.tree.hasChildren(ParameterDeclaration.getAnnos(formal))) {
+    				throw new IllegalStateException("Unexpected annotations on "+DebugUnparser.toString(formal));
+    			}
+    			// Copying the annotations from the functional interface
+    			final IRNode origAnnos = ParameterDeclaration.getAnnos(mParam);
+    			IRNode annos = copyAnnos(origAnnos); 
+    			IRNode newParam = ParameterDeclaration.createNode(annos, JavaNode.ALL_FALSE, ptype, fName);
     			SkeletonJavaRefUtility.copyIfPossible(formal, newParam);
     			newParamList.add(newParam);
     		} else {
     			doAccept(formal);
     			JJNode.tree.removeSubtree(formal);
     			newParamList.add(formal);
-    		}
+    		}    		
     	}
     	IRNode newParams = Parameters.createNode(newParamList.toArray(none));
     	
@@ -1587,9 +1600,11 @@ public class JavaCanonicalizer {
 
     	// Possibly add @Override or Fluid annotations.
     	// What effects will be inferred ?
-    	IRNode annos = Annotations.createNode(none);
+    	final IRNode methodAnnos = MethodDeclaration.getAnnos(fty.getDecl());
+    	final IRNode annos = copyAnnos(methodAnnos);
+    	
     	IRNode types = TypeFormals.createNode(none);
-    	int modifiers = JavaNode.ALL_FALSE|JavaNode.PUBLIC;
+    	int modifiers = JavaNode.PUBLIC | JavaNode.IMPLICIT;
 		IRNode rtype = createType(fty.getReturnType(), true);
 		
 		IRNode mdecl = MethodDeclaration.createNode(annos,modifiers, types, rtype, methodName, newParams, 0, exceptions, newBody);
@@ -1625,7 +1640,21 @@ public class JavaCanonicalizer {
 		return true;
 	}
 
-    /*
+    /**
+     * Copy the AST and its source refs
+     */
+    private IRNode copyAnnos(IRNode origAnnos) {
+    	final IRNode annos = Annotations.prototype.copyTree(origAnnos);
+    	Iterator<IRNode> it = Annotations.prototype.getAnnotIterator(origAnnos);
+    	for(IRNode anno : JJNode.tree.children(annos)) {
+    		// Note: we're delaying parameter renaming to when AASTs get parsed
+    		IRNode orig = it.next();
+    		SkeletonJavaRefUtility.copyIfPossible(orig, anno);
+    	}
+    	return annos;
+    }
+    
+	/*
     @Override
     public Boolean visitMethodCall(IRNode node) {
       final String unparse = DebugUnparser.toString(node);
@@ -1691,10 +1720,12 @@ public class JavaCanonicalizer {
     @Override
     public Boolean visitNewExpression(IRNode node) {
       IRNode old = NewExpression.getType(node);
+      /*
       String unparse = DebugUnparser.toString(old);
       if ("SecureIterator".equals(unparse)) {
     	  System.out.println("Found Inner: "+DebugUnparser.toString(node)); 
-      }      
+      } 
+      */     
       boolean changed = doAcceptForChildren_rev(node);
       if (changed) {
         map(old, NewExpression.getType(node));
