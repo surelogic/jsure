@@ -46,9 +46,17 @@ public class MethodBinder8 implements IMethodBinder {
     public BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call) {
         final Iterable<IBinding> methods = findMethods(scope, context, needMethod, from);
         final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
-        for(IBinding mb : methods) {
-        	if (isPotentiallyApplicable(call, from, mb)) {
-        		applicable.add(new MethodBinding(mb));
+        final IJavaTypeSubstitution recSubst = checkForApplicableSubstitutionForReceiver(call.getReceiverOrNull());
+        for(IBinding b : methods) {
+        	if (isPotentiallyApplicable(call, from, b)) {
+        		MethodBinding mb = new MethodBinding(b);
+        		// See if we need to reconstitute the receiver/context type for the binding
+        		// if not a generic method
+        		if (recSubst != IJavaTypeSubstitution.NULL && !typeInfer.isGenericMethodRef(mb)) {
+        			IBinding newB = b; // TODO
+        			mb = new MethodBinding(newB);
+        		}
+        		applicable.add(mb);
         	}
         }
     	// Eliminate A.foo() when subclass B.foo() overrides it (assumed by JLS)
@@ -72,6 +80,23 @@ public class MethodBinder8 implements IMethodBinder {
         return new BindingInfo(rv, 0, false, 0);
     }
 
+    private IJavaTypeSubstitution checkForApplicableSubstitutionForReceiver(final IRNode rec) {
+    	if (rec == null) {
+    		return IJavaTypeSubstitution.NULL;
+    	}
+        Operator rop = JJNode.tree.getOperator(rec);
+        if (isPolyExpression(rec, rop)) {
+        	if (rop instanceof CallInterface) {
+              final IBinding b = binder.getIBinding(rec);
+              if (b instanceof MethodBinding8) {
+            	  MethodBinding8 mb = (MethodBinding8) b;
+            	  return mb.getBoundSetSubst();
+              }
+            }
+        }
+		return IJavaTypeSubstitution.NULL;
+    }
+    
 	private MethodBinding8 tryToFindMostSpecific(final ICallState call, final Collection<MethodBinding> applicable) {
 		MethodBinding8 rv = findMostSpecific(call, applicable, STRICT_INVOCATION);
         if (rv == null && !call.needsExactInvocation()) {
@@ -1217,7 +1242,7 @@ public class MethodBinder8 implements IMethodBinder {
 			IJavaType t = call.getArgType(i);
 			paramTypes.add(t == JavaTypeFactory.nullType ? tEnv.findJavaTypeByName("java.lang.Void") : t);
 		}
-		return JavaTypeFactory.getFunctionType(ft.getTypeFormals(), resultType, paramTypes, ft.isVariable(), ft.getExceptions());
+		return JavaTypeFactory.getFunctionType(ft.getDecl(), ft.getTypeFormals(), resultType, paramTypes, ft.isVariable(), ft.getExceptions());
 	}
 	
 	/**
@@ -2503,7 +2528,7 @@ public class MethodBinder8 implements IMethodBinder {
 	}
 
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
-		return JavaTypeFactory.getFunctionType(orig.getTypeFormals(), newReturn, orig.getParameterTypes(), orig.isVariable(), orig.getExceptions());
+		return JavaTypeFactory.getFunctionType(orig.getDecl(), orig.getTypeFormals(), newReturn, orig.getParameterTypes(), orig.isVariable(), orig.getExceptions());
 	}
 	
 	IJavaFunctionType substParams_eraseReturn(IJavaFunctionType orig, IJavaTypeSubstitution subst) {
@@ -2526,7 +2551,7 @@ public class MethodBinder8 implements IMethodBinder {
 				throwTypes.add(tEnv.computeErasure(e));
 			}
 		}		
-		return JavaTypeFactory.getFunctionType(orig.getTypeFormals(), returnType, paramTypes, orig.isVariable(), throwTypes);
+		return JavaTypeFactory.getFunctionType(orig.getDecl(), orig.getTypeFormals(), returnType, paramTypes, orig.isVariable(), throwTypes);
 	}
 	
 	/**
