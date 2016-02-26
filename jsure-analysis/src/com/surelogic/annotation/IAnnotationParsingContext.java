@@ -85,7 +85,7 @@ public interface IAnnotationParsingContext {
   ProposedPromiseDrop.Builder startProposal(Class<? extends Annotation> anno);
   
   IAnnotationParsingContext nullPrototype = 
-    new AbstractAnnotationParsingContext(AnnotationSource.JAVADOC, AnnotationOrigin.DECL) {
+    new AbstractAnnotationParsingContext(null, AnnotationSource.JAVADOC, AnnotationOrigin.DECL) {
     @Override
     public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... moreInfo) {
       System.out.println(msg);

@@ -24,6 +24,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -49,9 +50,9 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   /**
    * @param offset The offset in the source text to the location of the IRNode
    */
-  protected SimpleAnnotationParsingContext(AnnotationSource src, AnnotationOrigin origin, IRNode n, 
+  protected SimpleAnnotationParsingContext(IBinder b, AnnotationSource src, AnnotationOrigin origin, IRNode n, 
                                            IAnnotationParseRule<?,?> r, String text, IRNode ref) {    
-    super(src, origin);
+    super(b, src, origin);
     annoNode = n;
     rule = r;
     contents = text;  

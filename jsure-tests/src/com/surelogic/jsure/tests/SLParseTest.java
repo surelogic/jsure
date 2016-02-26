@@ -2390,7 +2390,7 @@ public class SLParseTest extends TestCase {
 		 * @param src
 		 */
 		protected TestContext(AnnotationSource src, Operator op) {
-			super(src, AnnotationOrigin.DECL);
+			super(null, src, AnnotationOrigin.DECL);
 			this.op = op;
 		}
 

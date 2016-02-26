@@ -52,10 +52,10 @@ public class TempListNode extends AASTNode {
 	 * @see com.surelogic.aast.AASTNode#cloneTree()
 	 */
 	@Override
-	public IAASTNode cloneTree() {
+	protected IAASTNode internalClone(final INodeModifier mod) {
 		List<AASTNode> childrenCopy = new ArrayList<AASTNode>(children.size());
 		for (AASTNode node : children) {
-			childrenCopy.add((AASTNode)node.cloneTree());
+			childrenCopy.add((AASTNode)node.cloneOrModifyTree(mod));
 		}
 		return new TempListNode(childrenCopy);
 	}

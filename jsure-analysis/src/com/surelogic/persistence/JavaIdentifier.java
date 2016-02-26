@@ -526,7 +526,7 @@ public final class JavaIdentifier implements JavaIdentifierConstants {
 		final List<IAASTRootNode> created = new ArrayList<IAASTRootNode>(0);
 		
 		MinimalContext(IRNode n, String target) {
-			super(AnnotationSource.XML, AnnotationOrigin.DECL);
+			super(null, AnnotationSource.XML, AnnotationOrigin.DECL);
 			decl = n;
 			unparsedTarget = target;
 		}

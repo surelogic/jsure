@@ -216,6 +216,8 @@ public class ScopedPromiseRules extends AnnotationRules {
       return new AbstractAASTScrubber<AssumeScopedPromiseNode, AssumePromiseDrop>(this, ScrubberType.BY_TYPE,
           SLUtility.EMPTY_STRING_ARRAY, ScrubberOrder.FIRST) {
         final PromiseFramework frame = PromiseFramework.getInstance();
+        IBinder binder;
+        
         Set<IRNode> bindings = null;
 
         @Override
@@ -226,7 +228,10 @@ public class ScopedPromiseRules extends AnnotationRules {
         @Override
         protected void startScrubbingType(IRNode decl) {
           final IRNode cu = VisitUtil.getEnclosingCompilationUnit(decl);
-          bindings = collectBoundDecls(cu);
+          if (binder == null) {
+        	  binder = IDE.getInstance().getTypeEnv().getBinder();
+          }
+          bindings = collectBoundDecls(binder, cu);
           frame.clearTypeContext(cu);
           /*
            * frame.pushTypeContext(cu, true, true); // create one if there isn't
@@ -243,7 +248,7 @@ public class ScopedPromiseRules extends AnnotationRules {
         @Override
         protected PromiseDrop<ScopedPromiseNode> makePromiseDrop(AssumeScopedPromiseNode a) {
           AssumePromiseDrop d = new AssumePromiseDrop(a);
-          final Result worked = applyAssumptions(bindings, d);
+          final Result worked = applyAssumptions(binder, bindings, d);
           switch (worked) {
           case FAILURE:
             getContext().reportModelingProblem(a, "Assumption failed on application to matching declaration");
@@ -445,6 +450,7 @@ public class ScopedPromiseRules extends AnnotationRules {
    */
   static <A extends ScopedPromiseDrop> boolean applyScopedPromises(A scopedPromiseDrop) {
     final IRNode promisedFor = scopedPromiseDrop.getAAST().getPromisedFor();
+    final IBinder binder = IDE.getInstance().getTypeEnv().getBinder();
     boolean success = true;
 
     /*
@@ -456,15 +462,15 @@ public class ScopedPromiseRules extends AnnotationRules {
     // If the node this promise is promised for is a class or type declaration,
     // pass it on directly
     if (TypeDeclaration.prototype.includes(op)) {
-      success = applyPromiseOnType(promisedFor, scopedPromiseDrop);
+      success = applyPromiseOnType(binder, promisedFor, scopedPromiseDrop);
     }
     // If the IRNode is a CompilationUnit, iterate over all of the top-level
     // types
     else if (CompilationUnit.prototype.includes(op)) {
       for (IRNode decl : VisitUtil.getTypeDecls(promisedFor)) {
-        success = success && applyPromiseOnType(decl, scopedPromiseDrop);
+        success = success && applyPromiseOnType(binder, decl, scopedPromiseDrop);
       }
-      success = applyPromiseOnType(promisedFor, scopedPromiseDrop);
+      success = applyPromiseOnType(binder, promisedFor, scopedPromiseDrop);
     } else if (NamedPackageDeclaration.prototype.includes(op)) {
       throw new UnsupportedOperationException("Should never get here");
     }
@@ -472,7 +478,7 @@ public class ScopedPromiseRules extends AnnotationRules {
     // using that
     else {
       IRNode enclosing = VisitUtil.getEnclosingType(promisedFor);
-      success = applyPromiseOnType(enclosing, scopedPromiseDrop);
+      success = applyPromiseOnType(binder, enclosing, scopedPromiseDrop);
     }
 
     return success;
@@ -488,13 +494,13 @@ public class ScopedPromiseRules extends AnnotationRules {
    *          The scoped promise
    * @return true if no failure
    */
-  public static <A extends ScopedPromiseDrop> boolean applyPromiseOnType(IRNode promisedFor, A scopedPromiseDrop) {
+  public static <A extends ScopedPromiseDrop> boolean applyPromiseOnType(IBinder b, IRNode promisedFor, A scopedPromiseDrop) {
     boolean success = true;
     if (!TypeDeclaration.prototype.includes(promisedFor)) {
       // Probably a package decl
       return false;
     }
-    final ScopedPromiseCallback callback = new ScopedPromiseCallback(scopedPromiseDrop);
+    final ScopedPromiseCallback callback = new ScopedPromiseCallback(b, scopedPromiseDrop);
 
     if (callback.parseRule != null) {
       // TODO only loop over the necessary declarations by checking what type
@@ -605,9 +611,9 @@ public class ScopedPromiseRules extends AnnotationRules {
     private static final String name = "ScopedAnnotationParsingContext";
     private final ScopedPromiseCallback callback;
 
-    public ScopedAnnotationParsingContext(ScopedPromiseCallback callback, AnnotationSource src, AnnotationOrigin origin, IRNode n,
+    public ScopedAnnotationParsingContext(ScopedPromiseCallback callback, IBinder b, AnnotationSource src, AnnotationOrigin origin, IRNode n,
         IAnnotationParseRule<?, ?> r, String text, IRNode scopedAnno) {
-      super(src, origin, n, r, text, scopedAnno);
+      super(b, src, origin, n, r, text, scopedAnno);
       this.callback = callback;
     }
 
@@ -674,14 +680,16 @@ public class ScopedPromiseRules extends AnnotationRules {
    */
   @SuppressWarnings("unchecked")
   static class ScopedPromiseCallback extends PromiseContentParser implements ValidatedDropCallback {
+	private final IBinder binder;
     private final ScopedPromiseDrop scopedPromiseDrop;
     final PromiseTargetNode target;
 
     // Used to parse the promise when we find a match
     final IAnnotationParseRule<?, ?> parseRule;
 
-    public ScopedPromiseCallback(ScopedPromiseDrop drop) {
+    public ScopedPromiseCallback(IBinder b, ScopedPromiseDrop drop) {
       super(null, drop.getAAST().getPromise());
+      binder = b;
       this.scopedPromiseDrop = drop;
       target = drop.getAAST().getTargets();
 
@@ -741,7 +749,7 @@ public class ScopedPromiseRules extends AnnotationRules {
             origin = AnnotationOrigin.SCOPED_ON_TYPE;
           }
         }
-        final AbstractAnnotationParsingContext context = new ScopedAnnotationParsingContext(this, aast.getSrcType(), origin, decl,
+        final AbstractAnnotationParsingContext context = new ScopedAnnotationParsingContext(this, binder, aast.getSrcType(), origin, decl,
             parseRule, content, aast.getAnnoContext());
         ParseResult result = parseRule.parse(context, content);
         if (result == ParseResult.IGNORE) {
@@ -813,7 +821,8 @@ public class ScopedPromiseRules extends AnnotationRules {
 
       if (createPkgScopedPromisesDirectly) {
         // This directly applies the package-level @Promise to the types
-        applyPromiseOnType(type, d);
+    	final IBinder binder = IDE.getInstance().getTypeEnv().getBinder();
+        applyPromiseOnType(binder, type, d);
       } else {
         // create type-level @Promise
         final ScopedPromiseNode copy = new ScopedPromiseNode(orig.getOffset(), orig.getPromise(),
@@ -837,8 +846,7 @@ public class ScopedPromiseRules extends AnnotationRules {
    * 
    * TODO what about bindings in promises themselves?
    */
-  private static Set<IRNode> collectBoundDecls(IRNode cu) {
-    final IBinder binder = IDE.getInstance().getTypeEnv().getBinder();
+  private static Set<IRNode> collectBoundDecls(IBinder binder, IRNode cu) {
     return collectBoundDecls(binder, cu, false);
   }
 
@@ -906,9 +914,9 @@ public class ScopedPromiseRules extends AnnotationRules {
   /**
    * @return true if no failure
    */
-  static Result applyAssumptions(Collection<IRNode> bindings, AssumePromiseDrop d) {
-    // final IRNode cu = VisitUtil.getEnclosingCompilationUnit(d.getNode());
-    final ScopedPromiseCallback callback = new ScopedPromiseCallback(d);
+  static Result applyAssumptions(IBinder b, Collection<IRNode> bindings, AssumePromiseDrop d) {
+    // final IRNode cu = VisitUtil.getEnclosingCompilationUnit(d.getNode());	  
+    final ScopedPromiseCallback callback = new ScopedPromiseCallback(b, d);
     Result success = Result.NOT_APPLICABLE;
     for (IRNode decl : bindings) {
       Operator op = JJNode.tree.getOperator(decl);

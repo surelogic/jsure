@@ -1701,7 +1701,7 @@ public class Util implements AnalysisConstants {
           final IRNode decl = CompilationUnit.getPkg(pkg.getCompilationUnitIRNode());
           for (PromisePromiseDrop sp : ScopedPromiseRules.getScopedPromises(decl)) {
             for (IRNode type : VisitUtil.getTypeDecls(cu)) {
-              ScopedPromiseRules.applyPromiseOnType(type, sp);
+              ScopedPromiseRules.applyPromiseOnType(info.getTypeEnv().getBinder(), type, sp);
             }
           }
         }

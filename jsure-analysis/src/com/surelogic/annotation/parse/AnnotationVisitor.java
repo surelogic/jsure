@@ -247,7 +247,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
     Context(AnnotationSource src, AnnotationOrigin origin, IRNode n, IAnnotationParseRule<?, ?> r, String text, IRNode ref, int modifiers,
         Map<String, String> props) {
-      super(src, origin, n, r, text, ref);
+      super(tEnv.getBinder(), src, origin, n, r, text, ref);
       mods = modifiers;
       properties = new HashMap<String, String>(props);
     }
