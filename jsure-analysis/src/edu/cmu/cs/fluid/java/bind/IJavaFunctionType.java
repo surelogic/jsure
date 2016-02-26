@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.List;
 import java.util.Set;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+
 /**
  * A representation of a "function descriptor", that is the
  * signature + return type and exceptions thrown of the method
@@ -11,6 +13,11 @@ import java.util.Set;
  * @see ITypeEnvironment.isFunctionalType
  */
 public interface IJavaFunctionType {
+	/**
+	 * @return The declaration that this is originally derived from
+	 */
+	public IRNode getDecl();
+	
 	/**
 	 * Return an immutable list of the type formals.
 	 * If this function is polymorphic, the result will not be empty.

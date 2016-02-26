@@ -530,7 +530,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  for (int i=0; i < etypes.length; ++i) {
 		  etypes[i] = computeErasure(etypes[i]);
 	  }
-	  return JavaTypeFactory.getFunctionType(
+	  return JavaTypeFactory.getFunctionType(ft.getDecl(),
 			  null, computeErasure(ft.getReturnType()), 
 			  Arrays.asList(ptypes), ft.isVariable(), 
 			  new HashSet<IJavaType>(Arrays.asList(etypes)));
@@ -738,7 +738,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
  		  }
 	  }
 	  // modify the function type accordingly
-	  return JavaTypeFactory.getFunctionType(result.getTypeFormals(), result.getReturnType(), result.getParameterTypes(), result.isVariable(), resultThrows);
+	  return JavaTypeFactory.getFunctionType(result.getDecl(), result.getTypeFormals(), result.getReturnType(), result.getParameterTypes(), result.isVariable(), resultThrows);
   }
   
   // efficiency, avoid complex case for methods without these names.

@@ -517,6 +517,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	
 
   public static IJavaFunctionType getFunctionType(
+		  IRNode memDecl,
 		  List<IJavaTypeFormal> typeFormals,
 		  IJavaType returnType,
 		  List<IJavaType> paramTypes,
@@ -525,7 +526,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	  if (typeFormals == null) typeFormals = Collections.emptyList();
 	  if (paramTypes == null) paramTypes = Collections.emptyList();
 	  if (throwTypes == null) throwTypes = Collections.emptySet();
-	  JavaFunctionType ft = new JavaFunctionType(
+	  JavaFunctionType ft = new JavaFunctionType(memDecl,
 			  typeFormals.toArray(emptyTypeFormals),
 			  returnType,
 			  paramTypes.toArray(emptyTypes),
@@ -623,7 +624,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 		  if (throwTypes == null) throwTypes = new HashSet<IJavaType>();
 		  throwTypes.add(binder.getJavaType(et));
 	  }
-	  return getFunctionType(typeFormals,returnType,paramTypes,isVariable,throwTypes);
+	  return getFunctionType(memDecl, typeFormals,returnType,paramTypes,isVariable,throwTypes);
   }
   
   /**
@@ -2557,6 +2558,7 @@ class JavaAnonType extends JavaDeclaredType implements IJavaDeclaredType {
 }
 
 class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
+	private final IRNode memDecl;
 	private final IJavaTypeFormal[] typeFormals;
 	private final IJavaType[] pieces; // 0 = return type, rest are parameter types
 	private final IJavaType[] exceptions; // throw types
@@ -2566,12 +2568,13 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 	private final ThrowTypes throwTypes = new ThrowTypes();
 	private final int hashCode;
 	
-	public JavaFunctionType(
+	public JavaFunctionType(IRNode decl,
 			IJavaTypeFormal[] tfs, 
 			IJavaType rt, 
 			IJavaType[] pts,
 			boolean isVar,
 			IJavaType[] ths) {
+		memDecl = decl;
 		typeFormals = tfs;
 		pieces = new IJavaType[pts.length+1];
 		pieces[0] = rt;
@@ -2596,6 +2599,10 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		h += throwTypes.hashCode();
 		if (isVariable) h ^= 1066;
 		return h;
+	}
+
+	public IRNode getDecl() {
+		return memDecl;
 	}
 	
 	@Override
@@ -2776,7 +2783,7 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		for (IJavaTypeFormal f : typeFormals) {
 			if (s.get(f) != f) throw new IllegalArgumentException("substitution applies to formal, use instantiate instead");
 		}
-		return JavaTypeFactory.getFunctionType(
+		return JavaTypeFactory.getFunctionType(memDecl,
 				Arrays.asList(subst(typeFormals,s)), 
 				getReturnType().subst(s), 
 				Arrays.asList(subst(paramTypes.toArray(JavaTypeFactory.emptyTypes),s)), 
@@ -2799,7 +2806,7 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		}
 		IJavaType rt = getReturnType();
 		IJavaType rt_subst = IBinding.Util.subst(rt, s);
-		return JavaTypeFactory.getFunctionType(
+		return JavaTypeFactory.getFunctionType(memDecl,
 				newFormals,
 				rt_subst, 
 				Arrays.asList(subst(paramTypes.toArray(JavaTypeFactory.emptyTypes),s,skipFirstParam)), 

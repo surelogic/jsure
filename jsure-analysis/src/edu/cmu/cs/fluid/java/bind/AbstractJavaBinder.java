@@ -1819,7 +1819,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       if (ownerT instanceof IJavaArrayType) {
         // check that ft can accept a function type
         // that (int -> ownerT) is applicable.
-        IJavaFunctionType myType = JavaTypeFactory.getFunctionType(null, ownerT, Arrays.<IJavaType> asList(JavaTypeFactory.intType),
+        IJavaFunctionType myType = JavaTypeFactory.getFunctionType(null/*TODO*/, null, ownerT, Arrays.<IJavaType> asList(JavaTypeFactory.intType),
             false, null);
         if (getTypeEnvironment().isCallCompatible(myType, ft, InvocationKind.VARIABLE)) {
           // NB: no binding for array creation
@@ -2180,9 +2180,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     	  }
       }
       */
-      if (false && name.equals("collect") && "strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(DebugUnparser.toString(node))) {
+      if (false && name.equals("hasSize") && "<implicit>.assertThat(#.states).hasSize(3)".equals(DebugUnparser.toString(node))) {
       //if (name.equals("map") && "stream.map(Research:: <> create)".equals(DebugUnparser.toString(node))) {
-    	  System.out.println("Calling collect: "+DebugUnparser.toString(node));
+    	  System.out.println("Calling hasSize: "+DebugUnparser.toString(node));
       }
       final IJavaType recType = computeReceiverType(receiver);
       final IJavaScope toUse = computeScope(recType);
