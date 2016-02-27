@@ -1561,8 +1561,10 @@ public class JavaCanonicalizer {
     	Iterator<IJavaType> rqdit = fty.getParameterTypes().iterator();
     	Iterator<IRNode> paramIt = Parameters.getFormalIterator(methodParams);
     	//final Map<String,String> paramMapping = new HashMap<>();
-    	for (IRNode formal : JJNode.tree.children(LambdaExpression.getParams(node))) {
-    		final IRNode mParam = paramIt.next();
+    	final IRNode lambdaParams = LambdaExpression.getParams(node);    	
+    	boolean handleReceiver = JJNode.tree.numChildren(lambdaParams) > JJNode.tree.numChildren(methodParams);
+    	for (IRNode formal : JJNode.tree.children(lambdaParams)) {
+    		final IRNode mParam = handleReceiver ? null : paramIt.next();
     		//final String mName = JJNode.getInfo(mParam);
     		final String fName = JJNode.getInfo(formal);
     		/*
@@ -1578,9 +1580,16 @@ public class JavaCanonicalizer {
     			if (JJNode.tree.hasChildren(ParameterDeclaration.getAnnos(formal))) {
     				throw new IllegalStateException("Unexpected annotations on "+DebugUnparser.toString(formal));
     			}
-    			// Copying the annotations from the functional interface
-    			final IRNode origAnnos = ParameterDeclaration.getAnnos(mParam);
-    			IRNode annos = copyAnnos(origAnnos); 
+    			final IRNode annos;
+        		if (handleReceiver) {
+        			// TODO no annos on these receiver nodes?
+        			handleReceiver = false;         			
+        			annos = Annotations.createNode(noNodes);
+        		} else {
+        			// Copying the annotations from the functional interface
+        			final IRNode origAnnos = ParameterDeclaration.getAnnos(mParam);
+        			annos = copyAnnos(origAnnos); 
+        		}
     			IRNode newParam = ParameterDeclaration.createNode(annos, JavaNode.ALL_FALSE, ptype, fName);
     			SkeletonJavaRefUtility.copyIfPossible(formal, newParam);
     			newParamList.add(newParam);

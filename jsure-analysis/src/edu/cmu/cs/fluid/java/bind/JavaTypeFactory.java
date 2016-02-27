@@ -83,6 +83,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.ShortType;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
@@ -526,6 +527,15 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	  if (typeFormals == null) typeFormals = Collections.emptyList();
 	  if (paramTypes == null) paramTypes = Collections.emptyList();
 	  if (throwTypes == null) throwTypes = Collections.emptySet();
+	  
+	  final IRNode params = SomeFunctionDeclaration.getParams(memDecl);
+	  final boolean isStatic = TypeUtil.isStatic(memDecl);
+	  final int numParams = JJNode.tree.numChildren(params);
+	  if (numParams != paramTypes.size() && (!isStatic && numParams+1 != paramTypes.size())) {
+		  final String method = JavaNames.genQualifiedMethodConstructorName(memDecl);
+		  throw new IllegalArgumentException("#parameters for "+method+" ("+numParams+") != "+paramTypes);
+	  }
+	  
 	  JavaFunctionType ft = new JavaFunctionType(memDecl,
 			  typeFormals.toArray(emptyTypeFormals),
 			  returnType,
