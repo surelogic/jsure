@@ -2600,6 +2600,8 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		// Warning: this method is called from the constructor,
 		// before the hash code is assigned
 		int h = 0;
+		h += memDecl.hashCode();
+		
 		for (IJavaType p : pieces) {
 			h += p.hashCode();
 			h *= 3;
@@ -2623,7 +2625,8 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		if (x == this) return true;
 		JavaFunctionType ft = (JavaFunctionType)x;
 		if (ft.hashCode != hashCode) return false;
-		return ft.typeFormalList.equals(typeFormalList) &&
+		return ft.memDecl.equals(memDecl) &&
+				ft.typeFormalList.equals(typeFormalList) &&
 				ft.throwTypes.equals(throwTypes) &&
 				Arrays.equals(ft.pieces, pieces) &&
 				ft.isVariable == isVariable;
