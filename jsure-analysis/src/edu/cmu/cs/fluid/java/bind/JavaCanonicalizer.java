@@ -810,6 +810,9 @@ public class JavaCanonicalizer {
       }
       if (t instanceof IJavaTypeFormal) {
         IJavaTypeFormal f = (IJavaTypeFormal) t;
+        if (f.getDeclaration() == null) {
+        	throw new NullPointerException();
+        }
         String name = JJNode.getInfoOrNull(f.getDeclaration());
         IRNode result = createNamedType(name);
         addBinding(result, IBinding.Util.makeBinding(f.getDeclaration()));
@@ -1654,10 +1657,11 @@ public class JavaCanonicalizer {
      */
     private IRNode copyAnnos(IRNode origAnnos) {
     	final IRNode annos = Annotations.prototype.copyTree(origAnnos);
-    	Iterator<IRNode> it = Annotations.prototype.getAnnotIterator(origAnnos);
+    	Iterator<IRNode> it = Annotations.getAnnotIterator(origAnnos);
     	for(IRNode anno : JJNode.tree.children(annos)) {
     		// Note: we're delaying parameter renaming to when AASTs get parsed
     		IRNode orig = it.next();
+    		JavaNode.setModifier(anno, JavaNode.IMPLICIT, true);
     		SkeletonJavaRefUtility.copyIfPossible(orig, anno);
     	}
     	return annos;
