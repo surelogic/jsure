@@ -2,6 +2,7 @@ package com.surelogic.dropsea.ir;
 
 import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.dropsea.IModelingProblemDrop;
@@ -173,8 +174,33 @@ public final class DiffHeuristicsComputation implements DiffHeuristics {
 				|| c.isNeg("enclosing length", enclosing.getLength(), enclosing) || c.isNeg("offset", here.getOffset(), here)) {
 			return;
 		}
+		if (here.getAbsolutePathOrNull() != enclosing.getAbsolutePathOrNull()) {
+			// The refs aren't even in the same file?
+			return;
+		}
+		// This doesn't make sense if the 'here' ref is copied from another annotation's AST?
 		final int offset = enclosing.getOffset() + enclosing.getLength() - here.getOffset();
+		if (offset < 0) {
+			if (partOfLambda(here.getDeclaration())) {
+				return;
+			}
+		}
 		c.add(offset);
+	}
+
+	private static boolean partOfLambda(final IDecl d) {
+		if (d == null) {
+			return false;
+		}
+		switch (d.getKind()) {
+		case PARAMETER:
+		case METHOD:
+			return partOfLambda(d.getParent());
+		case LAMBDA:
+			return true;
+		default:
+		}
+		return false;
 	}
 
 	/**
