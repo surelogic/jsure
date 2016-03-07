@@ -58,7 +58,7 @@ public class TestAASTCloning extends TestCase {
 
 			LockDeclarationNode clone = (LockDeclarationNode) node.cloneTree();
 			assertFalse(node == clone);
-			assertFalse(node.getId() == clone.getId());
+			assertTrue(node.getId() == clone.getId());
 			assertTrue(node.getId().equals(clone.getId()));
 			assertTrue(node.getOffset() == clone.getOffset());
 			
@@ -96,11 +96,11 @@ public class TestAASTCloning extends TestCase {
 				assertFalse(n1 == n2);
 
 				assertFalse(n1.getFrom() == n2.getFrom());
-				assertFalse(n1.getFrom().getId() == n2.getFrom().getId());
+				assertTrue(n1.getFrom().getId() == n2.getFrom().getId());
 				assertTrue(n1.getFrom().getId().equals(n2.getFrom().getId()));
 
 				assertFalse(n1.getTo() == n2.getTo());
-				assertFalse(n1.getTo().getId() == n2.getTo().getId());
+				assertTrue(n1.getTo().getId() == n2.getTo().getId());
 				assertTrue(n1.getTo().getId().equals(n2.getTo().getId()));
 
 			}
@@ -120,7 +120,7 @@ public class TestAASTCloning extends TestCase {
 			
 			PolicyLockDeclarationNode clone = (PolicyLockDeclarationNode) node.cloneTree();
 			assertFalse(node == clone);
-			assertFalse(node.getId() == clone.getId());
+			assertTrue(node.getId() == clone.getId());
 			assertTrue(node.getId().equals(clone.getId()));
 			assertTrue(node.getOffset() == clone.getOffset());
 			assertFalse(node.getField() == clone.getField());
@@ -140,7 +140,7 @@ public class TestAASTCloning extends TestCase {
 			
 			RegionDeclarationNode clone = (RegionDeclarationNode) node.cloneTree();
 			assertFalse(node == clone);
-			assertFalse(node.getId() == clone.getId());
+			assertTrue(node.getId() == clone.getId());
 			assertTrue(node.getId().equals(clone.getId()));
 			assertTrue(node.getOffset() == clone.getOffset());
 		} catch (Exception e) {
@@ -169,7 +169,7 @@ public class TestAASTCloning extends TestCase {
 				LockSpecificationNode l2 = list2.get(i);
 				assertFalse(l1 == l2);
 				assertFalse(l1.getLock() == l2.getLock());
-				assertFalse(l1.getLock().getId() == l2.getLock().getId());
+				assertTrue(l1.getLock().getId() == l2.getLock().getId());
 				assertTrue(l1.getLock().getId().equals(l2.getLock().getId()));
 			}
 		} catch (Exception e) {
