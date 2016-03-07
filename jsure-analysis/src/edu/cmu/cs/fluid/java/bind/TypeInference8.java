@@ -813,7 +813,7 @@ public class TypeInference8 {
    */
   IJavaFunctionType inferForInvocationType(ICallState call, MethodBinding8 m, BoundSet b_2, boolean eliminateTypeVars,
       IJavaType targetType) {
-	final String unparse = null;//call.toString();
+	final String unparse = call.toString();
 	BoundSet b_3;
     /*
      * - If the invocation is not a poly expression, let the bound set B 3 be
@@ -840,7 +840,7 @@ public class TypeInference8 {
         }
       }
       //if ("strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(unparse)) {
-      if (unparse != null && unparse.equals("<implicit>.assertThat(evaluated.allArguments)")) {
+      if (unparse != null && unparse.startsWith("<implicit>.assertThat(")) {
       //if (unparse.startsWith("strings.map(")) {      
     	  System.out.println("Looking at map()");
     	  if (targetType.toString().equals("java.util.stream.Stream<testVertx.Buffer>")) {
@@ -4630,9 +4630,13 @@ public class TypeInference8 {
     }
     final MethodBinding8 m;
     if (reformulatedB == b) {
+    	/*
         final IBinding newB = IBinding.Util.makeMethodBinding(b, null, JavaTypeSubstitution.create(tEnv, b.getContextType()), null, tEnv);
         final MethodBinding temp = new MethodBinding(newB);
         m = MethodBinding8.create(call, temp, tEnv, null, b.kind);
+        */
+    	// TODO why is this using the context type, instead of the receiver type?
+    	m = MethodBinding8.create(call, b, tEnv, JavaTypeSubstitution.create(tEnv, b.getContextType()), b.kind);
     } else {
     	m = reformulatedB;
     }
