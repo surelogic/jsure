@@ -53,7 +53,14 @@ public class MethodBinder8 implements IMethodBinder {
         		// See if we need to reconstitute the receiver/context type for the binding
         		// if not a generic method
         		if (recSubst != IJavaTypeSubstitution.NULL && !typeInfer.isGenericMethodRef(mb)) {
-        			IBinding newB = b; // TODO
+        			IJavaType newRec = b.getReceiverType().subst(recSubst);
+        			        			
+        			if (false && "<implicit>.assertThat(#.states).hasSize(3)".equals(call.toString())) {
+        				System.out.println("Reconstituting binding for problematic call");
+        			}
+        			IBinding newB = IBinding.Util.makeMethodBinding(b, null, recSubst, newRec, tEnv); // TODO replace nulls?        
+        			// TODO Need to combine the subst?
+        			// Note that we also need to modify the callstate?
         			mb = new MethodBinding(newB);
         		}
         		applicable.add(mb);
@@ -1776,13 +1783,35 @@ public class MethodBinder8 implements IMethodBinder {
     		return new MethodBinding8(tEnv, call, newB, kind); 
 		}
 		
+		/*
+		 *  Why rework the bindings?
+		 *  1. to clear out 'premature' substitutions introduced by 
+		 */
 		static IBinding reworkBinding(ICallState call, IBinding b, ITypeEnvironment tEnv, IJavaTypeSubstitution newTypeSubst) {
 			//System.out.println("Receiver for "+call+" : "+call.getReceiverType());
-			final boolean sameReceiver = call.getReceiverType() == b.getReceiverType();
+			final boolean sameReceiver = call.getReceiverType() == null || call.getReceiverType() == b.getReceiverType();
 			final boolean sameSubst = newTypeSubst == null || b.getSubst() == newTypeSubst;
 			if (sameReceiver && sameSubst) {
 				return b;
 			}			
+			/*
+			if (!sameReceiver) {
+				System.out.println("Overwrites any changes to the binding?!? "+call.getReceiverType()+" instead of "+b.getReceiverType());
+				System.out.println();
+			}
+			*/
+			/*
+			if (newTypeSubst == IJavaTypeSubstitution.NULL) {
+				newTypeSubst = null;
+			}
+			else 
+			*/
+			/*
+			if (!sameSubst) {
+				System.out.println("Overwrites any changes to the subst?!? "+newTypeSubst+" instead of "+b.getSubst());
+				System.out.println();
+			}
+			*/
 			return IBinding.Util.makeMethodBinding(b, b.getContextType(), // TODO is this right? (for diamond op)?
 					                               newTypeSubst, call.getReceiverType(), tEnv);
 		}
