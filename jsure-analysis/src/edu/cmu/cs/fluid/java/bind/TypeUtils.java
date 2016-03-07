@@ -2014,6 +2014,7 @@ public class TypeUtils {
     if (b instanceof MethodBinding8) {
     	bi = (MethodBinding8) b;
     } else {
+    	// Primarily here to support annotation accessors
     	MethodBinding m = new MethodBinding(b);
     	CallState state = CallState.create(tEnv.getBinder(), call, targs, args, b.getReceiverType());
     	bi = MethodBinding8.create(state, m, tEnv, IJavaTypeSubstitution.NULL, IMethodBinder.InvocationKind.STRICT);
