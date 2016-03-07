@@ -70,6 +70,9 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 				  */
 				  realSubst = JavaTypeSubstitution.createReal(tEnv, jt);
 			  }
+			  if (realSubst == null) {
+				  realSubst = IJavaTypeSubstitution.NULL;
+			  }
 		  }
 		  
 		  @Override
@@ -112,7 +115,7 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 		  @Override
       public ITypeEnvironment getTypeEnv() {
 			  ensureSubst();
-			  if (realSubst == null) {
+			  if (realSubst == null || realSubst == IJavaTypeSubstitution.NULL) {
 				  return tEnv;
 			  }
 			  return realSubst.getTypeEnv();
