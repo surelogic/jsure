@@ -491,12 +491,9 @@ public class TypeInference8 {
         hack = constructInitialSet(callForReceiver, v.formals, IJavaTypeSubstitution.NULL);
         call = new CallState((CallState) call, Util.subst(call.getReceiverType(), hack.getInitialVarSubst()));
 
-        IBinding b = IBinding.Util.makeMethodBinding(m.bind, (IJavaDeclaredType) Util.subst(m.getContextType(), hack.getInitialVarSubst()), null, // TODO
-                                                                                                                        // what
-                                                                                                                        // should
-                                                                                                                        // this
-                                                                                                                        // be?
-            call.getReceiverType(), tEnv);
+        IBinding b = IBinding.Util.makeMethodBinding(m.bind, (IJavaDeclaredType) Util.subst(m.getContextType(), hack.getInitialVarSubst()), 
+        		null, // TODO what should this be
+        		call.getReceiverType(), tEnv);
         m = new MethodBinding(b);
       }
     }
