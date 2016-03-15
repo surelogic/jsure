@@ -810,7 +810,7 @@ public class TypeInference8 {
    */
   IJavaFunctionType inferForInvocationType(ICallState call, MethodBinding8 m, BoundSet b_2, boolean eliminateTypeVars,
       IJavaType targetType) {
-	final String unparse = call.toString();
+	final String unparse = null;//call.toString();
 	BoundSet b_3;
     /*
      * - If the invocation is not a poly expression, let the bound set B 3 be
@@ -837,10 +837,10 @@ public class TypeInference8 {
         }
       }
       //if ("strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(unparse)) {
-      if (unparse != null && unparse.startsWith("<implicit>.assertThat(")) {
+      if (unparse != null && unparse.startsWith("stExps.stream.flatMap((#) -> #.stream#).map((# # pmid) -> #.get(#))")) {
       //if (unparse.startsWith("strings.map(")) {      
     	  System.out.println("Looking at map()");
-    	  if (targetType.toString().equals("java.util.stream.Stream<testVertx.Buffer>")) {
+    	  if (targetType.toString().equals("java.util.stream.Stream<testSpeso.orgs.PubVisible>")) {
     		  System.out.println("Found bad target type");
     		  utils.getPolyExpressionTargetType(call.getNode(), false);
     	  }
@@ -1307,11 +1307,13 @@ public class TypeInference8 {
     // Step 4: apply instantiations
     // Step 5: reduce and incorporate into current
     final Map<InferenceVariable, IJavaType> allInstantiations = next.getInstantiations();
+    /* Why only selected?
     final Map<InferenceVariable, IJavaType> selectedInstantiations = new HashMap<InferenceVariable, IJavaType>(toResolve.size());
     for (InferenceVariable v : toResolve) {
       selectedInstantiations.put(v, allInstantiations.get(v));
     }
-    final IJavaTypeSubstitution subst = TypeSubstitution.create(tEnv.getBinder(), selectedInstantiations);
+    */
+    final IJavaTypeSubstitution subst = TypeSubstitution.create(tEnv.getBinder(), allInstantiations);
     for (ConstraintFormula f : selected) {
       ConstraintFormula f_prime = f.subst(subst);
       reduceConstraintFormula(current, f_prime);
@@ -3101,6 +3103,7 @@ public class TypeInference8 {
           getInstantiations();
           System.err.println("No instantiation for " + e.getKey());
         }
+        final IJavaType t_final;
         if (useSubstAsBounds && t instanceof IJavaDeclaredType && t.getName().equals("java.lang.Object")) {
           /*
            * System.out.println("Rebounded: "+e.getKey()); if (
@@ -3116,9 +3119,14 @@ public class TypeInference8 {
            * if (t.equals(f.getExtendsBound(tEnv))) { // TODO Skip substitution?
            * continue; }
            */
-          subst.put(e.getKey(), new ReboundedTypeFormal(tEnv, e.getKey(), t));
+          t_final = new ReboundedTypeFormal(tEnv, f, t);
         } else {
-          subst.put(e.getKey(), t);
+          t_final = t;
+        }
+        subst.put(e.getKey(), t_final);
+        final Equality eq = equalities.find(e.getValue());
+        for(InferenceVariable v : eq.vars) {
+        	subst.put(v, t_final); // Include for completeness!
         }
       }
       return subst;
@@ -3760,19 +3768,18 @@ public class TypeInference8 {
      * 
      * Otherwise, the result contains the bound false, so a second attempt is
      * made to instantiate { α 1 , ..., α n } by performing the step below.
-     * 
-     * @param subset
      */
-    BoundSet instantiateFromBounds(Set<InferenceVariable> subset) {
+    BoundSet instantiateFromBounds(final Set<InferenceVariable> subset, final Multimap<InferenceVariable, InferenceVariable> equal) {
       final ProperBounds bounds = collectProperBounds(false);
       final BoundSet rv = new BoundSet(this);
       for (InferenceVariable a_i : subset) {
-        Collection<IJavaType> lower = bounds.lowerBounds.get(a_i);
+    	final Collection<InferenceVariable> vars = equal.get(a_i);
+    	final List<IJavaType> lower = collectBounds(bounds.lowerBounds, a_i, vars);    	  
         if (lower != null && !lower.isEmpty()) {
           rv.addEqualityBound(a_i, utils.getLowestUpperBound(toArray(lower)));
           continue;
         }
-        Collection<IJavaType> upper = bounds.upperBounds.get(a_i);
+        final List<IJavaType> upper = collectBounds(bounds.upperBounds, a_i, vars);
         if (thrownSet.contains(a_i) && qualifiesAsRuntimeException(upper)) {
           rv.addEqualityBound(a_i, tEnv.findJavaTypeByName("java.lang.RuntimeException"));
           continue;
@@ -3833,6 +3840,32 @@ public class TypeInference8 {
     }
 
     /**
+     * 
+     * @param toInstantiate Modified after return to remove equivalent variables
+     * @return
+     */
+    Multimap<InferenceVariable, InferenceVariable> reduceEquivalences(final Set<InferenceVariable> toInstantiate) {
+        final Multimap<InferenceVariable, InferenceVariable> equal = ArrayListMultimap.create();
+        for (IEquality e : equalities) {
+          if (e.vars().size() > 1) {
+            Set<InferenceVariable> matched = new HashSet<InferenceVariable>(e.vars());
+            matched.retainAll(toInstantiate);
+            if (matched.size() > 1) {
+              // Keep only one of the equivalent variables
+              final InferenceVariable v = e.getRep();// matched.iterator().next();
+              if (!matched.contains(v)) {
+                throw new IllegalStateException(); // Not in the same cycle?
+              }
+              toInstantiate.removeAll(matched);
+              toInstantiate.add(v);
+              equal.putAll(v, e.vars()); // TODO matched?
+            }
+          }
+        }
+        return equal;
+    }
+    
+    /**
      * then let Y 1 , ..., Y n be fresh type variables whose bounds are as
      * follows:
      * 
@@ -3857,33 +3890,17 @@ public class TypeInference8 {
      * variables to instantiate (if necessary), as described above.
      * 
      * Otherwise, the result contains the bound false, and resolution fails.
+     * @param toInstantiate 
+     * @param equal 
      * 
      * @return the new bound set to try to resolve
      */
-    BoundSet instantiateViaFreshVars(final Set<InferenceVariable> origSubset, final boolean debug) {
+    BoundSet instantiateViaFreshVars(final Set<InferenceVariable> origSubset, Set<InferenceVariable> toInstantiate, 
+    		                         Multimap<InferenceVariable, InferenceVariable> equal, final boolean debug) {
       // HACK use the same type variable for equalities:
       // Remove "duplicate" variables from origSubset
       // Take advantage of incorporation to set the "duplicates" to the same
       // type variable
-      final Set<InferenceVariable> toInstantiate = new HashSet<InferenceVariable>(origSubset);
-      final Multimap<InferenceVariable, InferenceVariable> equal = ArrayListMultimap.create();
-      for (IEquality e : equalities) {
-        if (e.vars().size() > 1) {
-          Set<InferenceVariable> matched = new HashSet<InferenceVariable>(e.vars());
-          matched.retainAll(toInstantiate);
-          if (matched.size() > 1) {
-            // Keep only one of the equivalent variables
-            final InferenceVariable v = e.getRep();// matched.iterator().next();
-            if (!matched.contains(v)) {
-              throw new IllegalStateException(); // Not in the same cycle?
-            }
-            toInstantiate.removeAll(matched);
-            toInstantiate.add(v);
-            equal.putAll(v, e.vars()); // TODO matched?
-          }
-        }
-      }
-
       final ProperBounds bounds = collectProperBounds(true);
       final Map<InferenceVariable, TypeVariable> y_subst = new HashMap<InferenceVariable, TypeVariable>(toInstantiate.size());
       for (InferenceVariable a_i : toInstantiate) {
@@ -4112,12 +4129,14 @@ public class TypeInference8 {
   /**
    * Try to resolve the specific subset of variables.
    */
-  static BoundSet resolveVariables(final BoundSet bounds, final Set<InferenceVariable> subset, final boolean debug) {
-    if (subset.isEmpty()) {
+  static BoundSet resolveVariables(final BoundSet bounds, final Set<InferenceVariable> origSubset, final boolean debug) {
+    if (origSubset.isEmpty()) {
       return bounds; // All instantiated
     }
-    if (bounds.hasNoCaptureBoundInvolvingVars(subset)) {
-      BoundSet fresh = bounds.instantiateFromBounds(subset);
+    final Set<InferenceVariable> toInstantiate = new HashSet<InferenceVariable>(origSubset);
+    final Multimap<InferenceVariable, InferenceVariable> equal = bounds.reduceEquivalences(toInstantiate);
+    if (bounds.hasNoCaptureBoundInvolvingVars(origSubset)) {
+      BoundSet fresh = bounds.instantiateFromBounds(toInstantiate, equal);
       // BoundSet rv = resolve(fresh);
       if (fresh != null && !fresh.isFalse) {
         return fresh;
@@ -4125,7 +4144,7 @@ public class TypeInference8 {
       // Otherwise, try below
       //System.out.println("Couldn't resolve from bounds");
     }
-    BoundSet fresh = bounds.instantiateViaFreshVars(subset, debug);
+    BoundSet fresh = bounds.instantiateViaFreshVars(origSubset, toInstantiate, equal, debug);
     // return resolve(fresh);
     return fresh;
   }
@@ -4560,6 +4579,9 @@ public class TypeInference8 {
           null/* tEnv.getBinder().getJavaType(e) */)) {
         bounds.addTrue();
       } else {
+    	if (bounds.debug) {
+    		System.out.println();
+    	}
         mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e,
             null/* tEnv.getBinder().getJavaType(e) */);
         bounds.addFalse();
@@ -4617,8 +4639,8 @@ public class TypeInference8 {
   // Note that the method binding returned can be pre-substituted to match the BoundSet?
   // (i.e. set the receiver type / subst based on the inference variables for that call?
   public Pair<MethodBinding, BoundSet> recomputeB_2(ICallState call, MethodBinding8 b) {
-	final String unparse = null;//call.toString();
-	if (unparse != null && unparse.equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)")) {
+	final String unparse = call.toString();
+	if (unparse != null && unparse.equals("stream.map(#:: <> create).sorted((# # r1, # # r2) -> -1 * #.compare#)")) {
 		System.out.println("Recomputing B2 for "+unparse);
 	}	
 	final MethodBinding8 reformulatedB = reformulateBindingForInvocationBounds(call.getReceiverOrNull(), b);
@@ -4636,6 +4658,7 @@ public class TypeInference8 {
     	m = MethodBinding8.create(call, b, tEnv, JavaTypeSubstitution.create(tEnv, b.getContextType()), b.kind);
     } else {
     	m = reformulatedB;
+    	call = call.replaceReceiverType(m.getReceiverType());
     }
     BoundSet b_2 = b_2Cache.get(new Pair<IRNode, IRNode>(call.getNode(), m.bind.getNode()));
     if (b_2 == null) {
@@ -5683,6 +5706,16 @@ public class TypeInference8 {
     }
   }
 
+  static IJavaType simplify(IJavaTypeSubstitution subst, TypeUtils utils, IJavaType t) {
+  	IJavaType temp = t.subst(subst);
+  	/*
+  	if (temp != t) {
+  	  System.out.println("Simplified types for cache: "+t+" -> "+temp);
+  	}
+  	*/
+  	return eliminateTypeVariables(utils, temp);
+  }
+  
   static class LambdaCache implements JavaCanonicalizer.IBinderCache {
     final Map<IRNode, IJavaType> map = new HashMap<IRNode, IJavaType>();
 
@@ -5715,16 +5748,6 @@ public class TypeInference8 {
       }
       map.put(JJNode.tree.getParent(lambda), simplify(subst, utils, targetFuncType.getReturnType()));
       map.put(lambda, simplify(subst, utils, t));
-    }
-
-    private IJavaType simplify(IJavaTypeSubstitution subst, TypeUtils utils, IJavaType t) {
-    	IJavaType temp = t.subst(subst);
-    	/*
-    	if (temp != t) {
-    	  System.out.println("Simplified types for cache: "+t+" -> "+temp);
-    	}
-    	*/
-    	return eliminateTypeVariables(utils, temp);
     }
     
     public void init(IRNode tree) {
