@@ -1357,9 +1357,11 @@ public class MethodBinder8 implements IMethodBinder {
 		// TODO what should this be?
 		if (varType instanceof TypeVariable) {
 			TypeVariable v = (TypeVariable) varType;
-			return type.isSubtype(tEnv, v.getUpperBound(tEnv)); // TODO HACK
+			IJavaType simplified = TypeInference8.simplify(IJavaTypeSubstitution.NULL, typeInfer.utils, v);
+			//return type.isSubtype(tEnv, v.getUpperBound(tEnv)); // TODO HACK
+			return isCallCompatible(varType, expr, simplified, true);
 		}
-		return isCallCompatible(varType, expr, type, false);
+		return isCallCompatible(varType, expr, type, true);
 	}
 	
     /*
@@ -1482,6 +1484,7 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 			// subst for rebounded formals?
 			final IJavaTypeSubstitution subst;
+			// TODO which cases of null subst do I want to keep?
 			if (true) {
 				final TypeFormalCollector v = new TypeFormalCollector(false);
 				// copied from isApplicableAndCompatible()
@@ -1491,7 +1494,13 @@ public class MethodBinder8 implements IMethodBinder {
 					}
 					pType.visit(v);
 				}		
-				subst = v.getSubst(tEnv);
+				IJavaTypeSubstitution temp = v.getSubst(tEnv);
+				/*
+				if (temp == IJavaTypeSubstitution.NULL && temp != m.getSubst()) {
+					System.out.println(m.getSubst()+" would have been nullified for "+call);
+				}
+				*/
+				subst = temp == IJavaTypeSubstitution.NULL ? null : temp;
 			} else {
 				subst = IJavaTypeSubstitution.NULL;
 			}
@@ -1503,6 +1512,8 @@ public class MethodBinder8 implements IMethodBinder {
 			*/
 			final boolean usesVarargs = usesVarargs();
 			if (isApplicableAndCompatible(call, m, subst, context, usesVarargs)) {
+				//Not quite right
+				//final IJavaTypeSubstitution s = subst == IJavaTypeSubstitution.NULL ? null : subst;
 				return MethodBinding8.create(call, m, tEnv, subst, getKind());
 			}
 			return null;
