@@ -702,7 +702,11 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       IJavaType bt = convertNodeTypeToIJavaType(baseNode, binder);
       
       if (!(bt instanceof JavaDeclaredType)) {
-          LOG.severe("parameterizing what? " + bt);
+    	  if (AbstractJavaBinder.isBinary(nodeType)) {
+    		  System.err.println("parameterizing what? " + bt);
+    	  } else {
+    		  LOG.severe("parameterizing what? " + bt);
+    	  }
           return bt;
       }
       JavaDeclaredType base = (JavaDeclaredType)bt;

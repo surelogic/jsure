@@ -8,8 +8,7 @@ import java.util.logging.Logger;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
-import edu.cmu.cs.fluid.java.operator.Type;
+import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -79,6 +78,14 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 			/*
 			if (op == Type.prototype) {
 				System.out.println("Computing bindings for Type");
+			}
+			*/
+			/*
+			if (op instanceof LambdaExpression) {
+		    	final String unparse = DebugUnparser.toString(n);
+		    	if (unparse.equals("(pmid) -> pubMap.get(pmid)")) {
+		    		System.out.println("Pre-computing type forir lambda: "+unparse);
+		    	}
 			}
 			*/
 			//if (!isUJB) { 

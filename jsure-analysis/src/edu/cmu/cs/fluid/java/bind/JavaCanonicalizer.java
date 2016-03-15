@@ -1508,7 +1508,7 @@ public class JavaCanonicalizer {
 	public Boolean visitLambdaExpression(IRNode node) {
     	/*
     	final String unparse = DebugUnparser.toString(node);
-    	if (unparse.equals("(left, right) -> { #.addAll#; return #; }")) {
+    	if (unparse.equals("(pmid) -> pubMap.get(pmid)")) {
     		System.out.println("Converting lambda: "+unparse+" : "+binder.getJavaType(node));
     	}
     	*/
