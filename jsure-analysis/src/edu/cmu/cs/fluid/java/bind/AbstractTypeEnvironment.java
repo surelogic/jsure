@@ -60,6 +60,7 @@ import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.ReturnTypeInterface;
 import edu.cmu.cs.fluid.java.operator.ShortType;
+import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
@@ -137,7 +138,29 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  }
 	  IJavaType result = convertedTypeCache.get(nodeType);
 	  if (result == null) {
+		  final Operator op = null;//JJNode.tree.getOperator(nodeType);
+		  try {	      		  	  				  
 		  result = JavaTypeFactory.convertNodeTypeToIJavaType(nodeType, getBinder());
+
+		  if (op != null && op == Type.prototype) {
+			  final IRNode p = JJNode.tree.getParent(nodeType);
+			  final String name = JJNode.getInfo(p);
+			  if (//"pmid".equals(name) || 
+					//  "exp".equals(name) || 
+					  "pub".equals(name)
+					  /* ||"au".equals(name)*/) {
+				  if (result.equals(getObjectType())) {
+					  System.out.println("Found reference to au");
+					  JavaTypeFactory.convertNodeTypeToIJavaType(nodeType, getBinder());
+				  }
+			  }
+		  }	
+		  } catch(StackOverflowError e) {
+			  System.out.println("Overflow while converting "+op.name()+": "+DebugUnparser.toString(nodeType));
+			  IRNode p = JJNode.tree.getParent(nodeType);
+			  System.out.println("\tparent: "+DebugUnparser.toString(p));
+			  throw e;
+		  }
 		  if (result != null) {
 			  convertedTypeCache.put(nodeType, result);		 		  
 		  } else if (!AbstractJavaBinder.isBinary(nodeType)) {
