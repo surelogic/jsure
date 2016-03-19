@@ -812,6 +812,11 @@ public class TypeInference8 {
       IJavaType targetType) {
 	final String unparse = null;//call.toString();
 	BoundSet b_3;
+	
+	if (unparse != null && unparse.equals("Arrays.stream(#).map((#) -> #.create#).collect(Collectors.toList)")) {
+		System.out.println("Inferring invocation type for "+unparse);
+	}
+	
     /*
      * - If the invocation is not a poly expression, let the bound set B 3 be
      * the same as B 2 .
@@ -826,14 +831,18 @@ public class TypeInference8 {
       final boolean computeTargetType = (targetType == null);
       if (computeTargetType) {
     	// WORKING
-        if (unparse != null && unparse.equals("crlPaths.stream.map((# # path) -> #.resolveFile#.getAbsolutePath)")) {
+    	if (unparse != null && unparse.equals("Arrays.stream(#).map((#) -> #.create#).collect(Collectors.toList)")) {
     		System.out.println("Computing target type for "+unparse);
     	}
         targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
         if (targetType == null) {
           targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
         } else {
+          final IJavaType oldTarget = targetType;
           targetType = eliminateReboundedTypeFormals(tEnv, targetType);
+          if (targetType == null) {
+        	  eliminateReboundedTypeFormals(tEnv, oldTarget);
+          }
         }
       }
       //if ("strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(unparse)) {
@@ -861,9 +870,9 @@ public class TypeInference8 {
         return null;
       }
     }
-    if (unparse != null && unparse.equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)")) {
+    if (unparse != null && unparse.equals("Arrays.stream(#).map((#) -> #.create#).collect(Collectors.toList)")) {
       System.out.println("About to create constraints");
-	  if (targetType.toString().equals("java.util.stream.Stream<testVertx.Buffer>")) {
+	  if (targetType != null && targetType.toString().equals("java.util.stream.Stream<testVertx.Buffer>")) {
 		  System.out.println("Found bad target type");
       }
     }
@@ -1307,13 +1316,13 @@ public class TypeInference8 {
     // Step 4: apply instantiations
     // Step 5: reduce and incorporate into current
     final Map<InferenceVariable, IJavaType> allInstantiations = next.getInstantiations();
-    /* Why only selected?
+    /* Why only selected? */
     final Map<InferenceVariable, IJavaType> selectedInstantiations = new HashMap<InferenceVariable, IJavaType>(toResolve.size());
     for (InferenceVariable v : toResolve) {
       selectedInstantiations.put(v, allInstantiations.get(v));
     }
-    */
-    final IJavaTypeSubstitution subst = TypeSubstitution.create(tEnv.getBinder(), allInstantiations);
+    /**/
+    final IJavaTypeSubstitution subst = TypeSubstitution.create(tEnv.getBinder(), selectedInstantiations);
     for (ConstraintFormula f : selected) {
       ConstraintFormula f_prime = f.subst(subst);
       reduceConstraintFormula(current, f_prime);
@@ -2105,6 +2114,11 @@ public class TypeInference8 {
       if (e == null || t == null) {
     	  throw new NullPointerException();
       }
+      /*
+      if (!isProperType(t)) {
+    	  System.out.println("Not proper? "+t);
+      }
+      */
       expr = e;
       stype = null;
       constraint = c;
