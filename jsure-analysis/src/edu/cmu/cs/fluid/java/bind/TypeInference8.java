@@ -846,12 +846,12 @@ public class TypeInference8 {
         }
       }
       //if ("strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(unparse)) {
-      if (unparse != null && unparse.startsWith("stExps.stream.flatMap((#) -> #.stream#).map((# # pmid) -> #.get(#))")) {
+      if (unparse != null && unparse.startsWith("futures.toArray(new Future[#.size#])")) {
       //if (unparse.startsWith("strings.map(")) {      
     	  System.out.println("Looking at map()");
-    	  if (targetType.toString().equals("java.util.stream.Stream<testSpeso.orgs.PubVisible>")) {
-    		  System.out.println("Found bad target type");
-    		  utils.getPolyExpressionTargetType(call.getNode(), false);
+    	  if (targetType.toString().equals("vertx.core.Future<?>[]")) {
+    		  System.out.println("vertx.core.Future<?>[]");
+    		  //utils.getPolyExpressionTargetType(call.getNode(), false);
     	  }
       }
       final IJavaFunctionType ftype = mb.computeMethodType(m, call);
@@ -5140,14 +5140,15 @@ public class TypeInference8 {
   /**
    * 18.2.3 Subtyping Constraints
    * 
-   * A constraint formula of the form < S <: T > is reduced as follows: - If S
-   * and T are proper types, the constraint reduces to true if S is a subtype of
-   * T (Â§4.10), and false otherwise. - Otherwise, if S is the null type, the
-   * constraint reduces to true. - Otherwise, if T is the null type, the
-   * constraint reduces to false. - Otherwise, if S is an inference variable, α,
-   * the constraint reduces to the bound α <: T . - Otherwise, if T is an
-   * inference variable, α, the constraint reduces to the bound S <: α. -
-   * Otherwise, the constraint is reduced according to the form of T :
+   * A constraint formula of the form < S <: T > is reduced as follows: 
+   * - If S and T are proper types, the constraint reduces to true if S is a subtype of
+   *   T (Â§4.10), and false otherwise. 
+   * - Otherwise, if S is the null type, the constraint reduces to true. 
+   * - Otherwise, if T is the null type, the constraint reduces to false. 
+   * - Otherwise, if S is an inference variable, α,
+   *   the constraint reduces to the bound α <: T . 
+   * - Otherwise, if T is an inference variable, α, the constraint reduces to the bound S <: α. 
+   * - Otherwise, the constraint is reduced according to the form of T :
    * 
    * - If T is a parameterized class or interface type, or an inner class type
    * of a parameterized class or interface type (directly or indirectly), let A
@@ -5187,7 +5188,7 @@ public class TypeInference8 {
         bounds.addTrue();
       } 
       else if (hasRawSuperTypeOf(s, t)) {
-    	  bounds.useUncheckedConversion();
+    	  //bounds.useUncheckedConversion();
       } else {
     	  //System.out.println("F check");
     	  tEnv.isSubType(s, t);
@@ -5203,7 +5204,7 @@ public class TypeInference8 {
 
     else if (t instanceof IJavaDeclaredType) {
       if (hasRawSuperTypeOf(s, t)) {
-    	  bounds.useUncheckedConversion();
+    	  //bounds.useUncheckedConversion();
     	  return;
       }
       final IJavaDeclaredType dt = (IJavaDeclaredType) t;
