@@ -1109,7 +1109,12 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
   }
   
   public boolean isSubtype(ITypeEnvironment env, IJavaType t2) {
+	try {
     return env.isSubType(this, t2);
+	} catch(StackOverflowError e) {
+	  System.out.println("isSubType: overflow on "+getClass().getName()+" - "+this);
+	  throw e;
+	}
   }
   
   public boolean isAssignmentCompatible(ITypeEnvironment env, IJavaType t2, IRNode e2) {

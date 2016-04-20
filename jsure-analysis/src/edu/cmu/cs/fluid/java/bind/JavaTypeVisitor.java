@@ -435,7 +435,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	  IJavaType targetType = utils.getPolyExpressionTargetType(node, true);
 	  MethodBinder8 mb = new MethodBinder8((IPrivateBinder) binder, false);
 	  if (MethodBinder8.containsTypeVariables(targetType)) {
-		  utils.getPolyExpressionTargetType(node);
+		  utils.getPolyExpressionTargetType(node, true); // java.util.function.Function<? super java.lang.String,? extends &2k903v[..., java.lang.String] & java.lang.String>
 	  }
 	  return mb.computeGroundTargetType(node, targetType);
   }
