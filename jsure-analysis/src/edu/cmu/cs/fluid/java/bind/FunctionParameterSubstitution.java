@@ -24,6 +24,9 @@ public class FunctionParameterSubstitution extends AbstractTypeSubstitution {
   @Override
   protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
     IRNode decl = jtf.getDeclaration();
+    if (decl == null) {
+      return null;
+    }
     IRNode parent = JJNode.tree.getParent(decl);
     IRNode md = JJNode.tree.getParent(parent);
     if (methodDecl.equals(md)) {
