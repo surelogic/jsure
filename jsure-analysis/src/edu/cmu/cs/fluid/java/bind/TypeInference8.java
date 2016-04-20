@@ -278,6 +278,19 @@ public class TypeInference8 {
       upperBound = l;
     }
 
+    @Override
+    public boolean isSubtype(ITypeEnvironment env, IJavaType t2) {
+    	if (previouslyVisited) {
+    	  return true; // TODO is this right?
+    	}
+    	try {
+    	  previouslyVisited = true;
+    	  return super.isSubtype(env, t2);
+    	} finally {
+    	  previouslyVisited = false;
+    	}
+    }
+    
     public IJavaType subst(IJavaTypeSubstitution s) {
       if (previouslyVisited) {
         return this; // TODO is this right?
@@ -831,12 +844,13 @@ public class TypeInference8 {
       final boolean computeTargetType = (targetType == null);
       if (computeTargetType) {
     	// WORKING
-    	if (unparse != null && unparse.equals("Arrays.stream(#).map((#) -> #.create#).collect(Collectors.toList)")) {
+    	if (unparse != null && unparse.equals("systemProperties.stream.map((# # s) -> \"-D\" + #)")) {
     		System.out.println("Computing target type for "+unparse);
+    		// java.util.stream.Stream<&2ahluj[java.lang.String, &3zmwas[..., java.lang.String]]>
     	}
-        targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
+        targetType = utils.getPolyExpressionTargetType(call.getNode(), eliminateTypeVars);
         if (targetType == null) {
-          targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
+          targetType = utils.getPolyExpressionTargetType(call.getNode(), eliminateTypeVars);
         } else {
           final IJavaType oldTarget = targetType;
           targetType = eliminateReboundedTypeFormals(tEnv, targetType);
@@ -846,10 +860,10 @@ public class TypeInference8 {
         }
       }
       //if ("strings.map(#:: <> parseInt).collect(<implicit>.toList)".equals(unparse)) {
-      if (unparse != null && unparse.startsWith("futures.toArray(new Future[#.size#])")) {
+      if (unparse != null && unparse.startsWith("systemProperties.stream.map((#) -> # + #).collect(Collectors.toList)")) {
       //if (unparse.startsWith("strings.map(")) {      
     	  System.out.println("Looking at map()");
-    	  if (targetType.toString().equals("vertx.core.Future<?>[]")) {
+    	  if (targetType.toString().equals("java.util.Collection<? extends java.lang.String>")) {
     		  System.out.println("vertx.core.Future<?>[]");
     		  //utils.getPolyExpressionTargetType(call.getNode(), false);
     	  }
@@ -1163,9 +1177,9 @@ public class TypeInference8 {
     	  f_subst = Util.subst(recType, theta);
       }
       if (!mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, receiver)) {
-    	rv.add(new ConstraintFormula(receiver, FormulaConstraint.IS_COMPATIBLE, f_subst));
+    	rv.add(newConstraintFormula(b_3, receiver, FormulaConstraint.IS_COMPATIBLE, f_subst));
       }
-      createAdditionalConstraints(rv, f_subst, receiver, preferredVars);  
+      createAdditionalConstraints(rv, f_subst, receiver, preferredVars, b_3);  
     }
     
     final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.numArgs(),
@@ -1174,12 +1188,27 @@ public class TypeInference8 {
       final IRNode e_i = call.getArgOrNull(i);
       final IJavaType f_subst = Util.subst(formalTypes[i], theta);
       if (!mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
-        rv.add(new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, f_subst));
+        rv.add(newConstraintFormula(b_3, e_i, FormulaConstraint.IS_COMPATIBLE, f_subst));
       }
-      createAdditionalConstraints(rv, f_subst, e_i, preferredVars);
+      createAdditionalConstraints(rv, f_subst, e_i, preferredVars, b_3);
     }
     return rv;
   }
+
+  private ConstraintFormula newConstraintFormula(BoundSet b, IRNode e, FormulaConstraint f, IJavaType t) {
+	if (f == FormulaConstraint.THROWS && !isProperType(t)) {
+	  final String unparse = t.toString();
+	  if (unparse.startsWith("java.util.function.Function<") && unparse.contains("@ Stream.map.R @map((# # item) ->g")) {
+		  //System.out.println("Not proper: "+t);
+		  if (checkForDanglingVars(b, t)) {
+			  System.out.println("Got vars that aren't part of the BoundSet");
+		  }
+	  }
+	}
+	return new ConstraintFormula(e, f, t); 
+  }
+  
+
 
   private boolean receiverBindsToSameGenericMethod(IRNode call, MethodBinding8 m, IRNode receiver) {
 	if (receiver == null || !m.isGeneric()) {
@@ -1217,33 +1246,59 @@ public class TypeInference8 {
    * 
    * @param preferredVars Inference variables to use if possible
    */
-  private void createAdditionalConstraints(Set<ConstraintFormula> c, IJavaType f_subst, IRNode e_i, Set<InferenceVariable> preferredVars) {
+  private void createAdditionalConstraints(Set<ConstraintFormula> c, IJavaType f_subst, IRNode e_i, Set<InferenceVariable> preferredVars, BoundSet origB_3) {
     final Operator op = JJNode.tree.getOperator(e_i);
     if (LambdaExpression.prototype.includes(op)) {
-      c.add(new ConstraintFormula(e_i, FormulaConstraint.THROWS, f_subst));
+      // TODO get rid of inference vars in f_subst?
+      c.add(newConstraintFormula(origB_3, e_i, FormulaConstraint.THROWS, f_subst));
     } else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
-      c.add(new ConstraintFormula(e_i, FormulaConstraint.THROWS, f_subst));
+      c.add(newConstraintFormula(origB_3, e_i, FormulaConstraint.THROWS, f_subst));
     } else if (MethodCall.prototype.includes(op) || NewExpression.prototype.includes(op)) {
       if (mb.isPolyExpression(e_i)) {
         try {
-          Triple<CallState, MethodBinding8, BoundSet> result = computeInvocationBounds((CallInterface) op, e_i, f_subst);
+          Triple<CallState, MethodBinding8, BoundSet> result = computeInvocationBounds((CallInterface) op, e_i, f_subst, true);
           final BoundSet b_3 = result.third();
           // Change to use my preferred variables
           final BoundSet b_3_subst = b_3.substPreferredVars(preferredVars);
-          c.addAll(createInitialConstraints(result.first(), result.second(), b_3_subst));
+          Set<ConstraintFormula> temp = createInitialConstraints(result.first(), result.second(), b_3_subst);
+          checkIfDanglingVars(origB_3, temp);
+          c.addAll(temp);
         } catch (NoArgs e1) {
           throw new IllegalStateException("No arguments for " + DebugUnparser.toString(e_i));
         }
       }
     } else if (ParenExpression.prototype.includes(op)) {
-      createAdditionalConstraints(c, f_subst, ParenExpression.getOp(e_i), preferredVars);
+      createAdditionalConstraints(c, f_subst, ParenExpression.getOp(e_i), preferredVars, origB_3);
     } else if (ConditionalExpression.prototype.includes(op)) {
-      createAdditionalConstraints(c, f_subst, ConditionalExpression.getIftrue(e_i), preferredVars);
-      createAdditionalConstraints(c, f_subst, ConditionalExpression.getIffalse(e_i), preferredVars);
-    }
+      createAdditionalConstraints(c, f_subst, ConditionalExpression.getIftrue(e_i), preferredVars, origB_3);
+      createAdditionalConstraints(c, f_subst, ConditionalExpression.getIffalse(e_i), preferredVars, origB_3);
+    } 
   }
 
-  /**
+  private boolean checkIfDanglingVars(BoundSet b, Set<ConstraintFormula> constraints) {
+	final Set<InferenceVariable> bVars = b.getReferencedVars();
+	for(ConstraintFormula f : constraints) {
+	  if (checkForDanglingVars(bVars, f.type)) {
+		System.out.println("Got dangling type: "+f.type+" for "+b);
+		return true;
+	  }
+	}
+	return false;
+  }
+  
+  private boolean checkForDanglingVars(BoundSet b, IJavaType t) {
+	final Set<InferenceVariable> bVars = b.getReferencedVars();
+	return checkForDanglingVars(bVars, t);
+  }
+  
+  private boolean checkForDanglingVars(Set<InferenceVariable> bVars, IJavaType t) {
+	final List<InferenceVariable> vars = new ArrayList<>();
+	getReferencedInferenceVariables(vars, t);
+	vars.removeAll(bVars);
+	return !vars.isEmpty();
+  }
+  
+/**
    * - While C is not empty, the following process is repeated, starting with
    * the bound set B 3 and accumulating new bounds into a "current" bound set,
    * ultimately producing a new bound set, B 4 :
@@ -3146,6 +3201,23 @@ public class TypeInference8 {
       return subst;
     }
     
+    Set<InferenceVariable> getReferencedVars() {
+    	final Set<InferenceVariable> rv = new HashSet<>();
+    	for(IEquality eq : equalities) {
+    		rv.addAll(eq.vars());
+    	}
+    	for(SubtypeBound b : subtypeBounds) {
+    		if (b.s instanceof InferenceVariable) {
+    			rv.add((InferenceVariable) b.s);
+    		}
+     		if (b.t instanceof InferenceVariable) {
+    			rv.add((InferenceVariable) b.t);
+    		}
+    	}
+    	// TODO
+    	return rv;
+    }
+    
     public boolean couldBeRecursiveType(IJavaType t) {
     	RecursiveTypeChecker v = new RecursiveTypeChecker();
     	t.visit(v);
@@ -3182,9 +3254,14 @@ public class TypeInference8 {
       // variableMap.putAll(newMappings);
     }
 
-    void addFalse() {
+    void addFalse(String... args) {
       if (debug) {
-    	  System.out.println("FALSE: "+this);
+    	  if (args.length > 0) {
+    		  System.out.printf("addFALSE %s: "+this, args[0]);
+    	  } else {
+    		  System.out.println("addFALSE: "+this);
+    	  }
+    	  new Throwable().printStackTrace(System.err);
       }
       isFalse = true;
     }
@@ -4045,6 +4122,10 @@ public class TypeInference8 {
     boolean usedUncheckedConversion() {
       return usedUncheckedConversion;
     }
+
+	int getNumSubtypeBounds() {
+	  return subtypeBounds.size();
+	}
   }
 
   @SuppressWarnings("unchecked")
@@ -4060,7 +4141,7 @@ public class TypeInference8 {
       // IJavaType lub = utils.getLowestUpperBound(v.getLowerBound(),
       // v.getUpperBound(tEnv));
     }
-    if (t instanceof IJavaDeclaredType) {
+    else if (t instanceof IJavaDeclaredType) {
       final IJavaDeclaredType dt = (IJavaDeclaredType) t;
       final int num = dt.getTypeParameters().size();
       if (num == 0) {
@@ -4075,7 +4156,27 @@ public class TypeInference8 {
       }
       return (T) JavaTypeFactory.getDeclaredType(dt.getDeclaration(), params, dt.getOuterType());
     }
-    // TODO how do I do this?
+    else if (t instanceof IJavaIntersectionType) {
+      IJavaIntersectionType i = (IJavaIntersectionType) t;
+      IJavaReferenceType b1 = eliminateTypeVariables(utils, i.getPrimarySupertype());
+      IJavaReferenceType b2 = eliminateTypeVariables(utils, i.getSecondarySupertype());
+      if (b1 == b2) {
+    	return (T) b1;
+      }
+      return (T) JavaTypeFactory.getIntersectionType(b1, b2);
+    }
+    else if (t instanceof IJavaWildcardType) {
+    	IJavaWildcardType w = (IJavaWildcardType) t;
+        IJavaReferenceType lower = eliminateTypeVariables(utils, w.getLowerBound());
+        IJavaReferenceType upper = eliminateTypeVariables(utils, w.getUpperBound());
+        return (T) JavaTypeFactory.getWildcardType(upper, lower);
+      }
+    else if (t instanceof IJavaArrayType) {
+      IJavaArrayType a = (IJavaArrayType) t;
+      IJavaType b = eliminateTypeVariables(utils, a.getBaseType());
+      return (T) JavaTypeFactory.getArrayType(b, a.getDimensions());
+    }
+    // TODO how do I do this?    
     return t;
   }
   
@@ -4636,7 +4737,11 @@ public class TypeInference8 {
     }
   }
 
-  private Triple<CallState, MethodBinding8, BoundSet> computeInvocationBounds(CallInterface c, final IRNode e, final IJavaType t)
+  private Triple<CallState, MethodBinding8, BoundSet> computeInvocationBounds(CallInterface c, final IRNode e, final IJavaType t) throws NoArgs {
+	return computeInvocationBounds(c, e, t, false);
+  }
+  
+  private Triple<CallState, MethodBinding8, BoundSet> computeInvocationBounds(CallInterface c, final IRNode e, final IJavaType t, boolean debug) 
       throws NoArgs {
     // Need to restore the binding to how it looked before I added the type
     // substitution for the method's parameters
@@ -4644,6 +4749,16 @@ public class TypeInference8 {
     final CallState call = CallState.create(tEnv.getBinder(), e, b);
     Pair<MethodBinding, BoundSet> pair = recomputeB_2(call, b);
     MethodBinding m = pair.first();
+    if (debug) {
+    	final String unparse = b.bind.toString();
+    	if (pair.second().getNumSubtypeBounds() == 1 &&
+    	    unparse.equals("abstract public binary <R extends java.lang.Object> java.util.stream.Stream <R> map(java.util.function.Function <#, #> arg0) <compiled>;") &&
+    	    b.toString().contains("stream.map((# # item)")) {
+    	  // obj.getAddedBoxedCharValues.stream.map((# # item) -> #.toString(#))
+    	  //System.out.println("What's going on?");
+    	  recomputeB_2(call, b);
+    	} 
+    }
     IJavaType r = m.getReturnType(tEnv, m.mkind == Kind.CONSTRUCTOR);// true); // TODO why
                                                          // no subst?
     BoundSet b_3 = computeB_3(call, r, pair.second(), t);
@@ -5191,7 +5306,9 @@ public class TypeInference8 {
     	  //bounds.useUncheckedConversion();
       } else {
     	  //System.out.println("F check");
-    	  tEnv.isSubType(s, t);
+    	  if (bounds.debug) {
+    		  tEnv.isSubType(s, t);
+    	  }
     	  bounds.addFalse();
       }
     } else if (s instanceof IJavaNullType) {
@@ -5616,7 +5733,7 @@ public class TypeInference8 {
      * proper type, the constraint reduces to false.
      */
     if (!(targetFuncType.getReturnType() instanceof IJavaVoidType) && !isProperType(targetFuncType.getReturnType())) {
-      bounds.addFalse();
+      bounds.addFalse("Bad target func type - "+targetFuncType);
       return;
     }
     /*
@@ -5714,8 +5831,11 @@ public class TypeInference8 {
     }
     final JavaCanonicalizer.IBinderCache old = ujb.setBinderCache(new LambdaCache(tEnv, bounds, lambda, t, targetFuncType));
     try {
-      final ExceptionCollector c = new ExceptionCollector(ujb);
+      final ExceptionCollector c = new ExceptionCollector(ujb);      
       return c.doAccept(LambdaExpression.getBody(lambda));
+    } catch(StackOverflowError e) {
+      System.out.println(t);
+      throw e;
     } finally {
       ujb.setBinderCache(old);
     }
@@ -5806,7 +5926,13 @@ public class TypeInference8 {
 
     Set<IJavaType> collectForCall(IRNode call, IRNode receiver, IRNode args, IRNode targs) {
       // TODO can't bind? (causes cycle)
+      /*
+      final Thread currentT = Thread.currentThread();
+      final String unparse = DebugUnparser.toString(call);
+      System.out.println(currentT.getName()+" collectForCall: "+unparse);
+      */
       final MethodBinding8 b = (MethodBinding8) binder.getIBinding(call);
+      //System.out.println(currentT.getName()+" done with collectForCall: "+unparse);
       final CallState state = CallState.create(binder, call, targs, args, binder.getJavaType(receiver));
       final IJavaFunctionType itype = mb.computeInvocationType(state, b, false);
       return itype.getExceptions();
