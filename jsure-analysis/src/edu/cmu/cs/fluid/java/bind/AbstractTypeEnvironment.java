@@ -1071,6 +1071,10 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
                                            findJavaTypeByName("java.lang.Cloneable"),
                                            findJavaTypeByName("java.io.Serializable"));      
     }
+    else if (ty instanceof IJavaUnionType) {
+      IJavaUnionType u = (IJavaUnionType) ty;
+      return new SingletonIterator<IJavaType>(u.getSuperclass(this));
+    }
     if (!(ty instanceof IJavaDeclaredType)) {
       // TODO not right for null type
       return new EmptyIterator<IJavaType>();
@@ -1330,7 +1334,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 			// JLS 4.10.2 -- A type variable is a direct supertype of its lower bound
 			final IJavaTypeVariable ct = (IJavaTypeVariable) t;
 			final IJavaReferenceType lower = ct.getLowerBound();
-			if (lower == JavaTypeFactory.nullType/* || lower == null*/) {
+			if (lower == JavaTypeFactory.nullType || lower == null) {
 				result = isSubType(s, ct.getUpperBound(this), ignoreGenerics);
 			} else {
 				result = /*isSubType(s, ct.getUpperBound()) &&*/ isSubType(s, lower);
@@ -1387,7 +1391,13 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		// now we do the easy, and slow, thing:
 		for (Iterator<IJavaType> it = s.getSupertypes(this); it.hasNext(); ) {
 			IJavaType supertype = it.next();
-			if (isSubType(supertype,t,ignoreGenerics)) return result = true;
+			final boolean temp;
+			if (ignoreGenerics) {
+				temp = isSubType(supertype,t,ignoreGenerics);
+			} else {
+				temp = supertype.isSubtype(this, t);
+			}
+			if (temp) return result = true;
 		}
 		return result = false;
 	} finally {
@@ -1569,7 +1579,19 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
       if (tw.getUpperBound() != null) {
         return isSubType(ss,tw.getUpperBound(), ignoreGenerics); // (4)
       } else if (tw.getLowerBound() != null) {        
-        return isSubType(tw.getLowerBound(),ss, ignoreGenerics); // (5)
+    	try {
+    	  if (false && tt.toString().contains("[io.vertx.core.cli.converters.ConvertersTest.HttpMethod, io.vertx.core.cli.converters.ConvertersTest.HttpMethod & java.lang.Comparable<? super &")) {
+    		  System.out.println("Problematic typeArgumentContained?");
+    	  }
+    	  if (ignoreGenerics) {
+    		return isSubType(tw.getLowerBound(),ss, ignoreGenerics); // (5)
+    	  } else {
+    		return tw.getLowerBound().isSubtype(this, ss);
+    	  }
+    	} catch(StackOverflowError e) {
+    	  System.out.println("typeArgumentContained: "+ss+" "+tt+" "+ignoreGenerics);
+    	  throw e;
+    	}
       } else {
         // return (ss instanceof IJavaReferenceType); 
         // Anything matches ?
