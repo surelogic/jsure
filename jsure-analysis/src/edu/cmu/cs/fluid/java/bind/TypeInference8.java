@@ -4135,11 +4135,19 @@ public class TypeInference8 {
     }
     if (t instanceof TypeVariable) {
       TypeVariable v = (TypeVariable) t;
-      IJavaReferenceType lb = eliminateTypeVariables(utils, v.getLowerBound());
-      IJavaReferenceType ub = eliminateTypeVariables(utils, v.getUpperBound(utils.getTypeEnv()));
-      return (T) utils.getGreatestLowerBound(lb, ub);
-      // IJavaType lub = utils.getLowestUpperBound(v.getLowerBound(),
-      // v.getUpperBound(tEnv));
+      try {
+        if (v.previouslyVisited) {
+          return t;
+        }
+        v.previouslyVisited = true;
+        IJavaReferenceType lb = eliminateTypeVariables(utils, v.getLowerBound());
+        IJavaReferenceType ub = eliminateTypeVariables(utils, v.getUpperBound(utils.getTypeEnv()));
+        return (T) utils.getGreatestLowerBound(lb, ub);
+        // IJavaType lub = utils.getLowestUpperBound(v.getLowerBound(),
+        // v.getUpperBound(tEnv));
+      } finally {
+    	v.previouslyVisited = false;
+      }
     }
     else if (t instanceof IJavaDeclaredType) {
       final IJavaDeclaredType dt = (IJavaDeclaredType) t;
@@ -4170,7 +4178,7 @@ public class TypeInference8 {
         IJavaReferenceType lower = eliminateTypeVariables(utils, w.getLowerBound());
         IJavaReferenceType upper = eliminateTypeVariables(utils, w.getUpperBound());
         return (T) JavaTypeFactory.getWildcardType(upper, lower);
-      }
+    }
     else if (t instanceof IJavaArrayType) {
       IJavaArrayType a = (IJavaArrayType) t;
       IJavaType b = eliminateTypeVariables(utils, a.getBaseType());
