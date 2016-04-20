@@ -1880,9 +1880,22 @@ public class MethodBinder8 implements IMethodBinder {
     	}
     	
     	static MethodBinding8 create(MethodBinder8 mb, ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		final boolean debug = false && c.toString().equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)");
+    		final String unparse = null;//c.toString();
+        	final boolean debug = unparse != null && 
+        			b.getNumSubtypeBounds() == 1 &&
+        			(unparse.equals("obj.getAddedBoxedShortValues.stream.map((# # item) -> item)") ||
+        			 unparse.equals("obj.getAddedBoxedIntValues.stream.map((# # item) -> item)") ||
+        			 unparse.equals("obj.getIsolatedClasses.stream.map((# # item) -> item)") ||
+         			 unparse.equals("obj.getJsonObjects.stream.map((# # item) -> item)") ||
+         			 unparse.equals("obj.getCertValues.stream.map((# # item) -> #.getBytes)") ||       
+         			 unparse.equals("obj.getExtraClasspath.stream.map((# # item) -> item)") ||
+        			 unparse.equals("systemProperties.stream.map((# # s) -> \"-D\" + #)")) &&
+            	    m.bind.toString().equals("abstract public binary <R extends java.lang.Object> java.util.stream.Stream <R> map(java.util.function.Function <#, #> arg0) <compiled>;");
+        	//final boolean debug = false && c.toString().equals("crlPaths.stream.map((#) -> #.getAbsolutePath#).map(#.fileSystem:: <> readFileBlocking)");
     		if (debug) {		
-    			System.out.println("Creating boundset: "+b);
+    			//Throwable t = new Throwable();
+    			System.out.println("Creating boundset for "+Thread.currentThread().getName()+" "+c+": "+b);
+    			//t.printStackTrace(System.out);
     		}
     		IBinding newB;
     		/*
