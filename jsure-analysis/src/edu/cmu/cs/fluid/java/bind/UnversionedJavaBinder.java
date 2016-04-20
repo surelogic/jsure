@@ -28,6 +28,7 @@ import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8WithBoundSet;
 import edu.cmu.cs.fluid.java.operator.DemandName;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
@@ -512,7 +513,39 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 
 	@Override
 	public void setUseForDecl(IRNode use, IBinding decl) {
-		useToDeclAttr.put(use, decl);
+		IBinding old = useToDeclAttr.put(use, decl);
+		/*
+		//if (old != null && !old.equals(decl)) {
+		if (old instanceof MethodBinding8WithBoundSet && decl instanceof MethodBinding8WithBoundSet) {
+			MethodBinding8WithBoundSet o = (MethodBinding8WithBoundSet) old;
+			MethodBinding8WithBoundSet n = (MethodBinding8WithBoundSet) decl;
+			if (!n.bounds.equals(o.bounds)) {
+				final String unparse = DebugUnparser.toString(use);
+				System.err.println("Binding already set for "+unparse+": "+o.bind+" became "+n.bind+" for "+DebugUnparser.toString(unit));
+				if (unparse.equals("obj.getAddedBoxedShortValues.stream.map((# # item) -> item)") ||
+					unparse.equals("obj.getAddedBoxedIntValues.stream.map((# # item) -> item)") ||						
+           			unparse.equals("obj.getIsolatedClasses.stream.map((# # item) -> item)") ||
+            		unparse.equals("obj.getJsonObjects.stream.map((# # item) -> item)") ||
+            		unparse.equals("obj.getCertValues.stream.map((# # item) -> #.getBytes)") ||        	
+            		unparse.equals("obj.getExtraClasspath.stream.map((# # item) -> item)") ||
+           			unparse.equals("systemProperties.stream.map((# # s) -> \"-D\" + #)")) {
+					System.out.println();
+				}
+			}			
+		} else {
+			final String unparse = DebugUnparser.toString(use);
+			if (unparse.equals("obj.getAddedBoxedShortValues.stream.map((# # item) -> item)") ||
+       			unparse.equals("obj.getAddedBoxedIntValues.stream.map((# # item) -> item)") ||
+       			unparse.equals("obj.getIsolatedClasses.stream.map((# # item) -> item)") ||
+        		unparse.equals("obj.getJsonObjects.stream.map((# # item) -> item)") ||
+        		unparse.equals("obj.getCertValues.stream.map((# # item) -> #.getBytes)") ||        					     					
+        		unparse.equals("obj.getExtraClasspath.stream.map((# # item) -> item)") ||
+       			unparse.equals("systemProperties.stream.map((# # s) -> \"-D\" + #)")) {
+				new Throwable("Binding set for "+unparse+": "+(hasFullInfo ? "full" : "partial")+" for "+DebugUnparser.toString(unit)).printStackTrace(System.err);
+				
+			}			
+		}
+		*/
 	}
 
 	@Override
