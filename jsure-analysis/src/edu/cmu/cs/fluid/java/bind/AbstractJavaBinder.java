@@ -2166,6 +2166,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       visit(node); // bind the arguments etc
       if (!isFullPass || pathToTarget != null)
         return null;
+      
+      // To avoid changing the results due to recomputation
+      // (e.g. InferenceVariables)
+      if (bindings.bindingExists(node)) {    	 
+    	return null;
+      }
+      
       MethodCall call = (MethodCall) getOperator(node);
       IRNode receiver = call.get_Object(node);
       IRNode args = call.get_Args(node);
