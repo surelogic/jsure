@@ -2,7 +2,7 @@
 public operator OuterObjectSpecifier extends PrimaryExpression
 {
   syntax {
-    <?> object:PrimaryExpression "." </?> call:PrimaryExpression
+    <?> object:Expression "." </?> call:PrimaryExpression
   }
  
   @Override public Component createComponent(IRNode node) {
