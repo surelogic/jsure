@@ -45,6 +45,19 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 	  return false;
   }
   
+  public static IJavaTypeSubstitution createSubst(final ITypeEnvironment tEnv, final IJavaReferenceType jt) {
+	  if (jt instanceof IJavaDeclaredType) {
+		  return create(tEnv, (IJavaDeclaredType) jt);
+	  }
+	  else if (jt instanceof IJavaIntersectionType) {
+		  IJavaIntersectionType it = (IJavaIntersectionType) jt;
+		  IJavaTypeSubstitution first = createSubst(tEnv, it.getPrimarySupertype());
+		  IJavaTypeSubstitution second = createSubst(tEnv, it.getSecondarySupertype());
+		  return first != null ? first.combine(second) : second;
+	  }
+	  throw new IllegalStateException("Unexpected type: "+jt);
+  }
+  
   public static IJavaTypeSubstitution create(final ITypeEnvironment tEnv, final IJavaDeclaredType jt) {
 	  if (!hasSubst(tEnv, jt)) {
 		  // To prevent NPEs later

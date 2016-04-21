@@ -422,6 +422,20 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     return JavaTypeFactory.getMyThisType( node, true, true );
   }
   
+  @Override
+  public IJavaType visitIntersectionType(IRNode node) {
+	IJavaReferenceType result = null;
+	for(IRNode t : IntersectionType.getTypeIterator(node)) {
+		if (result == null) {
+		  result = (IJavaReferenceType) doAccept(t);
+		} else {
+		  IJavaReferenceType temp = (IJavaReferenceType) doAccept(t);
+		  result = JavaTypeFactory.getIntersectionType(result, temp);
+		}
+	}
+	return result;
+  }
+  
   /**
    *  From 15.27.3 Type of a Lambda Expression
    *  
@@ -829,8 +843,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 		final Operator op = JJNode.tree.getOperator(node);
 		if (LambdaExpression.prototype.includes(op)) {
 			// Match up the param with the method in the interface
-			IJavaDeclaredType targetType = (IJavaDeclaredType) visitLambdaExpression(node);
-	    	IJavaTypeSubstitution subst = JavaTypeSubstitution.create(binder.getTypeEnvironment(), targetType);
+			IJavaReferenceType targetType = (IJavaReferenceType) visitLambdaExpression(node);
+	    	IJavaTypeSubstitution subst = JavaTypeSubstitution.createSubst(binder.getTypeEnvironment(), targetType);
 	    	IJavaFunctionType ftype = binder.getTypeEnvironment().isFunctionalType(targetType);
 	    	if (ftype == null) {
 	    	  binder.getTypeEnvironment().isFunctionalType(targetType);
