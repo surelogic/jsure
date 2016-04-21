@@ -465,6 +465,8 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     case SUPER_WILDCARD:
     case UNBOUNDED_WILDCARD:
       return visitWildcard((WildcardTree) t, context);
+    case INTERSECTION_TYPE:
+      return visitIntersectionType((IntersectionTypeTree) t, context);
     case UNION_TYPE:
       return visitUnionType((UnionTypeTree) t, context);
     case ANNOTATED_TYPE:
@@ -605,19 +607,31 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     if (t == null) {
       return null;
     }
-    IRNode rv;
+    IRNode rv, temp;
     switch (t.getKind()) {
     case IDENTIFIER:
     case MEMBER_SELECT:
-      IRNode name = acceptNode(t, context);
-      if (edu.cmu.cs.fluid.java.operator.Name.prototype.includes(name)) {
-        rv = createType ? NameType.createNode(name) : NameExpression.createNode(name);
+      temp = acceptNode(t, context);
+      final Operator op = JJNode.tree.getOperator(temp);
+      if (edu.cmu.cs.fluid.java.operator.Name.prototype.includes(op)) {
+        rv = createType ? NameType.createNode(temp) : NameExpression.createNode(temp);
       } else {
-        rv = name;
+        rv = temp;
       }
       break;
     default:
-      rv = acceptNode(t, context);
+      temp = acceptNode(t, context);
+      
+      final Operator rop = JJNode.tree.getOperator(temp);
+      if (Type.prototype.includes(rop) && !Expression.prototype.includes(rop)) {
+      	rv = createType ? temp : 
+      		TypeExpression.createNode(temp);
+      } else {
+    	rv = temp;
+      }
+    }
+    if (rv != temp) {
+      addJavaRefAndCheckForJavadocAnnotations(t, temp);
     }
     addJavaRefAndCheckForJavadocAnnotations(t, rv);
     return rv;
@@ -1801,8 +1815,17 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     return edu.cmu.cs.fluid.java.operator.AnnotatedType.createNode(annos, type);
   }
   
-  public IRNode visitIntersectionType(IntersectionTypeTree arg0, CodeContext arg1) {
-	throw new UnsupportedOperationException();
+  public IRNode visitIntersectionType(IntersectionTypeTree it, CodeContext c) {	
+	final List<? extends Tree> list = it.getBounds();
+	IRNode[] types = new IRNode[list.size()];
+	int i = 0;
+	for (Tree t : list) {
+	  types[i] = adaptType(t, c);
+	  i++;
+	}
+	IRNode rv = IntersectionType.createNode(types);
+	addJavaRefAndCheckForJavadocAnnotations(it, rv);
+	return rv;
   }
   
   public IRNode visitLambdaExpression(LambdaExpressionTree arg0, CodeContext c) {
