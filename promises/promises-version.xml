@@ -1,4 +1,4 @@
 <!-- defines the promises version -->
 <project name="promises-version">
-	<property name="promises-version" value="5.6.0" />
+	<property name="promises-version" value="6.0.0" />
 </project>

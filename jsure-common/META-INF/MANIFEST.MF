@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JSure Common Code
 Bundle-SymbolicName: com.surelogic.jsure.common
-Bundle-Version: 5.7.1.qualifier
+Bundle-Version: 6.0.0.qualifier
 Bundle-Vendor: SureLogic, Inc.
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: com.surelogic.common
