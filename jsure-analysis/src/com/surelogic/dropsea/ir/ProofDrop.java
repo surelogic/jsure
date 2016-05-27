@@ -225,7 +225,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
 
   /**
    * Called by {@link Sea#updateConsistencyProof()} to allow this proof drop to
-   * initialize its state for running the the reverse flow analysis used by that
+   * initialize its state for running the reverse flow analysis used by that
    * method to calculate promise consistency.
    */
   @RequiresLock("SeaLock")
